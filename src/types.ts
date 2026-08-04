@@ -1,0 +1,74 @@
+export type UrunTuru =
+  | 'konut_finansmani'
+  | 'tasit_finansmani'
+  | 'ihtiyac_finansmani'
+  | 'kart'
+  | 'katilim_fonu'
+  | 'yatirim'
+  | 'alisveris_puani'
+  | 'diger';
+
+export type MusteriSegmenti =
+  | 'yeni_musteri'
+  | 'mevcut_musteri'
+  | 'kurumsal'
+  | 'kobi'
+  | 'genc'
+  | 'emekli'
+  | 'tumu';
+
+export type KarPayiPeriyot = 'aylik' | 'yillik' | 'belirsiz';
+
+export type TahsisUcretiTipi = 'sabit' | 'oransal' | 'yok' | 'belirsiz';
+
+export interface TermDetail<T = number | null> {
+  ham: string | null;
+  deger?: T | null;
+  min?: number | null;
+  max?: number | null;
+  periyot?: KarPayiPeriyot | null;
+  tipi?: TahsisUcretiTipi | string | null;
+  para_birimi?: 'TRY' | 'USD' | 'EUR' | 'XAU' | string | null;
+  guven: number;
+}
+
+export interface KatilimUrunuTerimleri {
+  kar_payi_orani: TermDetail<number>;
+  vade_ay: TermDetail<null>;
+  tahsis_ucreti: TermDetail<number>;
+  tutar: TermDetail<null>;
+  taksit_sayisi: TermDetail<number>;
+  odul: TermDetail<number>;
+}
+
+export interface KatilimUrunu {
+  urun_adi: string | null;
+  urun_turu: UrunTuru;
+  musteri_segmenti: MusteriSegmenti[];
+  kampanya_baslangic: string | null;
+  kampanya_bitis: string | null;
+  terimler: KatilimUrunuTerimleri;
+  kanitlar: Record<string, string>;
+  terim_esleme_uygulandi: boolean;
+  ortalama_guven: number;
+  manuel_dogrulama_gerekli: boolean;
+  notlar: string | null;
+}
+
+export interface ExtractionResponse {
+  urunler: KatilimUrunu[];
+  meta?: {
+    duration_ms?: number;
+    extracted_at?: string;
+    conventional_terms_detected?: string[];
+  };
+}
+
+export interface SampleBankText {
+  id: string;
+  bankName: string;
+  title: string;
+  category: string;
+  text: string;
+  badge: string;
+}

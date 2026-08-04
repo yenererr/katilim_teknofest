@@ -1,0 +1,6 @@
+{
+  "name": "Katılım Bankacılığı Bilgi Çıkarım Ajanı",
+  "description": "Türkiye'deki katılım bankalarının ham metinlerinden yapılandırılmış JSON verisi, terminoloji dönüşümü ve kanıt alıntıları çıkartan uzman ajanı.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
