@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+
+<html class="light" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Katılım360 AI - Genel Bakış</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-container": "#98805d",
+                        "on-tertiary-fixed": "#271901",
+                        "surface-container-low": "#f6f3f5",
+                        "secondary-fixed-dim": "#bcc7de",
+                        "error-container": "#ffdad6",
+                        "background": "#fcf8fa",
+                        "on-tertiary-fixed-variant": "#574425",
+                        "tertiary-fixed-dim": "#dec29a",
+                        "tertiary": "#000000",
+                        "surface": "#fcf8fa",
+                        "tertiary-container": "#271901",
+                        "surface-bright": "#fcf8fa",
+                        "primary-fixed-dim": "#bec6e0",
+                        "inverse-on-surface": "#f3f0f2",
+                        "surface-container-high": "#eae7e9",
+                        "surface-variant": "#e4e2e4",
+                        "inverse-surface": "#303032",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#45464d",
+                        "on-background": "#1b1b1d",
+                        "on-secondary-container": "#586377",
+                        "surface-container": "#f0edef",
+                        "on-error": "#ffffff",
+                        "secondary": "#545f73",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#131b2e",
+                        "on-secondary-fixed": "#111c2d",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "surface-dim": "#dcd9db",
+                        "outline": "#76777d",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed": "#dae2fd",
+                        "inverse-primary": "#bec6e0",
+                        "primary-container": "#131b2e",
+                        "tertiary-fixed": "#fcdeb5",
+                        "on-surface": "#1b1b1d",
+                        "on-error-container": "#93000a",
+                        "secondary-container": "#d5e0f8",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#e4e2e4",
+                        "primary": "#000000",
+                        "secondary-fixed": "#d8e3fb",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-primary-container": "#7c839b",
+                        "surface-tint": "#565e74",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c6c6cd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-margin": "24px",
+                        "unit": "8px",
+                        "stack-md": "16px",
+                        "gutter": "16px",
+                        "stack-sm": "8px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "h1-mobile": ["Plus Jakarta Sans"],
+                        "body-base": ["Inter"],
+                        "h2": ["Plus Jakarta Sans"],
+                        "h3": ["Plus Jakarta Sans"],
+                        "label-md": ["Inter"],
+                        "h1": ["Plus Jakarta Sans"],
+                        "body-sm": ["Inter"],
+                        "caption": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-base": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h3": ["18px", { "lineHeight": "28px", "letterSpacing": "0em", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "caption": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ai-gradient-border {
+            position: relative;
+        }
+        .ai-gradient-border::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 2px;
+            background: linear-gradient(135deg, #000000, #0D9488);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-base antialiased flex h-screen overflow-hidden">
+<!-- SideNavBar -->
+<aside class="w-[260px] h-full fixed left-0 top-0 border-r border-outline-variant dark:border-outline bg-surface dark:bg-surface-container-lowest flex flex-col z-50">
+<div class="p-gutter flex items-center gap-3 border-b border-outline-variant">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-bold font-h3">
+                K
+            </div>
+<div>
+<h1 class="font-h2 text-h2 font-bold text-primary dark:text-primary-fixed">Katılım360 AI</h1>
+<p class="font-caption text-caption text-on-surface-variant">Katılım Bankacılığı Zekası</p>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto py-stack-md px-stack-sm flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary-container text-on-primary-container font-semibold transition-transform scale-[0.98]" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Genel Bakış</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance">account_balance</span>
+<span class="font-label-md text-label-md">Bankalar</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+<span class="font-label-md text-label-md">Kategoriler</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="campaign">campaign</span>
+<span class="font-label-md text-label-md">Kampanyalar</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="compare_arrows">compare_arrows</span>
+<span class="font-label-md text-label-md">Karşılaştırma</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="font-label-md text-label-md">AI Finansal Asistan</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span class="font-label-md text-label-md">Raporlar</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="database">database</span>
+<span class="font-label-md text-label-md">Veri Kaynakları</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+<span class="font-label-md text-label-md">Sistem Durumu</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Ayarlar</span>
+</a>
+</nav>
+<div class="p-stack-sm border-t border-outline-variant">
+<button class="w-full py-2 px-4 rounded-lg bg-[#0D9488] text-white font-label-md text-label-md font-medium hover:bg-opacity-90 transition-colors flex items-center justify-center gap-2 mb-2">
+<span class="material-symbols-outlined text-sm">psychology</span> Insight Oluştur
+            </button>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md text-label-md">Yardım Merkezi</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Çıkış Yap</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="flex-1 ml-[260px] flex flex-col h-full bg-background overflow-hidden">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center h-16 px-gutter bg-surface/80 backdrop-blur-md dark:bg-surface-container/80 sticky top-0 w-full z-40 border-b border-outline-variant dark:border-outline">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-64 group focus-within:ring-2 focus-within:ring-primary/20 rounded-lg">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-sm text-body-sm focus:outline-none focus:border-[#0D9488] focus:ring-1 focus:ring-[#0D9488]" placeholder="Banka, kampanya veya kategori ara..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4 hidden lg:flex">
+<span class="font-label-md text-label-md text-on-secondary-container dark:text-on-secondary-fixed-variant hover:text-primary dark:hover:text-primary-fixed transition-colors">Veri Güncelliği: %100</span>
+<span class="font-label-md text-label-md text-on-secondary-container dark:text-on-secondary-fixed-variant hover:text-primary dark:hover:text-primary-fixed transition-colors">Son güncelleme: 4 Ağustos 2026, 18:42</span>
+</div>
+<div class="flex items-center gap-2 border-l border-outline-variant pl-4">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="sync">sync</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-error"></span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+</div>
+<div class="flex items-center gap-3 border-l border-outline-variant pl-4">
+<button class="px-4 py-2 rounded-lg border border-primary text-primary font-label-md text-label-md font-medium hover:bg-surface-container-low transition-colors hidden sm:block">Rapor İndir</button>
+<button class="px-4 py-2 rounded-lg bg-[#0D9488] text-white font-label-md text-label-md font-medium hover:bg-opacity-90 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">auto_awesome</span> AI Analizi
+                    </button>
+<img alt="Kullanıcı Profili" class="w-8 h-8 rounded-full object-cover ml-2 border border-outline-variant" data-alt="A professional headshot of a corporate banking executive, warm lighting, high quality, modern fintech office background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8u5IQJNgmAOyHVH1N0uh9nJTGuebdyVRMfh4aaFM-532QQWCAvqFW9ua7HH716POkvXjt5NzdcvTTi7XTFTC_VbRwZhXC6U8TJ2XVmclMKf2hWCLqOrk7asVlaViukvONdFiWX6RBbMYEi_IT9-8k2F9AjfukiRDZ6vwx9-ljpv-JuISO6CzilD1DdAbFg_-G1hidDaawtAt_a4GzLLcNax6W-mcxZucrNBWSr-r2G9YIOswfjhNq"/>
+</div>
+</div>
+</header>
+<!-- Scrollable Canvas -->
+<div class="flex-1 overflow-y-auto p-container-margin">
+<div class="mb-stack-lg">
+<h2 class="font-h1 text-h1 font-bold text-primary mb-2">Genel Bakış</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">Katılım bankacılığı ekosistemindeki güncel kampanya ve veri özetleri.</p>
+</div>
+<!-- Tab Navigation -->
+<div class="flex border-b border-outline-variant mb-stack-lg">
+<button class="px-4 py-3 font-label-md text-label-md text-primary font-bold border-b-2 border-primary">Bankaya Göre İncele</button>
+<button class="px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">Kategoriye Göre İncele</button>
+</div>
+<!-- Bank Selector (Horizontal Scroll) -->
+<div class="flex gap-3 overflow-x-auto pb-4 mb-stack-lg no-scrollbar">
+<button class="flex-shrink-0 px-4 py-2 rounded-full border border-primary bg-primary text-on-primary font-label-md text-label-md">Tümü (9)</button>
+<button class="flex-shrink-0 px-4 py-2 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md">Kuveyt Türk</button>
+<button class="flex-shrink-0 px-4 py-2 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md">Albaraka Türk</button>
+<button class="flex-shrink-0 px-4 py-2 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md">Türkiye Finans</button>
+<button class="flex-shrink-0 px-4 py-2 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md">Vakıf Katılım</button>
+<button class="flex-shrink-0 px-4 py-2 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md">Ziraat Katılım</button>
+<button class="flex-shrink-0 px-4 py-2 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md">Emlak Katılım</button>
+</div>
+<!-- Top KPI Cards -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-stack-lg">
+<div class="bg-surface-container-lowest border border-outline-variant p-4 rounded-xl flex flex-col justify-between h-24 hover:shadow-md transition-shadow">
+<span class="font-caption text-caption text-on-surface-variant uppercase tracking-wider">Toplam Aktif</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 font-bold text-primary">248</span>
+<span class="material-symbols-outlined text-[#0D9488]">trending_up</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-4 rounded-xl flex flex-col justify-between h-24 hover:shadow-md transition-shadow">
+<span class="font-caption text-caption text-on-surface-variant uppercase tracking-wider">İzlenen Banka</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 font-bold text-primary">9</span>
+<span class="material-symbols-outlined text-secondary">account_balance</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-4 rounded-xl flex flex-col justify-between h-24 hover:shadow-md transition-shadow">
+<span class="font-caption text-caption text-on-surface-variant uppercase tracking-wider">Bu Hafta Eklenen</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 font-bold text-primary">17</span>
+<span class="material-symbols-outlined text-[#0D9488]">add_circle</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-4 rounded-xl flex flex-col justify-between h-24 hover:shadow-md transition-shadow">
+<span class="font-caption text-caption text-on-surface-variant uppercase tracking-wider">Yakında Biten</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 font-bold text-error">12</span>
+<span class="material-symbols-outlined text-error">warning</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-4 rounded-xl flex flex-col justify-between h-24 hover:shadow-md transition-shadow">
+<span class="font-caption text-caption text-on-surface-variant uppercase tracking-wider">Eksik Bilgi</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 font-bold text-on-tertiary-container">8</span>
+<span class="material-symbols-outlined text-on-tertiary-container">error</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-4 rounded-xl flex flex-col justify-between h-24 hover:shadow-md transition-shadow">
+<span class="font-caption text-caption text-on-surface-variant uppercase tracking-wider">Veri Güncelliği</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 font-bold text-[#0D9488]">%100</span>
+<span class="material-symbols-outlined text-[#0D9488]">check_circle</span>
+</div>
+</div>
+</div>
+<!-- Main Body Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-stack-md">
+<!-- Left Column (Wide) -->
+<div class="lg:col-span-2 flex flex-col gap-stack-md">
+<!-- Kampanya Dağılımı -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col">
+<div class="p-4 border-b border-outline-variant flex justify-between items-center">
+<h3 class="font-h3 text-h3 font-semibold text-primary">Kategoriye Göre Dağılım</h3>
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="p-4 h-64 flex flex-col gap-3 justify-center">
+<!-- Horizontal Bar Chart Mock -->
+<div class="flex items-center gap-3">
+<span class="w-24 font-body-sm text-body-sm text-on-surface-variant text-right">Kart</span>
+<div class="flex-1 bg-surface-container-low h-4 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 35%"></div>
+</div>
+<span class="w-12 font-label-md text-label-md text-primary font-medium text-right">86</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-24 font-body-sm text-body-sm text-on-surface-variant text-right">Konut</span>
+<div class="flex-1 bg-surface-container-low h-4 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 25%"></div>
+</div>
+<span class="w-12 font-label-md text-label-md text-primary font-medium text-right">62</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-24 font-body-sm text-body-sm text-on-surface-variant text-right">Taşıt</span>
+<div class="flex-1 bg-surface-container-low h-4 rounded-full overflow-hidden">
+<div class="bg-[#0D9488] h-full rounded-full" style="width: 18%"></div>
+</div>
+<span class="w-12 font-label-md text-label-md text-primary font-medium text-right">45</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-24 font-body-sm text-body-sm text-on-surface-variant text-right">İhtiyaç</span>
+<div class="flex-1 bg-surface-container-low h-4 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 12%"></div>
+</div>
+<span class="w-12 font-label-md text-label-md text-primary font-medium text-right">30</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-24 font-body-sm text-body-sm text-on-surface-variant text-right">Yatırım</span>
+<div class="flex-1 bg-surface-container-low h-4 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 6%"></div>
+</div>
+<span class="w-12 font-label-md text-label-md text-primary font-medium text-right">15</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-24 font-body-sm text-body-sm text-on-surface-variant text-right">Yeni Müşteri</span>
+<div class="flex-1 bg-surface-container-low h-4 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 4%"></div>
+</div>
+<span class="w-12 font-label-md text-label-md text-primary font-medium text-right">10</span>
+</div>
+</div>
+</div>
+<!-- Yakında Sona Erecek Kampanyalar Table -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col">
+<div class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
+<h3 class="font-h3 text-h3 font-semibold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-error">timer</span>
+                                Yakında Sona Erecek Kampanyalar
+                            </h3>
+<button class="font-label-md text-label-md text-primary hover:underline">Tümünü Gör</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface font-caption text-caption text-on-surface-variant uppercase tracking-wider">
+<th class="p-3 font-medium">Kampanya</th>
+<th class="p-3 font-medium">Banka</th>
+<th class="p-3 font-medium">Kategori</th>
+<th class="p-3 font-medium">Kalan Gün</th>
+<th class="p-3 font-medium">Durum</th>
+<th class="p-3 font-medium text-right">İşlem</th>
+</tr>
+</thead>
+<tbody class="font-body-sm text-body-sm">
+<tr class="border-b border-outline-variant/50 hover:bg-surface-container-low">
+<td class="p-3 font-medium text-primary">Sıfır Araç Finansmanı %1.99</td>
+<td class="p-3">Kuveyt Türk</td>
+<td class="p-3"><span class="px-2 py-1 rounded-md bg-surface-variant text-on-surface text-xs">Taşıt</span></td>
+<td class="p-3 font-medium text-error">2 Gün</td>
+<td class="p-3"><span class="px-2 py-1 rounded-full bg-error-container text-on-error-container text-xs font-medium border border-error/20">Kritik</span></td>
+<td class="p-3 text-right"><button class="text-primary hover:text-[#0D9488]"><span class="material-symbols-outlined text-sm">visibility</span></button></td>
+</tr>
+<tr class="border-b border-outline-variant/50 hover:bg-surface-container-low bg-surface">
+<td class="p-3 font-medium text-primary">Yeni Müşteriye 20.000 TL Faizsiz</td>
+<td class="p-3">Albaraka Türk</td>
+<td class="p-3"><span class="px-2 py-1 rounded-md bg-surface-variant text-on-surface text-xs">Yeni Müşteri</span></td>
+<td class="p-3 font-medium text-on-tertiary-container">4 Gün</td>
+<td class="p-3"><span class="px-2 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-xs font-medium border border-tertiary/20">Uyarı</span></td>
+<td class="p-3 text-right"><button class="text-primary hover:text-[#0D9488]"><span class="material-symbols-outlined text-sm">visibility</span></button></td>
+</tr>
+<tr class="border-b border-outline-variant/50 hover:bg-surface-container-low">
+<td class="p-3 font-medium text-primary">Sağlam Kart 500 TL İndirim</td>
+<td class="p-3">Kuveyt Türk</td>
+<td class="p-3"><span class="px-2 py-1 rounded-md bg-surface-variant text-on-surface text-xs">Kart</span></td>
+<td class="p-3 font-medium text-on-tertiary-container">5 Gün</td>
+<td class="p-3"><span class="px-2 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-xs font-medium border border-tertiary/20">Uyarı</span></td>
+<td class="p-3 text-right"><button class="text-primary hover:text-[#0D9488]"><span class="material-symbols-outlined text-sm">visibility</span></button></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Column (Narrow) -->
+<div class="flex flex-col gap-stack-md">
+<!-- AI İçgörüleri Panel (Glassmorphism/Gradient) -->
+<div class="ai-gradient-border bg-surface-container-lowest rounded-xl p-5 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-6xl text-[#0D9488]">psychology</span>
+</div>
+<h3 class="font-h3 text-h3 font-semibold text-primary mb-4 flex items-center gap-2 relative z-10">
+<span class="material-symbols-outlined text-[#0D9488]">auto_awesome</span>
+                            AI İçgörüleri
+                        </h3>
+<ul class="space-y-4 mb-6 relative z-10">
+<li class="flex gap-3">
+<span class="material-symbols-outlined text-[#0D9488] text-sm mt-1">lens</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Taşıt finansmanı oranlarında son 2 haftada sektör genelinde <strong>%0.15 artış</strong> gözlemlendi. Kuveyt Türk şu an en rekabetçi orana sahip.</p>
+</li>
+<li class="flex gap-3">
+<span class="material-symbols-outlined text-[#0D9488] text-sm mt-1">lens</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Katılım bankaları 'Yeni Müşteri' edinim kampanyalarına odaklanıyor. Geçen aya göre bu kategoride <strong>%40 daha fazla</strong> kampanya aktif.</p>
+</li>
+<li class="flex gap-3">
+<span class="material-symbols-outlined text-on-tertiary-container text-sm mt-1">lens</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Vakıf Katılım'ın 3 kampanyasında koşul bilgileri eksik tespit edildi, doğrulama gerektiriyor.</p>
+</li>
+</ul>
+<button class="w-full py-2 px-4 rounded-lg bg-[#0D9488] text-white font-label-md text-label-md font-medium hover:bg-opacity-90 transition-colors flex items-center justify-center gap-2 relative z-10 shadow-[0px_4px_12px_rgba(13,148,136,0.2)]">
+                            Detaylı AI Analizini Gör
+                        </button>
+</div>
+<!-- Bankalara Göre Aktif Kampanya Sayısı (Vertical Bar Chart) -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col flex-1">
+<div class="p-4 border-b border-outline-variant">
+<h3 class="font-label-md text-label-md font-semibold text-primary">Banka Bazlı Kampanya Dağılımı</h3>
+</div>
+<div class="p-4 flex-1 flex items-end justify-between gap-2 h-48">
+<!-- Vertical Bars Mock -->
+<div class="flex flex-col items-center gap-2 w-full group">
+<span class="font-caption text-caption text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">74</span>
+<div class="w-full bg-primary rounded-t-sm" style="height: 100%"></div>
+<span class="font-caption text-caption text-on-surface-variant truncate w-full text-center text-[10px]">KT</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full group">
+<span class="font-caption text-caption text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">52</span>
+<div class="w-full bg-secondary rounded-t-sm" style="height: 70%"></div>
+<span class="font-caption text-caption text-on-surface-variant truncate w-full text-center text-[10px]">AB</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full group">
+<span class="font-caption text-caption text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">45</span>
+<div class="w-full bg-secondary rounded-t-sm" style="height: 60%"></div>
+<span class="font-caption text-caption text-on-surface-variant truncate w-full text-center text-[10px]">TF</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full group">
+<span class="font-caption text-caption text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">38</span>
+<div class="w-full bg-secondary rounded-t-sm" style="height: 50%"></div>
+<span class="font-caption text-caption text-on-surface-variant truncate w-full text-center text-[10px]">VK</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full group">
+<span class="font-caption text-caption text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">25</span>
+<div class="w-full bg-secondary rounded-t-sm" style="height: 35%"></div>
+<span class="font-caption text-caption text-on-surface-variant truncate w-full text-center text-[10px]">ZK</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full group">
+<span class="font-caption text-caption text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">14</span>
+<div class="w-full bg-secondary rounded-t-sm" style="height: 20%"></div>
+<span class="font-caption text-caption text-on-surface-variant truncate w-full text-center text-[10px]">EK</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="h-8"></div> <!-- Bottom padding -->
+</div>
+</main>
+</body></html>

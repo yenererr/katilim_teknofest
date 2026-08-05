@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+
+<html class="light" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kategori ve Kampanya Listesi - Katılım360 AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&amp;family=Inter:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-container": "#98805d",
+                    "on-tertiary-fixed": "#271901",
+                    "surface-container-low": "#f6f3f5",
+                    "secondary-fixed-dim": "#bcc7de",
+                    "error-container": "#ffdad6",
+                    "background": "#fcf8fa",
+                    "on-tertiary-fixed-variant": "#574425",
+                    "tertiary-fixed-dim": "#dec29a",
+                    "tertiary": "#000000",
+                    "surface": "#fcf8fa",
+                    "tertiary-container": "#271901",
+                    "surface-bright": "#fcf8fa",
+                    "primary-fixed-dim": "#bec6e0",
+                    "inverse-on-surface": "#f3f0f2",
+                    "surface-container-high": "#eae7e9",
+                    "surface-variant": "#e4e2e4",
+                    "inverse-surface": "#303032",
+                    "on-secondary": "#ffffff",
+                    "on-surface-variant": "#45464d",
+                    "on-background": "#1b1b1d",
+                    "on-secondary-container": "#586377",
+                    "surface-container": "#f0edef",
+                    "on-error": "#ffffff",
+                    "secondary": "#545f73",
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed": "#131b2e",
+                    "on-secondary-fixed": "#111c2d",
+                    "on-secondary-fixed-variant": "#3c475a",
+                    "surface-dim": "#dcd9db",
+                    "outline": "#76777d",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed": "#dae2fd",
+                    "inverse-primary": "#bec6e0",
+                    "primary-container": "#131b2e",
+                    "tertiary-fixed": "#fcdeb5",
+                    "on-surface": "#1b1b1d",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#d5e0f8",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-highest": "#e4e2e4",
+                    "primary": "#000000",
+                    "secondary-fixed": "#d8e3fb",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "on-primary-container": "#7c839b",
+                    "surface-tint": "#565e74",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#c6c6cd"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-margin": "24px",
+                    "unit": "8px",
+                    "stack-md": "16px",
+                    "gutter": "16px",
+                    "stack-sm": "8px",
+                    "stack-lg": "32px"
+            },
+            "fontFamily": {
+                    "h1-mobile": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "body-base": [
+                            "Inter"
+                    ],
+                    "h2": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "h3": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "label-md": [
+                            "Inter"
+                    ],
+                    "h1": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "body-sm": [
+                            "Inter"
+                    ],
+                    "caption": [
+                            "Inter"
+                    ]
+            },
+            "fontSize": {
+                    "h1-mobile": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-base": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "letterSpacing": "0em",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "h2": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "h3": [
+                            "18px",
+                            {
+                                    "lineHeight": "28px",
+                                    "letterSpacing": "0em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "label-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0.01em",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "h1": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-sm": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0em",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "caption": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.02em",
+                                    "fontWeight": "400"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        .ai-gradient-text {
+            background: linear-gradient(90deg, #131b2e 0%, #0d9488 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .ai-gradient-border {
+            position: relative;
+        }
+        .ai-gradient-border::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(90deg, #131b2e 0%, #0d9488 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .card-hover-effect {
+            transition: all 0.3s ease;
+        }
+        .card-hover-effect:hover {
+            transform: translateY(-4px);
+            box-shadow: 0px 12px 32px rgba(15, 23, 42, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-base font-body-base min-h-screen">
+<!-- SideNavBar -->
+<aside class="w-[260px] h-full fixed left-0 top-0 bg-surface dark:bg-surface-container-lowest border-r border-outline-variant dark:border-outline flex flex-col z-50 transition-colors duration-200 ease-in-out hidden lg:flex">
+<div class="p-container-margin flex flex-col gap-stack-sm border-b border-outline-variant dark:border-outline">
+<div class="flex items-center gap-stack-sm">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined font-bold">bolt</span>
+</div>
+<div>
+<h1 class="font-h3 text-h3 font-bold text-primary dark:text-primary-fixed">Katılım360 AI</h1>
+<p class="font-caption text-caption text-on-surface-variant">Katılım Bankacılığı Zekası</p>
+</div>
+</div>
+<button class="mt-stack-md w-full py-2 px-4 bg-teal-600 text-white rounded-lg font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-teal-700 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+                Insight Oluştur
+            </button>
+</div>
+<nav class="flex-1 overflow-y-auto py-stack-md px-stack-sm flex flex-col gap-unit">
+<a class="flex items-center gap-stack-sm px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Genel Bakış
+            </a>
+<a class="flex items-center gap-stack-sm px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">account_balance</span>
+                Bankalar
+            </a>
+<a class="flex items-center gap-stack-sm px-4 py-3 rounded-lg bg-primary-container text-on-primary-container font-semibold transition-transform active:scale-[0.98] font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">category</span>
+                Kategoriler
+            </a>
+<a class="flex items-center gap-stack-sm px-4 py-3 rounded-lg bg-primary-container text-on-primary-container font-semibold transition-transform active:scale-[0.98] font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">campaign</span>
+                Kampanyalar
+            </a>
+<a class="flex items-center gap-stack-sm px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">compare_arrows</span>
+                Karşılaştırma
+            </a>
+<a class="flex items-center gap-stack-sm px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">psychology</span>
+                AI Finansal Asistan
+            </a>
+<a class="flex items-center gap-stack-sm px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">assessment</span>
+                Raporlar
+            </a>
+<a class="flex items-center gap-stack-sm px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">database</span>
+                Veri Kaynakları
+            </a>
+<a class="flex items-center gap-stack-sm px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">check_circle</span>
+                Sistem Durumu
+            </a>
+<a class="flex items-center gap-stack-sm px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Ayarlar
+            </a>
+</nav>
+<div class="mt-auto p-stack-sm border-t border-outline-variant dark:border-outline flex flex-col gap-unit">
+<a class="flex items-center gap-stack-sm px-4 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+                Yardım Merkezi
+            </a>
+<a class="flex items-center gap-stack-sm px-4 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+                Çıkış Yap
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="lg:ml-[260px] flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="sticky top-0 w-full z-40 bg-surface/80 backdrop-blur-md dark:bg-surface-container/80 border-b border-outline-variant dark:border-outline flex justify-between items-center h-16 px-gutter">
+<div class="flex items-center gap-stack-md flex-1">
+<button class="lg:hidden text-on-surface p-2 rounded-lg hover:bg-surface-container-low">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="hidden md:flex items-center gap-4 border border-outline-variant rounded-full px-4 py-1.5 bg-surface-container-lowest focus-within:ring-2 focus-within:ring-primary/20 w-64">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+<input class="bg-transparent border-none outline-none w-full font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant" placeholder="Katılım360 AI'da ara..." type="text"/>
+</div>
+</div>
+<div class="hidden lg:flex items-center gap-stack-md text-on-surface-variant font-caption text-caption mr-stack-lg">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-teal-600">check_circle</span> Veri Güncelliği: %100</span>
+<span class="w-1 h-1 bg-outline-variant rounded-full"></span>
+<span>Son güncelleme: 4 Ağustos 2026, 18:42</span>
+</div>
+<div class="flex items-center gap-stack-sm">
+<button class="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+<button class="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-low transition-colors mr-2">
+<span class="material-symbols-outlined">sync</span>
+</button>
+<button class="hidden md:flex items-center gap-2 bg-transparent border border-primary text-primary px-4 py-1.5 rounded-lg font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                    Rapor İndir
+                </button>
+<button class="flex items-center gap-2 bg-teal-600 text-white px-4 py-1.5 rounded-lg font-label-md text-label-md hover:bg-teal-700 transition-colors shadow-sm ml-2">
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+                    AI Analizi
+                </button>
+<div class="w-9 h-9 rounded-full bg-surface-container-highest border border-outline-variant ml-2 overflow-hidden flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">person</span>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<main class="flex-1 p-container-margin pb-32">
+<!-- Breadcrumb -->
+<nav aria-label="Breadcrumb" class="flex text-on-surface-variant font-caption text-caption mb-stack-md">
+<ol class="inline-flex items-center space-x-1 md:space-x-2">
+<li class="inline-flex items-center">
+<a class="inline-flex items-center hover:text-primary transition-colors" href="#">
+                    Bankalar
+                  </a>
+</li>
+<li>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[16px] mx-1">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Kuveyt Türk</a>
+</div>
+</li>
+<li aria-current="page">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[16px] mx-1">chevron_right</span>
+<span class="text-primary font-medium">Konut Finansmanı</span>
+</div>
+</li>
+</ol>
+</nav>
+<!-- Page Header & Bank Selector -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-stack-md mb-stack-lg">
+<div>
+<h2 class="font-h2 text-h2 font-semibold text-on-surface mb-unit">Konut Finansmanı Kampanyaları</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Kuveyt Türk bankasına ait güncel konut finansmanı seçenekleri.</p>
+</div>
+<!-- Horizontal Bank Selector (Mock) -->
+<div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+<button class="px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors whitespace-nowrap">Tüm Bankalar</button>
+<button class="px-4 py-2 rounded-lg border border-primary bg-primary-container text-on-primary-container font-semibold font-label-md text-label-md transition-colors whitespace-nowrap shadow-sm">Kuveyt Türk</button>
+<button class="px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors whitespace-nowrap">Albaraka Türk</button>
+<button class="px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors whitespace-nowrap">Türkiye Finans</button>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-stack-md mb-stack-lg shadow-sm flex flex-col xl:flex-row gap-stack-md items-start xl:items-center justify-between">
+<div class="flex flex-wrap items-center gap-stack-sm w-full xl:w-auto">
+<div class="flex items-center gap-2 border border-outline-variant rounded-lg px-3 py-2 bg-surface">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">filter_list</span>
+<span class="font-label-md text-label-md text-on-surface font-medium">Filtreler</span>
+</div>
+<select class="border border-outline-variant rounded-lg px-3 py-2 bg-surface font-body-sm text-body-sm text-on-surface focus:border-teal-600 focus:ring-1 focus:ring-teal-600 outline-none">
+<option>Kategori: Konut</option>
+<option>Taşıt</option>
+<option>İhtiyaç</option>
+</select>
+<select class="border border-outline-variant rounded-lg px-3 py-2 bg-surface font-body-sm text-body-sm text-on-surface focus:border-teal-600 focus:ring-1 focus:ring-teal-600 outline-none">
+<option>Durum: Aktif</option>
+<option>Pasif</option>
+<option>Yakında</option>
+</select>
+<select class="border border-outline-variant rounded-lg px-3 py-2 bg-surface font-body-sm text-body-sm text-on-surface focus:border-teal-600 focus:ring-1 focus:ring-teal-600 outline-none">
+<option>Vade: 120 Ay</option>
+<option>60 Ay</option>
+<option>36 Ay</option>
+</select>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-caption text-caption text-on-surface-variant mr-2">Hızlı Filtreler:</span>
+<button class="px-3 py-1.5 rounded-full bg-surface-container-high text-on-surface font-caption text-caption hover:bg-surface-variant transition-colors border border-transparent">En Düşük Kâr Payı</button>
+<button class="px-3 py-1.5 rounded-full bg-surface-container-high text-on-surface font-caption text-caption hover:bg-surface-variant transition-colors border border-transparent">Masrafsız</button>
+</div>
+</div>
+<!-- Campaign Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-stack-md">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-stack-md card-hover-effect flex flex-col h-full relative group">
+<div class="absolute top-4 right-4">
+<input checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20 cursor-pointer" type="checkbox"/>
+</div>
+<div class="flex items-start gap-3 mb-stack-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container-low border border-outline-variant flex items-center justify-center p-1">
+<span class="material-symbols-outlined text-primary text-[24px]">account_balance</span>
+</div>
+<div>
+<span class="inline-block px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 font-caption text-caption font-medium mb-1 border border-teal-100">Aktif</span>
+<h3 class="font-h3 text-h3 font-semibold text-on-surface line-clamp-1 pr-6">İlk Evim Konut Finansmanı</h3>
+<p class="font-caption text-caption text-on-surface-variant">Konut • Kuveyt Türk</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-unit mb-stack-md flex-1">
+<div class="bg-surface-container-low p-2 rounded-lg">
+<p class="font-caption text-caption text-on-surface-variant mb-1">Kâr Payı Oranı</p>
+<p class="font-label-md text-label-md text-on-surface font-semibold">%1.99</p>
+</div>
+<div class="bg-surface-container-low p-2 rounded-lg">
+<p class="font-caption text-caption text-on-surface-variant mb-1">Maks. Vade</p>
+<p class="font-label-md text-label-md text-on-surface font-semibold">120 Ay</p>
+</div>
+</div>
+<div class="mb-stack-md p-3 bg-blue-50/50 rounded-lg border border-blue-100 ai-gradient-border relative">
+<div class="flex items-center gap-1 mb-1">
+<span class="material-symbols-outlined text-[16px] text-teal-600">auto_awesome</span>
+<span class="font-caption text-caption font-semibold ai-gradient-text">AI Özeti</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">İlk evini alacaklar için sektördeki en düşük kâr payı oranlarından birini sunuyor. Dosya masrafı standart.</p>
+</div>
+<div class="flex items-center gap-2 mt-auto pt-stack-sm border-t border-outline-variant/50">
+<button class="flex-1 py-2 px-3 bg-surface-container-high hover:bg-surface-variant text-on-surface rounded-lg font-label-md text-label-md transition-colors text-center border border-transparent">Detayı İncele</button>
+<button class="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors tooltip-trigger" title="Karşılaştırmaya Ekle">
+<span class="material-symbols-outlined text-[20px]">compare_arrows</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center border border-teal-200 bg-teal-50 rounded-lg text-teal-700 hover:bg-teal-100 transition-colors tooltip-trigger" title="AI'ya Sor">
+<span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+</button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-stack-md card-hover-effect flex flex-col h-full relative group">
+<div class="absolute top-4 right-4">
+<input checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20 cursor-pointer" type="checkbox"/>
+</div>
+<div class="flex items-start gap-3 mb-stack-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container-low border border-outline-variant flex items-center justify-center p-1">
+<span class="material-symbols-outlined text-primary text-[24px]">account_balance</span>
+</div>
+<div>
+<span class="inline-block px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 font-caption text-caption font-medium mb-1 border border-teal-100">Aktif</span>
+<h3 class="font-h3 text-h3 font-semibold text-on-surface line-clamp-1 pr-6">Enerji Dostu Konut</h3>
+<p class="font-caption text-caption text-on-surface-variant">Konut • Kuveyt Türk</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-unit mb-stack-md flex-1">
+<div class="bg-surface-container-low p-2 rounded-lg">
+<p class="font-caption text-caption text-on-surface-variant mb-1">Kâr Payı Oranı</p>
+<p class="font-label-md text-label-md text-on-surface font-semibold">%2.05</p>
+</div>
+<div class="bg-surface-container-low p-2 rounded-lg">
+<p class="font-caption text-caption text-on-surface-variant mb-1">Maks. Vade</p>
+<p class="font-label-md text-label-md text-on-surface font-semibold">120 Ay</p>
+</div>
+</div>
+<div class="mb-stack-md p-3 bg-blue-50/50 rounded-lg border border-blue-100 ai-gradient-border relative">
+<div class="flex items-center gap-1 mb-1">
+<span class="material-symbols-outlined text-[16px] text-teal-600">auto_awesome</span>
+<span class="font-caption text-caption font-semibold ai-gradient-text">AI Özeti</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">A Sınıfı enerji kimlik belgeli konutlar için avantajlı oran. Sigorta primlerinde %15 indirim içerir.</p>
+</div>
+<div class="flex items-center gap-2 mt-auto pt-stack-sm border-t border-outline-variant/50">
+<button class="flex-1 py-2 px-3 bg-surface-container-high hover:bg-surface-variant text-on-surface rounded-lg font-label-md text-label-md transition-colors text-center border border-transparent">Detayı İncele</button>
+<button class="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors tooltip-trigger" title="Karşılaştırmaya Ekle">
+<span class="material-symbols-outlined text-[20px]">compare_arrows</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center border border-teal-200 bg-teal-50 rounded-lg text-teal-700 hover:bg-teal-100 transition-colors tooltip-trigger" title="AI'ya Sor">
+<span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+</button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-stack-md card-hover-effect flex flex-col h-full relative group opacity-75">
+<div class="absolute top-4 right-4">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20 cursor-pointer" type="checkbox"/>
+</div>
+<div class="flex items-start gap-3 mb-stack-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container-low border border-outline-variant flex items-center justify-center p-1 grayscale">
+<span class="material-symbols-outlined text-on-surface-variant text-[24px]">account_balance</span>
+</div>
+<div>
+<span class="inline-block px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-caption text-caption font-medium mb-1 border border-outline-variant">Sona Erdi</span>
+<h3 class="font-h3 text-h3 font-semibold text-on-surface line-clamp-1 pr-6">Bahar Fırsatı Konut</h3>
+<p class="font-caption text-caption text-on-surface-variant">Konut • Kuveyt Türk</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-unit mb-stack-md flex-1">
+<div class="bg-surface-container-low p-2 rounded-lg">
+<p class="font-caption text-caption text-on-surface-variant mb-1">Kâr Payı Oranı</p>
+<p class="font-label-md text-label-md text-on-surface font-semibold text-on-surface-variant line-through">%1.89</p>
+</div>
+<div class="bg-surface-container-low p-2 rounded-lg">
+<p class="font-caption text-caption text-on-surface-variant mb-1">Maks. Vade</p>
+<p class="font-label-md text-label-md text-on-surface font-semibold text-on-surface-variant">60 Ay</p>
+</div>
+</div>
+<div class="mb-stack-md p-3 bg-surface-container-low rounded-lg border border-outline-variant relative">
+<div class="flex items-center gap-1 mb-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">info</span>
+<span class="font-caption text-caption font-semibold text-on-surface-variant">Durum</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">Bu kampanya 31 Mayıs 2026 tarihinde sona ermiştir. Benzer aktif kampanyalar için 'İlk Evim' paketini inceleyin.</p>
+</div>
+<div class="flex items-center gap-2 mt-auto pt-stack-sm border-t border-outline-variant/50">
+<button class="flex-1 py-2 px-3 bg-surface-container-high hover:bg-surface-variant text-on-surface rounded-lg font-label-md text-label-md transition-colors text-center border border-transparent opacity-50 cursor-not-allowed">Detayı İncele</button>
+<button class="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors tooltip-trigger" title="Karşılaştırmaya Ekle">
+<span class="material-symbols-outlined text-[20px]">compare_arrows</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Sticky Bottom Bar (Comparison Action) -->
+<div class="fixed bottom-0 left-0 lg:left-[260px] right-0 bg-surface border-t border-outline-variant shadow-[0_-4px_12px_rgba(15,23,42,0.05)] p-4 z-50 transform transition-transform duration-300 translate-y-0">
+<div class="max-w-5xl mx-auto flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-primary-container rounded-full flex items-center justify-center text-on-primary-container">
+<span class="font-h3 text-h3 font-bold">2</span>
+</div>
+<div>
+<p class="font-label-md text-label-md font-semibold text-on-surface">kampanya seçildi</p>
+<p class="font-caption text-caption text-on-surface-variant hidden md:block">Karşılaştırmak için en fazla 4 kampanya seçebilirsiniz.</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors">Temizle</button>
+<button class="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md font-medium hover:bg-primary/90 transition-colors shadow-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">compare</span>
+                    Karşılaştır
+                </button>
+</div>
+</div>
+</div>
+</body></html>

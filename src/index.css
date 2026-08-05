@@ -1,1 +1,334 @@
 @import "tailwindcss";
+
+/* ==========================================================================
+   Fontlar — self-hosted (public/fonts), CDN bağımlılığı yok.
+   Inter & JetBrains Mono, SIL Open Font License 1.1.
+   latin-ext alt kümesi Türkçe glifleri (ğ Ğ ş Ş ı İ ç Ç ö Ö ü Ü) kapsar.
+   ========================================================================== */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Karanlık mod sınıf tabanlı (sistem tercihi App tarafından okunur). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ==========================================================================
+   Token katmanı
+   ========================================================================== */
+
+@theme {
+  /* --- Tipografi aileleri --- */
+  --font-sans: "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto,
+    "Noto Sans", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", "SF Mono",
+    Consolas, monospace;
+
+  /* --- Modüler tipografi ölçeği (1.2 oranı, taban 14px) --- */
+  --text-xs: 0.75rem; /* 12px — yardımcı metin tabanı */
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.875rem; /* 14px — gövde tabanı */
+  --text-sm--line-height: 1.55;
+  --text-base: 1rem; /* 16px */
+  --text-base--line-height: 1.6;
+  --text-lg: 1.125rem; /* 18px */
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.3125rem; /* 21px */
+  --text-xl--line-height: 1.35;
+  --text-2xl: 1.625rem; /* 26px */
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 2.125rem; /* 34px */
+  --text-3xl--line-height: 1.15;
+  --text-hero: 2.75rem; /* 44px — kart kahraman metriği */
+  --text-hero--line-height: 1;
+
+  /* --- Marka: jade (katılım yeşili, hafif desatüre) --- */
+  --color-brand-50: #ecfdf5;
+  --color-brand-100: #d3f5e5;
+  --color-brand-200: #a9ebcd;
+  --color-brand-300: #72dbb0;
+  --color-brand-400: #3cc190;
+  --color-brand-500: #16a674;
+  --color-brand-600: #068c5e;
+  --color-brand-700: #04704d;
+  --color-brand-800: #06593e;
+  --color-brand-900: #064935;
+  --color-brand-950: #02291e;
+
+  /* --- Uyarı: amber --- */
+  --color-warn-50: #fffbeb;
+  --color-warn-100: #fef3c7;
+  --color-warn-200: #fde68a;
+  --color-warn-300: #fcd34d;
+  --color-warn-400: #fbbf24;
+  --color-warn-500: #e59a09;
+  --color-warn-600: #c07807;
+  --color-warn-700: #9a5b08;
+  --color-warn-800: #7c470e;
+  --color-warn-900: #683b0f;
+  --color-warn-950: #3d1e03;
+
+  /* --- Risk: rose --- */
+  --color-risk-50: #fff1f2;
+  --color-risk-100: #ffe4e6;
+  --color-risk-200: #fecdd3;
+  --color-risk-300: #fda4af;
+  --color-risk-400: #fb7185;
+  --color-risk-500: #ef4054;
+  --color-risk-600: #dc2b4a;
+  --color-risk-700: #b91c3c;
+  --color-risk-800: #9b1a37;
+  --color-risk-900: #841a35;
+  --color-risk-950: #4c0519;
+
+  /* --- Bilgi: teal (terim dönüşümü rozetleri) --- */
+  --color-info-50: #eff8fb;
+  --color-info-100: #d6edf5;
+  --color-info-200: #b0dcec;
+  --color-info-300: #79c2dc;
+  --color-info-400: #3fa1c4;
+  --color-info-500: #2384a9;
+  --color-info-600: #1d6b8e;
+  --color-info-700: #1c5673;
+  --color-info-800: #1d485f;
+  --color-info-900: #1c3d51;
+  --color-info-950: #0e2635;
+
+  /* --- Nötr: hafif yeşile çalan soğuk gri --- */
+  --color-ink-50: #f7f9f8;
+  --color-ink-100: #eef1f0;
+  --color-ink-200: #dfe4e2;
+  --color-ink-300: #c6cecb;
+  --color-ink-400: #93a09c;
+  --color-ink-500: #6a7975;
+  --color-ink-600: #52605c;
+  --color-ink-700: #414d4a;
+  --color-ink-800: #36403e;
+  --color-ink-900: #2f3735;
+  --color-ink-950: #171c1b;
+
+  /* --- Semantik yüzey / metin (açık tema varsayılanı) --- */
+  --color-canvas: #f3f6f5;
+  --color-surface: #ffffff;
+  --color-raised: #ffffff;
+  --color-sunken: #f3f6f5;
+  --color-line: #e4e9e7;
+  --color-line-strong: #c6cecb;
+  --color-txt: #171c1b;
+  --color-txt-secondary: #52605c;
+  --color-txt-muted: #6a7975;
+  --color-focus: #16a674;
+
+  /* --- Yarıçap --- */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  /* --- Gölge: iki katmanlı yumuşak derinlik --- */
+  --shadow-flat: 0 1px 1px rgb(23 28 27 / 0.04);
+  --shadow-raised: 0 1px 2px rgb(23 28 27 / 0.06), 0 8px 24px -16px rgb(23 28 27 / 0.24);
+  --shadow-float: 0 2px 4px rgb(23 28 27 / 0.06), 0 16px 40px -20px rgb(23 28 27 / 0.32);
+  --shadow-pop: 0 4px 8px rgb(23 28 27 / 0.08), 0 24px 56px -24px rgb(23 28 27 / 0.4);
+
+  /* --- Hareket --- */
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-soft: cubic-bezier(0.6, 0, 0.9, 0.2);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+  --duration-slow: 320ms;
+}
+
+/* Karanlık tema: aynı semantik isimler, ayrı tonal değerler (ters çevirme yok) */
+.dark {
+  --color-canvas: #101514;
+  --color-surface: #171d1c;
+  --color-raised: #1e2625;
+  --color-sunken: #131817;
+  --color-line: #2a3432;
+  --color-line-strong: #3d4a47;
+  --color-txt: #eef2f1;
+  --color-txt-secondary: #b3bfbc;
+  --color-txt-muted: #8d9a97;
+  --color-focus: #3cc190;
+
+  --shadow-flat: 0 1px 1px rgb(0 0 0 / 0.4);
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 8px 24px -16px rgb(0 0 0 / 0.8);
+  --shadow-float: 0 2px 4px rgb(0 0 0 / 0.5), 0 16px 40px -20px rgb(0 0 0 / 0.9);
+  --shadow-pop: 0 4px 8px rgb(0 0 0 / 0.55), 0 24px 56px -24px rgb(0 0 0 / 0.95);
+
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   Temel katman
+   ========================================================================== */
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-txt);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Rakamlar her yerde tabular: sütunlar zıplamaz */
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Görünür odak halkası — istisnasız her etkileşimli öğede */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  ::selection {
+    background-color: var(--color-brand-100);
+    color: var(--color-brand-900);
+  }
+
+  .dark ::selection {
+    background-color: var(--color-brand-800);
+    color: var(--color-brand-50);
+  }
+
+  /* İnce, tema uyumlu kaydırma çubuğu */
+  * {
+    scrollbar-color: var(--color-line-strong) transparent;
+    scrollbar-width: thin;
+  }
+}
+
+/* ==========================================================================
+   Yardımcı sınıflar
+   ========================================================================== */
+
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "cv01" 1;
+}
+
+/* Kanıt vurgusu: metnin içinde parlayan cümle */
+@utility evidence-mark {
+  background-color: color-mix(in oklab, var(--color-brand-200) 70%, transparent);
+  color: var(--color-brand-950);
+  box-shadow: inset 0 -0.65em 0 -0.1em
+    color-mix(in oklab, var(--color-brand-300) 55%, transparent);
+  border-radius: var(--radius-xs);
+  padding: 0.1em 0.15em;
+  scroll-margin-block: 4rem;
+}
+
+.dark .evidence-mark {
+  background-color: color-mix(in oklab, var(--color-brand-700) 55%, transparent);
+  color: var(--color-brand-50);
+  box-shadow: none;
+}
+
+/* Vurgu süpürme animasyonu (kanıt gösterildiğinde bir kez çalar) */
+@keyframes evidence-sweep {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -20% 0;
+  }
+}
+
+.evidence-sweep {
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in oklab, var(--color-brand-400) 45%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: evidence-sweep var(--duration-slow) var(--ease-out-soft) 1;
+}
+
+/* İskelet (skeleton) parıltısı */
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.skeleton {
+  background-color: var(--color-sunken);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  animation: skeleton-pulse 1.6s var(--ease-standard) infinite;
+}
+
+/* Hareket azaltma tercihi: tüm süreler ihmal edilebilir seviyeye iner */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

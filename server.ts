@@ -1,26 +1,54 @@
-import { GoogleGenAI } from "@google/genai";
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
+import { asciiKatla, terimOzeti } from "./src/nlp";
 
 const app = express();
 const PORT = 3000;
 
 app.use(express.json({ limit: "5mb" }));
 
-// Server-side Gemini client initialization
-const getGeminiAI = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
+// NVIDIA NIM (OpenAI uyumlu) yapılandırması
+const NVIDIA_BASE_URL = process.env.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1";
+const NVIDIA_MODEL = process.env.NVIDIA_MODEL || "meta/llama-3.3-70b-instruct";
+
+/**
+ * NVIDIA NIM chat completions çağrısı.
+ * API anahtarı yoksa null döner; çağıran taraf kural tabanlı fallback'e düşer.
+ */
+async function callNvidia(systemPrompt: string, userPrompt: string): Promise<string | null> {
+  const apiKey = process.env.NVIDIA_API_KEY;
   if (!apiKey) return null;
-  return new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      headers: {
-        "User-Agent": "aistudio-build",
-      },
+
+  const res = await fetch(`${NVIDIA_BASE_URL}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
     },
+    body: JSON.stringify({
+      model: NVIDIA_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.1,
+      top_p: 0.7,
+      max_tokens: 4096,
+      response_format: { type: "json_object" },
+      stream: false,
+    }),
   });
-};
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`NVIDIA API ${res.status}: ${detail.slice(0, 500)}`);
+  }
+
+  const data: any = await res.json();
+  return data?.choices?.[0]?.message?.content ?? "";
+}
 
 const EXTRACTION_SYSTEM_PROMPT = `
 Sen katılım bankacılığı alanında uzmanlaşmış bir bilgi çıkarım ajanısın.
@@ -110,7 +138,13 @@ Yalnızca geçerli JSON döndür. Kod bloğu markatörleri veya açıklama EKLEM
 
 // API Routes
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", service: "katilim-bilgi-cikarim-ajani" });
+  res.json({
+    status: "ok",
+    service: "katilim-bilgi-cikarim-ajani",
+    provider: "nvidia-nim",
+    model: NVIDIA_MODEL,
+    api_key_configured: Boolean(process.env.NVIDIA_API_KEY),
+  });
 });
 
 app.post("/api/extract", async (req, res) => {
@@ -121,24 +155,16 @@ app.post("/api/extract", async (req, res) => {
       return res.status(400).json({ error: "Lütfen analiz edilecek bir metin giriniz." });
     }
 
-    const ai = getGeminiAI();
     let resultJson: any = null;
-    let rawTextResponse = "";
 
-    if (ai) {
-      try {
-        const response = await ai.models.generateContent({
-          model: "gemini-3.6-flash",
-          contents: `Aşağıdaki katılım bankacılığı metnini analiz et ve JSON verisini üret:\n\nMETİN:\n${text}`,
-          config: {
-            systemInstruction: EXTRACTION_SYSTEM_PROMPT,
-            temperature: 0.1,
-            responseMimeType: "application/json",
-          },
-        });
+    try {
+      const rawTextResponse = await callNvidia(
+        EXTRACTION_SYSTEM_PROMPT,
+        `Aşağıdaki katılım bankacılığı metnini analiz et ve JSON verisini üret:\n\nMETİN:\n${text}`
+      );
 
-        rawTextResponse = response.text || "";
-        // Clean markdown backticks if any
+      if (rawTextResponse !== null) {
+        // Bazı modeller JSON'u markdown kod bloğu içinde döndürebiliyor
         let cleanText = rawTextResponse.trim();
         if (cleanText.startsWith("```json")) {
           cleanText = cleanText.replace(/^```json\s*/, "").replace(/```$/, "").trim();
@@ -147,24 +173,22 @@ app.post("/api/extract", async (req, res) => {
         }
 
         resultJson = JSON.parse(cleanText);
-      } catch (geminiError) {
-        console.warn("Gemini API call warning/fallback:", geminiError);
       }
+    } catch (nvidiaError) {
+      console.warn("NVIDIA API call warning/fallback:", nvidiaError);
     }
 
-    // Smart fallback rules parser if Gemini is unavailable or failed
+    // NVIDIA erişilemezse veya hata verirse kural tabanlı çıkarıma düş
     if (!resultJson || !Array.isArray(resultJson.urunler)) {
       resultJson = fallbackRuleExtractor(text);
     }
 
-    // Detect conventional terms in source text for frontend audit visualization
-    const conventionalTermsFound: string[] = [];
-    const lowerText = text.toLowerCase();
-    if (/\bfaiz\b/.test(lowerText) || /faiz oranı/.test(lowerText)) conventionalTermsFound.push("faiz -> kâr payı");
-    if (/\bkredi\b/.test(lowerText)) conventionalTermsFound.push("kredi -> finansman");
-    if (/\bmevduat\b/.test(lowerText)) conventionalTermsFound.push("mevduat -> katılım fonu");
-    if (/dosya masrafı/.test(lowerText)) conventionalTermsFound.push("dosya masrafı -> tahsis ücreti");
-    if (/kart puanı/.test(lowerText)) conventionalTermsFound.push("kart puanı -> ödül");
+    // Konvansiyonel terim tespiti — NLP katmanındaki sözlükbirim eşleyiciyle.
+    // Not: JS'in toLowerCase() metodu Türkçe bilmez ("FAİZ" -> "fai̇z"), bu yüzden
+    // eşleştirme asciiKatla() üzerinden yapılır ve çekim eklerine toleranslıdır.
+    const conventionalTermsFound = terimOzeti(text).map(
+      (t) => `${t.orig} -> ${t.mapped}`,
+    );
 
     const duration = Date.now() - startTime;
 
@@ -187,23 +211,25 @@ app.post("/api/extract", async (req, res) => {
  * Implements regex normalizations and exact structure guarantees.
  */
 function fallbackRuleExtractor(text: string) {
-  const lower = text.toLowerCase();
+  // Türkçe uyumlu katlama: "TAŞIT" -> "tasit", "FAİZ" -> "faiz"
+  const lower = asciiKatla(text);
   
   // Product classification
   let urunTuru = "diger";
+  // Not: `lower` ASCII katlanmış olduğundan aranan kalıplar da ASCII yazılır.
   if (lower.includes("konut")) urunTuru = "konut_finansmani";
-  else if (lower.includes("taşıt") || lower.includes("tasit") || lower.includes("araç")) urunTuru = "tasit_finansmani";
-  else if (lower.includes("ihtiyaç") || lower.includes("ihtiyac")) urunTuru = "ihtiyac_finansmani";
-  else if (lower.includes("kart") || lower.includes("sanal kart")) urunTuru = "kart";
-  else if (lower.includes("katılma") || lower.includes("katilim fonu") || lower.includes("hesap")) urunTuru = "katilim_fonu";
+  else if (lower.includes("tasit") || lower.includes("arac")) urunTuru = "tasit_finansmani";
+  else if (lower.includes("ihtiyac")) urunTuru = "ihtiyac_finansmani";
+  else if (lower.includes("kart")) urunTuru = "kart";
+  else if (lower.includes("katilma") || lower.includes("katilim fonu") || lower.includes("hesap")) urunTuru = "katilim_fonu";
 
   // Segment detection
   const segmentler: string[] = [];
-  if (lower.includes("yeni müşteri") || lower.includes("yeni musterı")) segmentler.push("yeni_musteri");
-  if (lower.includes("mevcut müşteri") || lower.includes("bireysel")) segmentler.push("mevcut_musteri");
-  if (lower.includes("kobi") || lower.includes("üretici")) segmentler.push("kobi");
+  if (lower.includes("yeni musteri")) segmentler.push("yeni_musteri");
+  if (lower.includes("mevcut musteri") || lower.includes("bireysel")) segmentler.push("mevcut_musteri");
+  if (lower.includes("kobi") || lower.includes("uretici")) segmentler.push("kobi");
   if (lower.includes("kurumsal")) segmentler.push("kurumsal");
-  if (lower.includes("genc") || lower.includes("genç")) segmentler.push("genc");
+  if (lower.includes("genc")) segmentler.push("genc");
   if (lower.includes("emekli")) segmentler.push("emekli");
 
   // Conventional term check
@@ -280,7 +306,7 @@ function fallbackRuleExtractor(text: string) {
     if (s) kanitlar.vade_ay = s;
   }
   if (feeHam) {
-    const s = sentences.find(st => st.toLowerCase().includes("tahsis") || st.toLowerCase().includes("masraf") || st.includes(feeHam!)) || sentences[0];
+    const s = sentences.find(st => asciiKatla(st).includes("tahsis") || asciiKatla(st).includes("masraf") || st.includes(feeHam!)) || sentences[0];
     if (s) kanitlar.tahsis_ucreti = s;
   }
 

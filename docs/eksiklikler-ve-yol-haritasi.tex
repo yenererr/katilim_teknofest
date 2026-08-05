@@ -1,0 +1,282 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[shorthands=off,turkish]{babel}
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+% --- Renk tanimlari ---
+\definecolor{kritik}{HTML}{B91C3C}
+\definecolor{onemli}{HTML}{C07807}
+\definecolor{teslim}{HTML}{1D6B8E}
+\definecolor{tamam}{HTML}{04704D}
+\definecolor{acikgri}{HTML}{F3F6F5}
+
+\newcommand{\kritikrozet}{\textcolor{kritik}{\textbf{KRİTİK}}}
+\newcommand{\onemlirozet}{\textcolor{onemli}{\textbf{ÖNEMLİ}}}
+\newcommand{\teslimrozet}{\textcolor{teslim}{\textbf{TESLİM}}}
+
+% Basit vurgu kutusu (ek pakete ihtiyaç duymaz)
+\newenvironment{vurgukutu}[1]
+  {\par\vspace{6pt}\noindent
+   \begin{tabular}{|@{\hspace{8pt}}p{0.94\textwidth}@{\hspace{8pt}}|}
+   \hline\rule{0pt}{16pt}\textcolor{kritik}{\textbf{#1}}\\[4pt]}
+  {\\[6pt]\hline
+   \end{tabular}\par\vspace{6pt}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small Katılım Bankacılığı NLP Çözümü}
+\rhead{\small TEKNOFEST 2026 --- 2. Senaryo}
+\cfoot{\thepage}
+
+\title{\vspace{-1.5cm}\textbf{Eksiklik Analizi ve Yol Haritası}\\[0.3cm]
+\large TEKNOFEST 2026 Yapay Zekâ Dil Ajanları Yarışması --- 2. Senaryo\\
+\normalsize Katılım Bankacılığı Kampanya Metinlerinden Bilgi Çıkarımı}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+\thispagestyle{fancy}
+
+\vspace{-1cm}
+
+\section{Yönetici Özeti}
+
+Mevcut çözüm, katılım bankacılığı kampanya metinlerinden yapılandırılmış JSON çıkaran
+çalışır durumda bir sistemdir. Terim eşleme (faiz $\rightarrow$ kâr payı), sayısal
+normalizasyon, alan bazlı güven skoru ve \textbf{her alan için kanıt alıntısı} üretimi
+gibi güçlü yanları vardır. Kanıt alıntısı üretimi şartnamede istenmeyen fakat jüri
+karşısında ayırt edici olacak bir yetenektir.
+
+Buna karşılık şartnamenin üç temel bileşeninde ciddi boşluk bulunmaktadır:
+\textbf{on-premise çalışabilirlik}, \textbf{chatbot} ve \textbf{gerçek veri seti}.
+Bu üç eksik, toplam puanın yaklaşık yarısını doğrudan etkilemektedir.
+
+\begin{vurgukutu}{En acil bulgu}
+Çözüm her istekte bulut tabanlı NVIDIA NIM servisine gitmektedir. Şartname Madde 5.9
+kurum içi çalışabilirliği, müşteri verilerinin kurum dışına çıkmamasını ve dış
+servislere bağımlı olmamayı açıkça şart koşmaktadır. Ayrıca Madde 8, projenin bağımlı
+olduğu ücretli yazılım ve üçüncü taraf hizmet kullanımını yasaklamaktadır. Bu tek
+başına \%20 ağırlıklı ``On-Prem Uygulanabilirlik'' kriterinin neredeyse tamamını
+riske atmaktadır.
+\end{vurgukutu}
+
+\section{Şartname Uyum Tablosu}
+
+\begin{longtable}{p{5.2cm} c p{7.4cm}}
+\toprule
+\textbf{Şartname Maddesi} & \textbf{Durum} & \textbf{Eksik} \\
+\midrule
+\endhead
+5.1 Veri Toplama & \textcolor{kritik}{Yok} & BDDK listesindeki bankaların sitelerinden toplanmış veri seti yok; elde 6 adet elle yazılmış örnek var \\
+5.2 Metin Analizi Yeteneği & \textcolor{tamam}{İyi} & Dolaylı ifadeler (``avantajlı kâr payı fırsatı'') sistematik test edilmedi \\
+5.3 Finansal Bilgi Çıkarımı & \textcolor{onemli}{Kısmi} & Banka adı, avantajlar, kampanya koşulları, indirim oranı, alışveriş puanı, masraf bilgisi alanları yok \\
+5.4 Kampanya Türü Belirleme & \textcolor{onemli}{Kısmi} & Yalnızca \texttt{urun\_turu} var; ayrı \texttt{kampanya\_turu} sınıflandırması yok \\
+5.5 Terminoloji Uyumu & \textcolor{tamam}{Güçlü} & --- \\
+5.6 Standart Formata Dönüştürme & \textcolor{tamam}{Güçlü} & --- \\
+5.7 Ürünlerin Karşılaştırılması & \textcolor{onemli}{Kısmi} & ``En düşük kâr payı / en yüksek ödül / en avantajlı'' sıralama mantığı yok \\
+5.8 Veri Ön İşleme & \textcolor{kritik}{Yok} & Ham metin doğrudan modele gidiyor; dokümante edilebilir ön işleme hattı yok \\
+5.9 On-Premise & \textcolor{kritik}{Yok} & Bulut API bağımlılığı \\
+5.10 Açık Kaynak & \textcolor{onemli}{Riskli} & Kod açık fakat harici servise bağımlı; LICENSE dosyası yok \\
+Dashboard & \textcolor{onemli}{Kısmi} & İnceleme paneli var, raporlama dashboard'u yok \\
+Chatbot & \textcolor{kritik}{Yok} & Hiç başlanmadı \\
+\bottomrule
+\end{longtable}
+
+\section{Eksiklik Listesi}
+
+\subsection{Kritik Eksikler}
+
+\begin{enumerate}[label=\textbf{K\arabic*.},leftmargin=1.4cm,itemsep=4pt]
+  \item \textbf{Lokal çalışma yok.} Model çağrısı buluta gidiyor, banka metni kurum
+        dışına çıkıyor. \hfill \kritikrozet
+  \item \textbf{Chatbot yok.} Şartnamede iki örnek diyalog tanımlı: tek banka sorgusu
+        (``A Bankası'nın konut finansmanı oranı ne?'') ve iki banka karşılaştırması
+        (``A Bankası mı daha avantajlı, C Bankası mı?'').
+  \item \textbf{Gerçek veri seti yok.} BDDK'nın katılım bankaları listesindeki
+        kuruluşların resmî sitelerinden toplanmış kampanya metni bulunmuyor.
+  \item \textbf{Banka adı alanı şemada yok.} Banka bilgisi çıkarılmadığı için
+        bankalar arası karşılaştırma teknik olarak eksik kalıyor.
+  \item \textbf{Kalıcı veri deposu yok.} Tüm veri bellekte; sayfa yenilenince
+        kayboluyor. Dashboard ve chatbot'un sorgulayacağı bir kaynak yok.
+  \item \textbf{Veri ön işleme adımı yok.} Normalizasyon, gürültü temizleme,
+        cümle bölütleme gibi adımlar ayrı bir katman olarak mevcut değil.
+\end{enumerate}
+
+\subsection{Önemli Kapsam Eksikleri}
+
+\begin{enumerate}[label=\textbf{Ö\arabic*.},leftmargin=1.4cm,itemsep=4pt]
+  \item \textbf{Eksik çıkarım alanları:} avantajlar listesi, kampanya koşulları,
+        indirim oranı, alışveriş puanı, genel masraf bilgisi. \hfill \onemlirozet
+  \item \textbf{Kampanya türü sınıflandırması yok.} Şartname sekiz kampanya türü
+        saymaktadır; ``Yeni Müşteri Kampanyası'' gibi türler karşılanmıyor.
+  \item \textbf{Karşılaştırma kriterleri uygulanmıyor.} En düşük kâr payı, en yüksek
+        ödül, en uzun vade, en düşük masraf, en avantajlı kampanya.
+  \item \textbf{Dashboard yok.} Banka ve ürün bazlı toplu raporlama, dağılım
+        grafikleri, oran karşılaştırması sunulmuyor.
+  \item \textbf{Dolaylı ifade testi yapılmadı.} \%30 ağırlıklı ``Model Başarısı ve
+        Anlamlandırma Yeteneği'' kriterinin merkezinde bu yetenek yer alıyor.
+  \item \textbf{Performans ölçümü yok.} Altın veri seti ve doğruluk metriği olmadan
+        model başarısı savunulamıyor.
+  \item \textbf{Örnek metinler kurgu.} Gerçek banka adlarına atfedilmiş uydurma
+        metinler, teslim edilecek veri seti olarak sorunludur.
+\end{enumerate}
+
+\subsection{Teslim Gereklilikleri}
+
+\begin{enumerate}[label=\textbf{T\arabic*.},leftmargin=1.4cm,itemsep=4pt]
+  \item \textbf{README yok.} Kurulum adımları, eksiksiz bağımlılık listesi ve veri
+        setinin indirilebileceği herkese açık bağlantı zorunludur. \hfill \teslimrozet
+  \item \textbf{LICENSE yok.} Apache License 2.0 zorunludur.
+  \item \textbf{GitHub yüklemesi yapılmadı.} \texttt{BilisimVadisi2026} etiketi ve
+        en az haftalık güncelleme zorunludur.
+  \item \textbf{Proje dokümantasyonu yok.} Mimari, veri akışı, NLP yaklaşımı,
+        ön işleme adımları, karşılaştırma yöntemi, karşılaşılan problemler,
+        çıktı örnekleri, performans değerlendirme yöntemi.
+  \item \textbf{Demo videosu yok.} Maksimum 5 dakika; arayüz, dashboard, chatbot,
+        metin girişi, yapılandırılmış çıktı ve karşılaştırma gösterilmelidir.
+        Sunum için ayrıca 1 dakikalık demo videosu gerekmektedir.
+  \item \textbf{Sunum materyali yok.} PDF ve PPTX formatında, 4 dakikalık sunum.
+\end{enumerate}
+
+\subsection{Mühendislik Hijyeni}
+
+\begin{enumerate}[label=\textbf{M\arabic*.},leftmargin=1.4cm,itemsep=4pt]
+  \item Otomatik test yok (ne kural tabanlı çıkarıcı ne API sözleşmesi için).
+  \item Çalışma zamanı şema doğrulaması yok; model bozuk JSON döndüğünde tipler
+        gerçeği yansıtmıyor.
+  \item Model çağrısında zaman aşımı ve yeniden deneme mekanizması yok.
+  \item Kural tabanlı yedek çıkarıcıda olası hata: ``aylık kâr payı'' ifadesi geçen
+        metinde \texttt{periyot} alanı ``belirsiz'' dönmektedir.
+  \item Gerçek bir linter yapılandırması yok; \texttt{lint} betiği yalnızca tip
+        denetimi yapıyor.
+\end{enumerate}
+
+\section{Puan Etkisi Tahmini}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{6.4cm} c c c}
+\toprule
+\textbf{Değerlendirme Kriteri} & \textbf{Ağırlık} & \textbf{Mevcut} & \textbf{Hedef} \\
+\midrule
+Fonksiyonellik ve Senaryo Kapsamı & \%20 & $\sim$8 & 18 \\
+Teknik İmplementasyon ve Mimari & \%20 & $\sim$12 & 18 \\
+On-Prem Uygulanabilirlik & \%20 & $\sim$2 & 18 \\
+Model Başarısı ve Anlamlandırma & \%30 & $\sim$19 & 26 \\
+Yenilikçilik ve Yaratıcılık & \%10 & $\sim$7 & 9 \\
+\midrule
+\textbf{Toplam} & \textbf{\%100} & $\sim$\textbf{48} & \textbf{89} \\
+\bottomrule
+\end{tabular}
+\caption{Kaba puan tahmini. Kayıpların büyük bölümü model kalitesinden değil,
+yapısal eksiklerden kaynaklanmaktadır.}
+\end{table}
+
+\section{Yol Haritası}
+
+\subsection{Faz 1 --- Temel (1--2 gün)}
+
+\textbf{Amaç:} En yüksek puan kaybını en düşük eforla durdurmak.
+
+\begin{enumerate}[leftmargin=1.2cm,itemsep=3pt]
+  \item \textbf{Lokal LLM'e geçiş.} Ollama veya vLLM üzerinde açık kaynak bir model
+        (Qwen2.5, Llama 3.1 8B vb.) çalıştırılır. Mevcut kod OpenAI uyumlu bir
+        endpoint'e istek attığı için taban adresin değiştirilmesi büyük ölçüde
+        yeterlidir. Bulut sağlayıcı isteğe bağlı yedek konumuna alınır.
+        \emph{(Çözer: K1, T-riski)}
+  \item \textbf{Kalıcı depo.} SQLite tabanlı, çıkarılan ürünleri, kaynak metni ve
+        analist doğrulamalarını saklayan katman. \emph{(Çözer: K5)}
+  \item \textbf{Şema genişletme.} \texttt{banka\_adi}, \texttt{kampanya\_turu},
+        \texttt{avantajlar[]}, \texttt{kampanya\_kosullari}, \texttt{indirim\_orani},
+        \texttt{alisveris\_puani} alanları eklenir. \emph{(Çözer: K4, Ö1, Ö2)}
+\end{enumerate}
+
+\subsection{Faz 2 --- Senaryo Kapsamı (2--3 gün)}
+
+\begin{enumerate}[leftmargin=1.2cm,itemsep=3pt]
+  \item \textbf{Chatbot.} Doğal dildeki soruyu veritabanı sorgusuna çeviren
+        araç çağırma (tool calling) yaklaşımı. Modelin serbest üretimi yerine
+        yapılandırılmış veriden cevap üretilir; cevabın altına kanıt alıntısı
+        eklenir. Şartnamedeki iki diyalog senaryosu birebir karşılanır.
+        \emph{(Çözer: K2)}
+  \item \textbf{Karşılaştırma motoru.} En düşük kâr payı, en yüksek ödül, en uzun
+        vade, en düşük masraf ve bileşik ``en avantajlı'' sıralaması.
+        \emph{(Çözer: Ö3)}
+  \item \textbf{Dashboard.} Banka ve ürün türü bazlı dağılım, kâr payı oranı
+        karşılaştırması, manuel inceleme bekleyen kayıt sayacı, son çıkarımlar.
+        \emph{(Çözer: Ö4)}
+\end{enumerate}
+
+\subsection{Faz 3 --- Veri ve Doğruluk (2--3 gün)}
+
+\begin{enumerate}[leftmargin=1.2cm,itemsep=3pt]
+  \item \textbf{Veri toplama hattı.} BDDK listesindeki katılım bankalarının kampanya
+        sayfaları için Python tabanlı toplayıcı. Tam otomatik tarama yerine banka
+        başına tanımlı kaynak URL listesi daha az kırılgan ve savunması daha
+        kolaydır. Toplanan veri seti açık bağlantı ile paylaşılır.
+        \emph{(Çözer: K3, Ö7, T1)}
+  \item \textbf{Ön işleme hattı.} HTML temizleme, boşluk ve tırnak normalizasyonu,
+        cümle bölütleme, para birimi ve sayı biçimi standardizasyonu. Ayrı modül
+        olarak yazılır ki dokümantasyonda gösterilebilsin. \emph{(Çözer: K6)}
+  \item \textbf{Değerlendirme seti.} Elle doğrulanmış altın JSON'lar ve alan bazlı
+        kesinlik/duyarlılık ölçen betik. Dolaylı ifade örnekleri özellikle bu sete
+        dâhil edilir. \emph{(Çözer: Ö5, Ö6)}
+\end{enumerate}
+
+\subsection{Faz 4 --- Teslim (1--2 gün)}
+
+\begin{enumerate}[leftmargin=1.2cm,itemsep=3pt]
+  \item README, LICENSE (Apache 2.0), proje dokümantasyonu.
+  \item GitHub deposu, \texttt{BilisimVadisi2026} etiketi, haftalık güncelleme
+        düzeni.
+  \item Demo videosu (5 dk) ve sunum videosu (1 dk).
+  \item Sunum materyali (PDF + PPTX, 4 dk).
+  \item Test, şema doğrulama, zaman aşımı ve linter düzenlemeleri.
+        \emph{(Çözer: T1--T6, M1--M5)}
+\end{enumerate}
+
+\subsection{Bağımlılık Sırası}
+
+Fazlar arasında zorunlu sıra bulunmaktadır:
+
+\begin{center}
+\texttt{Kalıcı depo} $\rightarrow$ \texttt{Chatbot + Dashboard}\\[2pt]
+\texttt{Banka adı alanı} $\rightarrow$ \texttt{Karşılaştırma motoru}\\[2pt]
+\texttt{Veri toplama} $\rightarrow$ \texttt{Değerlendirme seti}
+\end{center}
+
+\section{Korunması Gereken Güçlü Yanlar}
+
+Mevcut çözümün üç ayırt edici özelliği vardır ve geliştirme sürecinde
+kaybedilmemelidir:
+
+\begin{itemize}[leftmargin=1.2cm,itemsep=3pt]
+  \item \textbf{Kanıt alıntısı.} Her alan için, değerin dayandığı cümle kaynak
+        metinden birebir alıntılanmaktadır. Chatbot cevaplarına da eklenmelidir.
+  \item \textbf{Alan bazlı güven skoru.} Düşük güvenli alanlar işaretlenip insan
+        doğrulamasına yönlendirilmektedir.
+  \item \textbf{İnsan doğrulama döngüsü.} Analistin alan bazında onay verebildiği
+        arayüz, bankacılık gibi denetime tabi bir alanda gerçek hayata
+        uygulanabilirliği güçlendirmektedir.
+\end{itemize}
+
+\section{Doğrulanması Gereken Husus}
+
+Şartname içinde takvim tutarsızlığı bulunmaktadır: Tablo 1'de yarışma çevrimiçi
+süreci 27 Temmuz --- 26 Ağustos olarak verilirken, Madde 9'da yarışmanın 12.07.2026
+tarihinde sona ereceği ve proje dosyalarının bu tarihe kadar yüklenmesi gerektiği
+belirtilmektedir. Planlama yapılmadan önce geçerli tarihin TEKNOFEST duyuru kanalları
+üzerinden teyit edilmesi gerekmektedir.
+
+\end{document}

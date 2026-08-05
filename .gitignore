@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Claude Code yerel yapılandırması ve vendored skill dosyaları
+.claude/

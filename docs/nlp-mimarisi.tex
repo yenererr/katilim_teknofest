@@ -1,0 +1,299 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[shorthands=off,turkish]{babel}
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{hazir}{HTML}{04704D}
+\definecolor{kismi}{HTML}{C07807}
+\definecolor{eksik}{HTML}{B91C3C}
+\definecolor{kod}{HTML}{2F3735}
+
+\newcommand{\Hazir}{\textcolor{hazir}{\textbf{Hazır}}}
+\newcommand{\Kismi}{\textcolor{kismi}{\textbf{Kısmi}}}
+\newcommand{\Eksik}{\textcolor{eksik}{\textbf{Eksik}}}
+\newcommand{\dosya}[1]{\textcolor{kod}{\texttt{#1}}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small NLP Mimarisi ve Yöntem Haritası}
+\rhead{\small TEKNOFEST 2026 --- 2. Senaryo}
+\cfoot{\thepage}
+
+\title{\vspace{-1.5cm}\textbf{NLP Mimarisi ve Yöntem Haritası}\\[0.3cm]
+\large Katılım Bankacılığı Kampanya Metinlerinden Bilgi Çıkarımı\\
+\normalsize Doğal dil işleme yöntemlerinin şartname maddeleriyle eşlenmesi}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+\thispagestyle{fancy}
+\vspace{-1cm}
+
+\section{Amaç ve Kapsam}
+
+Bu belge, geliştirilen çözümde \textbf{doğal dil işlemenin tam olarak nerede ve
+hangi yöntemle kullanıldığını} tanımlar. Amaç, şartnamenin ``NLP yöntemlerinin
+probleme uygun kullanılması'', ``metin ön işleme adımlarının doğru uygulanması''
+ve ``bilgi çıkarımı yaklaşımının başarısı'' değerlendirme maddelerine
+izlenebilir bir karşılık vermektir.
+
+\subsection{Kapsam dışı olanlar}
+
+Dürüstlük açısından önce sınır çizilmelidir. Aşağıdaki bileşenler yazılım
+mühendisliğidir, doğal dil işleme değildir ve bu belgede NLP olarak
+sunulmamaktadır:
+
+\begin{itemize}[leftmargin=1.2cm,itemsep=2pt]
+  \item Karşılaştırma motoru ve sıralama mantığı (aritmetik normalizasyon)
+  \item Dashboard, arayüz ve görselleştirme katmanı
+  \item Veri modeli, kalıcı depo ve API sözleşmesi
+  \item On-premise dağıtım mimarisi
+\end{itemize}
+
+Doğal dil işleme, yalnızca Bölüm~\ref{sec:hat}'te tanımlanan sekiz adımlık
+metin işleme hattında yer alır.
+
+\section{Şartname Maddeleriyle Eşleme}
+
+\begin{longtable}{p{1.1cm} p{3.5cm} p{4.6cm} p{2.9cm} c}
+\toprule
+\textbf{Madde} & \textbf{İstenen} & \textbf{NLP yöntemi} & \textbf{Modül} & \textbf{Durum} \\
+\midrule
+\endhead
+5.1 & Veri toplama & Gövde metni çıkarma, kalıp (boilerplate) temizliği & --- & \Eksik \\
+5.2 & Farklı ve örtük ifade biçimleri & Eşanlamlı kalıp sözlüğü + kural desenleri + dil modeli & \dosya{lexicon.ts} & \Kismi \\
+5.3 & Finansal bilgi çıkarımı & Bilgi çıkarımı: değer tanıma, birim çözümleme, aralık ve olumsuzluk kapsamı & \dosya{extract.ts} & \Kismi \\
+5.4 & Kampanya türü belirleme & Metin sınıflandırma (TF--IDF + doğrusal model) & --- & \Eksik \\
+5.5 & Katılım terminolojisi & Sözlükbirim tabanlı normalizasyon, çekim ekine tolerans & \dosya{lexicon.ts} & \Hazir \\
+5.6 & Standart formata dönüştürme & Sayı, para birimi ve tarih normalizasyonu; yazılı sayı ayrıştırma & \dosya{normalize.ts} & \Hazir \\
+5.8 & Veri ön işleme & Temizleme, normalizasyon, cümle bölütleme, belirteçleme & \dosya{normalize.ts}, \dosya{segment.ts} & \Hazir \\
+--- & Kanıt zorunluluğu & Cümle düzeyinde hizalama (birebir / normalize / örtüşme) & \dosya{align.ts} & \Hazir \\
+--- & Chatbot & Niyet sınıflandırma + slot doldurma + sorguya çevirme & --- & \Eksik \\
+--- & Model başarısı & Alan bazlı kesinlik / duyarlılık / F1 ölçümü & --- & \Eksik \\
+\bottomrule
+\end{longtable}
+
+\section{İşleme Hattı}
+\label{sec:hat}
+
+Metin, kaynaktan şemaya kadar sekiz adımdan geçer. Adım sırası tesadüfi
+değildir: kural tabanlı katman dil modelinden \emph{önce} çalışır, böylece
+kolay vakalar deterministik olarak çözülür ve dil modeli yalnızca varyasyonlu
+ifadeler için devreye girer.
+
+\begin{enumerate}[leftmargin=1.4cm,itemsep=5pt]
+  \item \textbf{Ön işleme} --- \dosya{normalize.ts}\\
+        Gövde metni çıkarma, Unicode NFC, tipografik tırnak ve tire
+        sadeleştirme, bölünmez boşluk temizliği, Türkçe yerel ayarlı küçültme,
+        ASCII katlama.
+  \item \textbf{Cümle bölütleme} --- \dosya{segment.ts}\\
+        Ondalık ayracı, tarih, binlik ayracı ve kısaltma korumalı bölütleme;
+        her cümlenin kaynak metindeki karakter aralığı saklanır.
+  \item \textbf{Terminoloji eşleme} --- \dosya{lexicon.ts}\\
+        Konvansiyonel terimlerin katılım karşılıklarına eşlenmesi;
+        \texttt{terim\_esleme\_uygulandi} bayrağının belirlenmesi.
+  \item \textbf{Kural tabanlı bilgi çıkarımı} --- \dosya{extract.ts}\\
+        Oran ve periyot, vade, tahsis ücreti (olumsuzluk dâhil), tutar aralığı.
+  \item \textbf{Metin sınıflandırma} --- \emph{planlanan}\\
+        Kampanya türünün sekiz sınıftan birine atanması.
+  \item \textbf{Dil modeli} --- yerel, şema kısıtlı üretim\\
+        Yalnızca dördüncü adımda boş kalan alanlar için çağrılır.
+  \item \textbf{Çapraz doğrulama} --- \dosya{extract.ts}\\
+        Kural ve model çıktılarının karşılaştırılması; uyuşmazlıkta güven
+        skorunun düşürülmesi.
+  \item \textbf{Kanıt hizalama} --- \dosya{align.ts}\\
+        Her alanın dayandığı cümlenin kaynak metinde konumlandırılması.
+\end{enumerate}
+
+\section{Yöntemlerin Ayrıntısı}
+
+\subsection{Türkçe metin normalizasyonu}
+
+JavaScript'in yerleşik \texttt{toLowerCase()} metodu Türkçe alfabesini
+tanımaz. Büyük İ harfi küçültülürken \texttt{i} artı ayrı bir birleşik nokta
+karakterine (U+0307) dönüşür; noktasız I ise ASCII \texttt{i} olur:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Girdi} & \textbf{\texttt{toLowerCase()}} & \textbf{Sonuç} \\
+\midrule
+FAİZ ORANI & \texttt{fai}\,\textcolor{eksik}{\texttt{[U+0307]}}\,\texttt{z oranı} & Terim yakalanamaz \\
+DOSYA MASRAFI & \texttt{dosya masraf}\textcolor{eksik}{\texttt{i}} & Terim yakalanamaz \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Bu nedenle tüm küçültme işlemleri \texttt{tr-TR} yereliyle yapılır ve
+eşleştirme, aksan ile şapkayı katlayan ayrı bir anahtar üzerinden yürütülür.
+Böylece ``kâr payı'' ile ``kar payi'' aynı terime çözümlenir.
+
+Sayısal normalizasyon üç biçimi tek değere indirger: Türkçe ondalık
+(\texttt{2,05}), İngilizce ondalık (\texttt{2.05}) ve binlik ayraçlı
+(\texttt{1.000.000}). Ayrıca yazıyla yazılmış Türkçe sayılar çözümlenir;
+``beş yüz Türk Lirası dosya masrafı'' ifadesi \texttt{500} değerini üretir.
+
+\subsection{Cümle bölütleme}
+
+Naif nokta bölme finans metinlerinde başarısız olur. Bölütleyici şu kalıpları
+cümle sonu saymaz: ondalık ayracı (\texttt{\%2,05}), tarih
+(\texttt{31.12.2026}), binlik ayracı (\texttt{1.000.000}), Türkçe kısaltmalar
+(\texttt{vb.}, \texttt{Sn.}, \texttt{md.}) ve baş harf kullanımı
+(\texttt{A. Bankası}). Her cümle için \((\text{başlangıç}, \text{bitiş})\)
+karakter aralığı üretilir; kanıt hizalama bu aralıklara dayanır.
+
+\subsection{Sözlükbirim eşleme ve morfolojik tolerans}
+
+Türkçe eklemeli bir dildir; sabit kelime araması yetersizdir. Sözlük
+girdileri kök hâlinde tutulur ve eşleştirme, kökün ardından en fazla altı
+harflik çekim ekine izin veren bir desenle yapılır. Böylece \emph{faiz},
+\emph{faizi}, \emph{faizde}, \emph{faizli} tek bir girdiyle yakalanır.
+
+\subsection{Olumsuzluk tespiti}
+
+``Tahsis ücreti alınmaz'' ifadesi şemada \texttt{0} değerine karşılık gelir;
+pozitif bir sayı aranarak bulunamaz. Türkçede olumsuzluk çekim ekiyle
+taşınır:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Ek} & \textbf{Örnek} & \textbf{Değer} \\
+\midrule
+-maz / -mez & alınmaz, edilmez & 0 \\
+-mıyor / -muyor & alınmıyor & 0 \\
+-mama- / -meme- & alınmamaktadır & 0 \\
+\midrule
+-makta / -mekte & alınmaktadır & pozitif \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Son satır kritiktir: ``alınmaktadır'' \emph{olumludur}. Naif bir ``alınm''
+araması bu iki durumu ayırt edemez ve ücreti hatalı biçimde sıfırlar.
+
+\subsection{Kural tabanlı bilgi çıkarımı}
+
+Birinci katman deterministik, milisaniyelik ve tekrarlanabilirdir. Dört alanı
+bağlam denetimiyle çıkarır: oran ifadesinin gerçekten kâr payına ait olup
+olmadığı, vade ifadesinin taksit sayısıyla karışıp karışmadığı, ücret
+cümlesinin tutar cümlesinden ayrılması gibi denetimler uygulanır.
+
+Şartname kuralı doğrudan kodlanmıştır: metinde ``aylık'' veya ``yıllık''
+geçmiyorsa periyot \texttt{belirsiz} atanır ve o alanın güven skoru en fazla
+0,5 olur.
+
+\subsection{Kanıt hizalama}
+
+Modelin döndürdüğü alıntı, kaynak metinle birebir aynı olmayabilir. Hizalayıcı
+üç aşamalıdır: birebir arama, normalize edilmiş metin üzerinde arama, ve
+cümle düzeyinde belirteç örtüşmesi. Üçüncü aşamada Jaccard benzerliği
+kullanılır:
+
+\[
+J(A,B) \;=\; \frac{|A \cap B|}{|A \cup B|}
+\]
+
+Burada \(A\) alıntının, \(B\) aday cümlenin belirteç kümesidir. Eşik değeri
+\(J \geq 0{,}45\) olarak belirlenmiştir. Çakışan aralıklarda yüksek skorlu
+hizalama kazanır.
+
+\subsection{Metin sınıflandırma (planlanan)}
+
+Kampanya türü sekiz sınıfa ayrılacaktır. Yöntem, belirteç ağırlıklandırması
+ve doğrusal bir sınıflandırıcıdır:
+
+\[
+\mathrm{tfidf}(t,d) \;=\; \mathrm{tf}(t,d)\cdot\log\frac{N}{\mathrm{df}(t)}
+\]
+
+Bu tercih bilinçlidir: yerelde saniyeler içinde eğitilir, GPU gerektirmez,
+kararı açıklanabilir (hangi terimin hangi sınıfa katkı verdiği görülebilir)
+ve on-premise kısıtıyla uyumludur.
+
+\subsection{Çapraz doğrulama}
+
+Kural katmanı ile dil modeli bağımsız iki kaynaktır. Değerler \%1 tolerans
+içinde uyuşuyorsa güven korunur; uyuşmuyorsa güven skoru yarıya indirilir ve
+kayıt manuel doğrulama kuyruğuna alınır. Bu, tek bir modelin kendi beyan
+ettiği güven skoruna bağımlı kalmayı önler.
+
+\subsection{Chatbot için dil işleme (planlanan)}
+
+Chatbot, serbest üretim yerine yapılandırılmış veriyi sorgular. Gerekli dil
+işleme adımları:
+
+\begin{itemize}[leftmargin=1.2cm,itemsep=2pt]
+  \item \textbf{Niyet sınıflandırma:} tek ürün sorgusu, karşılaştırma, listeleme, tanım sorusu
+  \item \textbf{Slot doldurma:} banka adı, ürün türü, kriter, sayısal kısıt
+  \item \textbf{Sorguya çevirme:} slotlardan veritabanı sorgusu üretimi
+  \item \textbf{Cevap üretimi:} şablon tabanlı, kaynak cümle ve güven skoru ekli
+\end{itemize}
+
+\section{Değerlendirme Kriterleriyle İlişki}
+
+\begin{center}
+\begin{tabular}{p{6.6cm} p{7.2cm}}
+\toprule
+\textbf{Kriter} & \textbf{Karşılayan bileşen} \\
+\midrule
+NLP yöntemlerinin probleme uygun kullanılması & Katmanlı hat: kural $\rightarrow$ model $\rightarrow$ çapraz doğrulama \\
+Metin ön işleme adımlarının doğru uygulanması & \dosya{normalize.ts}, \dosya{segment.ts} \\
+Bilgi çıkarımı yaklaşımının başarısı & \dosya{extract.ts} + ölçüm seti \\
+Farklı ifade biçimlerini doğru yorumlayabilmesi & Morfolojik tolerans, eşanlamlı kalıp sözlüğü, dil modeli \\
+Eksik/farklı yazılmış bilgide doğru sonuç & Olumsuzluk tespiti, yazılı sayı çözümleme, ASCII katlama \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Ölçüm Planı}
+
+Her alan için ayrı ayrı hesaplanacaktır:
+
+\[
+P = \frac{TP}{TP+FP}, \qquad
+R = \frac{TP}{TP+FN}, \qquad
+F_1 = \frac{2PR}{P+R}
+\]
+
+Bir alan, altın değerle tam eşleştiğinde doğru sayılır; sayısal alanlarda
+\%1 tolerans uygulanır. Ölçüm üç yapılandırmada tekrarlanır: yalnızca kural
+katmanı, yalnızca dil modeli, ve katmanlı hibrit. Bu karşılaştırma, hibrit
+mimarinin katkısını sayısal olarak gösterir.
+
+\section{Eksikler ve İş Planı}
+
+\begin{center}
+\begin{tabular}{p{7.2cm} p{2.6cm} p{3.4cm}}
+\toprule
+\textbf{İş} & \textbf{Süre} & \textbf{Karşıladığı madde} \\
+\midrule
+Kural motorunu birinci katmana taşıma & Yarım gün & 5.3, teknik kriter \\
+Örtük ifade kalıp sözlüğü & Birkaç saat & 5.2 \\
+Kampanya türü sınıflandırıcı & Yarım gün & 5.4 \\
+Ölçüm seti ve F1 raporu & Yarım gün & Model başarısı \\
+Ön işleme hattının toplama katmanına bağlanması & Yarım gün & 5.1, 5.8 \\
+Chatbot niyet ve slot katmanı & 1,5 gün & Senaryo kapsamı \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.4cm}
+\noindent
+Toplam yaklaşık dört iş günü. Sıralamada ilk madde önceliklidir: kural
+katmanının öne alınması hem gecikmeyi düşürür hem de sonraki ölçümler için
+temel oluşturur.
+
+\end{document}
