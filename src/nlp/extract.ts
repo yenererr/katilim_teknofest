@@ -53,7 +53,8 @@ export const oranCikar = (metin: string): OranBulgusu => {
 
   let eslesme: RegExpExecArray | null;
   while ((eslesme = ORAN_DESENI.exec(metin)) !== null) {
-    const ham = eslesme[0];
+    // Desen sondaki noktalamayı da yakalayabilir: "%2,05," → "%2,05"
+    const ham = eslesme[0].replace(/[.,]+$/, '');
     const deger = yuzdeCoz(ham);
     if (deger === null) continue;
 
