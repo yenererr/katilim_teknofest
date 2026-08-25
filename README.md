@@ -15,6 +15,9 @@ karşılaştırılabilir hâle getiren bir NLP çözümü.
 - [Hızlı başlangıç](#hızlı-başlangıç)
 - [Bağımlılıklar](#bağımlılıklar)
 - [Yapılandırma](#yapılandırma)
+- [Qdrant vektör arama](#qdrant-vektör-arama)
+- [RAG asistanı](#rag-asistanı)
+- [Finansman Asistanı](#finansman-asistanı)
 - [Mimari](#mimari)
 - [NLP katmanı](#nlp-katmanı)
 - [Veri şeması](#veri-şeması)
@@ -97,7 +100,11 @@ npm start
 | Paket | Sürüm | Görev |
 |---|---|---|
 | `react`, `react-dom` | ^19.0.1 | Arayüz |
-| `express` | ^4.21.2 | HTTP sunucusu ve `/api/extract` uç noktası |
+| `express` | ^4.21.2 | HTTP sunucusu ve API uç noktaları |
+| `@qdrant/js-client-rest` | — | Qdrant REST istemcisi |
+| `zod` | — | İstek gövdesi doğrulama |
+| `express-rate-limit` | — | Qdrant API hız sınırı |
+| `uuid` | — | Deterministik nokta kimlikleri |
 | `vite` | ^6.2.3 | Geliştirme sunucusu ve derleme |
 | `@vitejs/plugin-react` | ^5.0.4 | React desteği |
 | `@tailwindcss/vite`, `tailwindcss` | ^4.1.14 | Tasarım token sistemi ve stiller |
@@ -112,6 +119,7 @@ npm start
 | `typescript` | ~5.8.2 | Tip denetimi |
 | `tsx` | ^4.21.0 | TypeScript sunucusunu doğrudan çalıştırma |
 | `esbuild` | ^0.25.0 | Sunucu paketleme |
+| `vitest` | — | Birim / entegrasyon testleri |
 | `@types/node`, `@types/express` | — | Tip tanımları |
 
 **Fontlar depoya dâhildir** ve `public/fonts/` altından sunulur — CDN bağımlılığı yoktur.
@@ -122,34 +130,263 @@ Türkçe glifleri (ğ Ğ ş Ş ı İ ç Ç ö Ö ü Ü) kapsar.
 
 ## Yapılandırma
 
-`.env` dosyası:
+`.env` dosyası (şablon: `.env.example`). Gerçek anahtarları kaynak koda yazmayın; `.env` zaten `.gitignore` içindedir.
 
 ```ini
-# LLM sağlayıcısı (OpenAI uyumlu endpoint)
-NVIDIA_API_KEY=nvapi-XXXXXXXXXXXXXXXX
-NVIDIA_MODEL=meta/llama-3.3-70b-instruct
-NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+# LLM + embedding (EVREN)
+EVREN_API_KEY="sk-evren-teamNN-ANAHTARINIZ"
+EVREN_MODEL="llm-fast"
+EVREN_BASE_URL="https://evren-llmapi.ssyz.org.tr/v1"
+
+# Qdrant (EVREN vektör DB) — anahtar EVREN_API_KEY'den farklıdır
+EVREN_QDRANT_URL="https://evren-vektor.ssyz.org.tr"
+EVREN_QDRANT_PORT="443"
+EVREN_QDRANT_PREFIX="teamNN"
+EVREN_QDRANT_API_KEY="qdr-teamNN-ANAHTARINIZ"
+QDRANT_COLLECTION="katilim_finans_documents"
+
+# Admin uç noktaları (/api/qdrant/index, DELETE source)
+ADMIN_API_KEY="admin-yerel-gelistirme-anahtari"
+
+SCRAPER_ENABLED="true"
+SCRAPER_INTERVAL_MINUTES="30"
 ```
 
-### Yerel (on-premise) çalıştırma
+**Kurallar**
 
-Sunucu OpenAI uyumlu bir endpoint kullandığından, yerel bir model sunucusuna
-yönlendirilebilir. [Ollama](https://ollama.com) ile:
+- Takım yolunu `EVREN_QDRANT_URL` sonuna eklemeyin; `EVREN_QDRANT_PREFIX` istemci `prefix` ayarıyla gider.
+- Port açıkça `443` olmalıdır; REST/HTTPS kullanılır (gRPC yok).
+- Embedding modeli: `bge-m3-embed` (1024 boyut), endpoint `/v1/embeddings`, zaman aşımı 1800 sn.
+
+Anahtar tanımlı değilse çıkarım kural tabanlı yedeğe düşer; Qdrant yapılandırılmamışsa vektör uç noktaları `503` döner, mevcut özellikler çalışmaya devam eder.
+
+---
+
+## Qdrant vektör arama
+
+Qdrant **anlamsal metin araması** içindir (ürün açıklaması, kampanya, şart, ücret, kanıt cümleleri).
+Kâr payı oranı, vade, tutar gibi sayısal karşılaştırma verileri ilişkisel/yapılandırılmış katmanda kalır.
+
+### Kurulum özeti
+
+1. `.env.example` → `.env` kopyalayın ve takım prefix / anahtarlarınızı girin.
+2. `npm install && npm run dev`
+3. Sağlık: `GET http://localhost:3000/api/qdrant/health`
+4. Scraper içerik değişince otomatik `replaceSourceDocuments` çalışır (hash aynıysa embedding atlanır).
+
+### İndeksleme akışı
+
+1. Banka sayfası alınır → metin temizlenir → SHA-256 hash
+2. Hash değişmediyse yeniden embedding yok
+3. Değiştiyse parçalama (≈500–800 token, %10–15 örtüşme) → `bge-m3-embed` → upsert
+4. Yeni noktalar yazıldıktan sonra eski `source_id` parçaları güvenli silinir; hata olursa eski kayıtlar korunur
+
+### Hata giderme
+
+| Belirti | Kontrol |
+|---|---|
+| `Qdrant yapılandırılmamış` | `EVREN_QDRANT_URL`, `PREFIX`, `API_KEY` |
+| Kimlik doğrulama hatası | Qdrant anahtarı ≠ LLM anahtarı; prefix takımınıza ait mi? |
+| Koleksiyon boyut uyuşmazlığı | Beklenen vektör boyutu 1024 / Cosine; koleksiyon silinmez |
+| `Admin API anahtarı yapılandırılmamış` | `ADMIN_API_KEY` tanımlayın |
+| Embedding boyutu hatası | Model `bge-m3-embed` olmalı |
+
+Anahtarlar loglara yazılmaz; hata mesajları sanitize edilir.
+
+### Örnek curl
 
 ```bash
-ollama pull qwen3:4b
+# Sağlık
+curl -s http://localhost:3000/api/qdrant/health
+
+# Anlamsal arama
+curl -s -X POST http://localhost:3000/api/qdrant/search \
+  -H "Content-Type: application/json" \
+  -d "{\"query\":\"konut finansmanı tahsis ücreti\",\"limit\":5,\"bankIds\":[\"kuveyt-turk\"]}"
+
+# İndeksleme (admin)
+curl -s -X POST http://localhost:3000/api/qdrant/index \
+  -H "Content-Type: application/json" \
+  -H "X-Admin-Key: $ADMIN_API_KEY" \
+  -d "{\"mode\":\"replace\",\"sourceId\":\"demo-source\",\"documents\":[{\"bankId\":\"demo\",\"bankName\":\"Demo Bank\",\"sourceId\":\"demo-source\",\"sourceUrl\":\"https://example.com/\",\"documentType\":\"product\",\"text\":\"Konut finansmanında tahsis ücreti alınmaz. Başvuru için gelir belgesi gerekir.\",\"sourceCheckedAt\":\"2026-08-25T12:00:00.000Z\",\"contentHash\":\"demo-hash-001\"}]}"
+
+# Kaynak silme (admin)
+curl -s -X DELETE http://localhost:3000/api/qdrant/source/demo-source \
+  -H "X-Admin-Key: $ADMIN_API_KEY"
 ```
+
+### Bağlantı / test komutları
+
+```bash
+npm run lint
+npm test
+# Gerçek Qdrant (PowerShell):
+$env:RUN_QDRANT_INTEGRATION="1"; npm run test:integration
+```
+
+---
+
+## RAG asistanı
+
+Uçtan uca akış:
+
+```text
+Soru → sınıflandırma → plan → güncellik → (sınırlı yenileme)
+→ Qdrant + yapılandırılmış ürünler → kodla karşılaştırma
+→ kanıtlı prompt → llm-fast → Zod + validator → kaynaklı cevap
+```
+
+### Ortam değişkenleri (ek)
 
 ```ini
-NVIDIA_BASE_URL=http://localhost:11434/v1
-NVIDIA_MODEL=qwen3:4b
-NVIDIA_API_KEY=ollama
+EVREN_CHAT_MODEL=llm-fast
+EVREN_TIMEOUT_SECONDS=1800
+DATA_FRESHNESS_MINUTES=360
+MAX_SYNC_REFRESH_SOURCES=3
 ```
 
-Bu yapılandırmada hiçbir veri kurum dışına çıkmaz. `qwen3:4b` yaklaşık 2,5 GB'dır ve
-4 GB VRAM'li bir GPU'ya sığar; Apache 2.0 lisanslıdır.
+### Endpoint
 
-Anahtar tanımlı değilse sunucu otomatik olarak kural tabanlı çıkarıcıya düşer.
+`POST /api/assistant/chat`
+
+```bash
+curl -s -X POST http://localhost:3000/api/assistant/chat ^
+  -H "Content-Type: application/json" ^
+  -d "{\"message\":\"36 ay vadede en düşük ilan edilen kâr payı oranına sahip taşıt finansmanı hangisi?\",\"forceRefresh\":false}"
+```
+
+### Güvenlik
+
+- Tahmin yok; yoksa “Resmî kaynakta doğrulanamadı”
+- Hesaplama LLM’de değil, TypeScript araçlarında
+- Kaynak URL yalnızca izinli katılım bankası domainleri
+- Prompt injection içeren kaynak metinleri talimat olarak uygulanmaz
+- API anahtarı ve sistem promptu frontend’e dönmez
+- Rate limit: 20 istek / dakika
+
+### Başarı ölçütleri (ölçüm altyapısı)
+
+Aşağıdaki metrikler için log alanı (`observability`) hazırdır; altın test seti ile doldurulacaktır — sayı uydurulmaz:
+
+| Metrik | Durum |
+|---|---|
+| Retrieval Recall@5 | Test seti bekleniyor |
+| Kanıt doğruluğu | Validator + manuel örnekler |
+| Alan bazlı P/R/F1 | Test seti bekleniyor |
+| Kaynaksız finansal iddia oranı | Validator engeli |
+| JSON şema geçerlilik oranı | Zod |
+| Eski veri tespit doğruluğu | Birim testleri mevcut |
+| Ortalama uçtan uca yanıt süresi | `total_duration_ms` log |
+| Fallback kullanım oranı | `fallback_used` log |
+| Manuel doğrulama oranı | Test seti bekleniyor |
+
+### Hata giderme
+
+| Belirti | Kontrol |
+|---|---|
+| `insufficient_data` | Scraper ürün üretti mi? Qdrant indeksli mi? |
+| `stale_data` | `DATA_FRESHNESS_MINUTES`, “Yenile” düğmesi |
+| `clarification_required` | Ürün türü / tutar / vade eksik |
+| Validator düşürdü | Uydurma oran veya geçersiz [KAYNAK n] |
+
+---
+
+## Finansman Asistanı
+
+Sidebar / üst menüden **Finansman Asistanı** (`#/finansman-asistani`) açılır. Kullanıcı doğal dilde tutar, amaç ve vade verir; sistem doğrulanmış katılım bankası verileriyle karşılaştırır.
+
+### Kullanım
+
+1. Sol panelden **Finansman Asistanı** seçin (veya `#/finansman-asistani`).
+2. Tutarı ve amacı yazın (veya hazır chip’lere tıklayın).
+3. Eksik bilgi varsa en fazla iki kısa soru / chip ile tamamlanır.
+4. Sonuçta **Size Uygun Finansmanlar** ve **Esnek Alternatifler ve Kampanyalar** tabloları oluşur.
+5. “Tutarı 250 bin yap”, “En düşük toplam ödemeye göre sırala” gibi takip mesajlarıyla konuşma sıfırlanmadan yeniden hesaplanır.
+
+### Karar akışı
+
+```text
+Mesaj → NLU (tutar/vade/amaç) → zorunlu alanlar
+  → eksikse needs_information + quick replies
+  → tamysa PostgreSQL/bellek + canlı scrape ürünleri
+  → tam eşleşme filtresi (tür, tutar, vade, aktiflik, segment, güncellik)
+  → TypeScript taksit hesabı (yeterli parametre yoksa sayı yok)
+  → esnek alternatifler (varsayılan ±%25 tutar, ±12 ay vade)
+  → yapılandırılmış JSON + kısa sohbet cevabı
+```
+
+### Veri kaynakları
+
+- Yalnızca 10 katılım bankasının resmî domainleri
+- Canlı scraper / bellek / PostgreSQL kayıtları
+- Qdrant kanıt metinleri (sayısal değer olarak doğrudan kullanılmaz)
+- `ALLOW_DEMO_DATA=false` iken demo veri gerçek sonuç gibi gösterilmez
+
+### Hesaplama sınırlamaları
+
+- Hesap LLM’de yapılmaz; `finansmanCalculator.ts` kullanır
+- Oran veya periyot yoksa: “Bankadan teklif alınmalı” / “Resmî kaynakta belirtilmemiş”
+- Eksik değerler `0` olarak gösterilmez
+
+### Güvenlik
+
+- EVREN / Qdrant anahtarları yalnızca backend’de
+- Kullanıcıdan T.C. kimlik, şifre, kart, gelir istenmez
+- Zod doğrulama + mesaj uzunluk sınırı + rate limit
+- Konvansiyonel banka id/adları sonuçlardan elenir
+- `sanitizeAssistantNumbers` backend’de olmayan tutarları maskeler
+
+### Endpoint
+
+`POST /api/assistant/chat` with `"mode":"finansman"`  
+veya `POST /api/assistant/finansman`
+
+```bash
+curl -s -X POST http://localhost:3000/api/assistant/chat ^
+  -H "Content-Type: application/json" ^
+  -d "{\"mode\":\"finansman\",\"message\":\"200 bin TL ihtiyaç finansmanı, 24 ay.\"}"
+```
+
+Yanıt alanları: `assistantMessage`, `status`, `exactMatches`, `flexibleMatches`, `quickReplies`, `summary`, `warnings`, `citations`, `query`.
+
+---
+
+## Resmî kaynak scraper + PostgreSQL
+
+Sistem yalnızca 10 katılım bankasının resmî domainlerini tarar. VakıfBank / Ziraat Bankası vb. konvansiyonel domainler reddedilir (SSRF + allowlist).
+
+### Paketler
+
+`pg`, `cheerio` (+ mevcut `@qdrant/js-client-rest`, `zod`)
+
+### Migration
+
+```bash
+psql "$DATABASE_URL" -f migrations/001_katilim_finans.sql
+```
+
+`DATABASE_URL` yoksa bellek içi depo kullanılır; uygulama çalışmaya devam eder.
+
+### Job tabanlı yenileme
+
+```bash
+curl -X POST http://localhost:3000/api/live/refresh ^
+  -H "Content-Type: application/json" ^
+  -H "X-Admin-Key: %ADMIN_API_KEY%" ^
+  -d "{\"force\":false}"
+
+curl http://localhost:3000/api/live/jobs/JOB_ID
+curl http://localhost:3000/api/system/health
+```
+
+### Güvenlik özeti
+
+- Keyfî URL scrape yok
+- Redirect sonrası domain yeniden doğrulanır
+- Domain başına 1 eşzamanlı istek, ≥2 sn gecikme
+- Hash değişmeden EVREN/embedding yok
+- Kart kampanyaları finansman karşılaştırmasından ayrı
+- `ALLOW_DEMO_DATA=false` iken demo gerçek veri gibi sunulmaz
 
 ---
 
@@ -396,11 +633,23 @@ interface TermDetail<T> {
 {
   "status": "ok",
   "service": "katilim-bilgi-cikarim-ajani",
-  "provider": "nvidia-nim",
-  "model": "meta/llama-3.3-70b-instruct",
-  "api_key_configured": true
+  "provider": "ssb-evren",
+  "model": "llm-fast",
+  "api_key_configured": true,
+  "qdrant_configured": true
 }
 ```
+
+### Qdrant uç noktaları
+
+| Method | Path | Yetki | Açıklama |
+|---|---|---|---|
+| `GET` | `/api/qdrant/health` | Açık | Bağlantı + koleksiyon durumu |
+| `POST` | `/api/qdrant/search` | Açık (rate limit) | Anlamsal benzer parça arama |
+| `POST` | `/api/qdrant/index` | Admin | Belge indeksleme / replace |
+| `DELETE` | `/api/qdrant/source/:sourceId` | Admin | Kaynağa ait vektörleri sil |
+
+Admin: `Authorization: Bearer <ADMIN_API_KEY>` veya `X-Admin-Key`. İstek gövdeleri Zod ile doğrulanır; istemci `collection` adı veya keyfî scrape URL’i gönderemez.
 
 ---
 
@@ -408,38 +657,25 @@ interface TermDetail<T> {
 
 ```
 .
-├── server.ts                  Express sunucusu, /api/extract, kural tabanlı yedek
-├── index.html                 Font önyüklemesi, tema flash önleme
+├── server.ts                  Express + Vite, scraper, /api/extract
+├── vitest.config.ts
 ├── docs/
-│   ├── nlp-mimarisi.tex/.pdf              NLP yöntem haritası
-│   └── eksiklikler-ve-yol-haritasi.tex/.pdf
-├── public/fonts/              Self-hosted Inter ve JetBrains Mono (woff2)
 └── src/
-    ├── App.tsx                Uygulama kabuğu, sekme yönetimi, durum
-    ├── index.css              Tailwind v4 token katmanı, açık/koyu tema
-    ├── types.ts               Şema (değiştirilmez)
-    ├── data/samples.ts        Örnek kampanya metinleri
-    ├── nlp/                   ── NLP KATMANI ──
-    │   ├── normalize.ts       Türkçe metin normalizasyonu
-    │   ├── segment.ts         Cümle bölütleme, belirteçleme
-    │   ├── lexicon.ts         Terminoloji eşleme, olumsuzluk tespiti
-    │   ├── extract.ts         Kural tabanlı çıkarım, çapraz doğrulama
-    │   └── align.ts           Kanıt hizalama
-    ├── lib/
-    │   └── compare.ts         Karşılaştırma motoru (5 kriter)
+    ├── nlp/                   NLP katmanı
+    ├── server/
+    │   ├── middleware/        adminAuth, rateLimit
+    │   ├── routes/qdrantRoutes.ts
+    │   └── services/
+    │       ├── embedding/evrenEmbeddingService.ts
+    │       └── qdrant/
+    │           ├── qdrantClient.ts
+    │           ├── collectionManager.ts
+    │           ├── documentIndexer.ts
+    │           ├── vectorSearch.ts
+    │           ├── textChunker.ts
+    │           ├── scrapeIndexer.ts
+    │           └── __tests__/
     └── components/
-        ├── Sidebar.tsx        Navigasyon (masaüstü kenar / mobil alt çubuk)
-        ├── Header.tsx         Üst çubuk, tema, dışa aktarma
-        ├── Dashboard.tsx      Genel bakış, KPI, dağılımlar, bulgular
-        ├── TextInspector.tsx  Metin girişi ve kanıt vurgulama
-        ├── ProductCard.tsx    Çıkarılan alanlar, güven, doğrulama
-        ├── CampaignList.tsx   Kampanya kartları, filtre, seçim
-        ├── CompareView.tsx    Karşılaştırma matrisi
-        ├── JsonViewer.tsx     Ham JSON, kopyalama, indirme
-        ├── TerminologyGuide.tsx  Kural ve standart rehberi
-        ├── ConfidenceRing.tsx    Güven görselleştirme
-        ├── AnimatedNumber.tsx    Sayısal geçişler
-        └── Toast.tsx             Bildirimler
 ```
 
 ---
@@ -466,6 +702,8 @@ Altı bölümden oluşur:
 | **Çıkarım** | Metin girişi, okuma/düzenleme modu, çıkarılan alanlar, kanıt vurgulama, alan doğrulama |
 | **Kampanyalar** | Kart listesi, filtreler, karşılaştırma için çoklu seçim |
 | **Karşılaştırma** | Kriter × banka matrisi, kazanan işaretleri, satır bazlı kanıt gösterimi |
+| **Asistana Sor** | Genel RAG sohbeti (kanıtlı cevap) |
+| **Finansman Asistanı** | Sohbet + tam eşleşme / esnek alternatif tabloları (`#/finansman-asistani`) |
 | **JSON** | Ham çıktı, kopyalama, `.json` indirme, manuel düzenleme |
 | **Kurallar** | Terim eşleme matrisi, normalizasyon kuralları, güven ölçeği |
 
@@ -484,11 +722,13 @@ Altı bölümden oluşur:
 ## Geliştirme
 
 ```bash
-npm run dev      # Geliştirme sunucusu (http://localhost:3000)
-npm run lint     # TypeScript tip denetimi (tsc --noEmit)
-npm run build    # Üretim derlemesi
-npm start        # Derlenmiş sunucuyu çalıştır
-npm run clean    # dist/ temizliği
+npm run dev              # Geliştirme sunucusu (http://localhost:3000)
+npm run lint             # TypeScript tip denetimi (tsc --noEmit)
+npm test                 # Qdrant birim testleri (mock)
+npm run test:integration # Gerçek Qdrant (RUN_QDRANT_INTEGRATION=1 gerekir)
+npm run build            # Üretim derlemesi
+npm start                # Derlenmiş sunucuyu çalıştır
+npm run clean            # dist/ temizliği
 ```
 
 NLP modülleri saf TypeScript'tir ve doğrudan çalıştırılabilir:
@@ -501,11 +741,11 @@ npx tsx -e "import('./src/nlp').then(n => console.log(n.kuralTabanliCikar('Aylı
 
 ## Bilinen sınırlar
 
-- **Kalıcı depo yok.** Çıkarım sonuçları ve doğrulama işaretleri yalnızca bellekte tutulur; sayfa yenilendiğinde kaybolur.
+- **Kalıcı depo yok.** Çıkarım sonuçları ve doğrulama işaretleri yalnızca bellekte tutulur; sayfa yenilendiğinde kaybolur. Finansman Asistanı konuşma durumu da sunucu belleğindedir (yeniden başlatmada sıfırlanır).
 - **Kural motoru yedek konumunda.** Şu an dil modeli birincil çıkarıcıdır; kural katmanı yalnızca API anahtarı yoksa devreye girer. Katmanların yer değiştirmesi planlanmaktadır.
 - **Banka adı şemada yok.** Karşılaştırmada banka adı, metnin örnek şablonlarla eşleştirilmesinden türetilir.
 - **Kampanya türü sınıflandırması yok.** Yalnızca ürün türü çıkarılmaktadır.
-- **Chatbot yok.**
+- **Finansman Asistanı canlı veriye bağlıdır.** Scrape/ürün kapsamı seyrekse `no_verified_data` döner; demo veri gerçek sonuç gibi gösterilmez.
 - **Bulut modeli kullanılıyor.** Yerel çalıştırma desteklenir ancak varsayılan yapılandırma harici bir servise gider.
 - **Doğruluk ölçümü yok.** Altın değerlendirme seti hazırlanmamıştır.
 

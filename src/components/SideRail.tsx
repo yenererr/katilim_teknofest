@@ -1,5 +1,13 @@
 import React from 'react';
-import { Home, Tag, Receipt, MessageSquare, Search, type LucideIcon } from 'lucide-react';
+import {
+  Home,
+  Tag,
+  Receipt,
+  MessageSquare,
+  MessagesSquare,
+  Search,
+  type LucideIcon,
+} from 'lucide-react';
 import { ARAC_NAV, TabKey } from './nav';
 import { POPULER_ARAMALAR } from '../data/piyasa';
 import { BankMark } from './BankMark';
@@ -17,6 +25,7 @@ interface IhtiyacKarti {
   baslik: string;
   aciklama: string;
   icon: LucideIcon;
+  tooltip?: string;
 }
 
 const IHTIYACLAR: IhtiyacKarti[] = [
@@ -32,6 +41,13 @@ const IHTIYACLAR: IhtiyacKarti[] = [
     baslik: 'Ücretleri Karşılaştır',
     aciklama: 'EFT, FAST, kart aidatı vb.',
     icon: Receipt,
+  },
+  {
+    key: 'finansman-asistani',
+    baslik: 'Finansman Asistanı',
+    aciklama: 'Sohbetle finansman bul',
+    icon: MessagesSquare,
+    tooltip: 'Finansman Asistanı',
   },
   {
     key: 'asistan',
@@ -70,6 +86,7 @@ export const SideRail: React.FC<SideRailProps> = ({
                 type="button"
                 onClick={() => setActiveTab(item.key)}
                 aria-current={isActive ? 'page' : undefined}
+                title={item.tooltip || item.baslik}
                 className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors ${
                   isActive
                     ? 'border-brand-200 bg-brand-50 dark:border-brand-800 dark:bg-brand-950'

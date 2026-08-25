@@ -1,0 +1,362 @@
+import React, { useEffect, useId, useRef, useState } from "react";
+import {
+  AlertTriangle,
+  ExternalLink,
+  Loader2,
+  MessageSquare,
+  RefreshCw,
+  Send,
+  ShieldAlert,
+} from "lucide-react";
+
+export type AssistantCitation = {
+  id: number;
+  title?: string;
+  bankName: string;
+  sourceUrl: string;
+  sourceCheckedAt: string;
+  evidenceText: string;
+};
+
+export type AssistantChatResponse = {
+  answer: string;
+  status: string;
+  products: Array<{
+    productId?: string;
+    bankName: string;
+    productName?: string;
+    verifiedFields: Record<string, unknown>;
+    freshnessStatus: string;
+  }>;
+  citations: AssistantCitation[];
+  warnings: string[];
+  calculation?: {
+    method: string;
+    inputs: Record<string, unknown>;
+    result: Record<string, unknown>;
+  };
+  dataAsOf?: string;
+  requestId?: string;
+  observability?: {
+    intent?: string;
+    freshness_status?: string;
+    validation_status?: string;
+    fallback_used?: boolean;
+    total_duration_ms?: number;
+  };
+};
+
+type ChatTurn = {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  payload?: AssistantChatResponse;
+};
+
+const FRESHNESS_BADGE: Record<string, string> = {
+  FRESH: "bg-brand-50 text-brand-800 border-brand-200 dark:bg-brand-950 dark:text-brand-200",
+  STALE: "bg-warn-50 text-warn-800 border-warn-200 dark:bg-warn-950 dark:text-warn-200",
+  EXPIRED: "bg-risk-50 text-risk-800 border-risk-200 dark:bg-risk-950 dark:text-risk-200",
+  FAILED: "bg-risk-50 text-risk-800 border-risk-200",
+  UNKNOWN: "bg-sunken text-txt-muted border-line",
+  MIXED: "bg-warn-50 text-warn-800 border-warn-200",
+};
+
+const SUGGESTIONS = [
+  "36 ay vadede en düşük ilan edilen kâr payı oranına sahip taşıt finansmanı hangisi?",
+  "Konut finansmanında tahsis ücreti alınmayan kampanyalar var mı?",
+  "Kuveyt Türk ihtiyaç finansmanı şartları neler?",
+];
+
+type Props = {
+  initialQuestion?: string;
+};
+
+export const AssistantChat: React.FC<Props> = ({ initialQuestion }) => {
+  const [input, setInput] = useState("");
+  const [turns, setTurns] = useState<ChatTurn[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [conversationId] = useState(() => crypto.randomUUID());
+  const [expandedCitation, setExpandedCitation] = useState<number | null>(null);
+  const [forceRefresh, setForceRefresh] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const inputId = useId();
+  const bootstrapped = useRef(false);
+
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
+  }, [turns, loading]);
+
+  const send = async (message: string, refresh = forceRefresh) => {
+    const text = message.trim();
+    if (!text || loading) return;
+
+    setError(null);
+    setInput("");
+    setTurns((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), role: "user", text },
+    ]);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/assistant/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text,
+          conversationId,
+          forceRefresh: refresh,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Asistan yanıt veremedi.");
+      }
+      const payload = data as AssistantChatResponse;
+      setTurns((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          text: payload.answer,
+          payload,
+        },
+      ]);
+      setForceRefresh(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Bağlantı hatası");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (bootstrapped.current) return;
+    if (initialQuestion?.trim()) {
+      bootstrapped.current = true;
+      void send(initialQuestion.trim());
+    }
+  }, [initialQuestion]);
+
+  return (
+    <div className="flex min-h-[70vh] flex-col gap-4">
+      <header className="rounded-xl border border-line bg-surface p-4 shadow-raised sm:p-5">
+        <p className="flex items-center gap-2 text-xs text-brand-700 dark:text-brand-400">
+          <MessageSquare className="h-4 w-4" aria-hidden="true" />
+          Kanıtlı RAG asistanı
+        </p>
+        <h2 className="mt-1 text-xl font-semibold tracking-tight text-txt">
+          Asistana Sor
+        </h2>
+        <p className="mt-1 max-w-3xl text-sm text-txt-secondary">
+          Yalnızca doğrulanmış canlı / Qdrant kaynakları üzerinden cevap verir.
+          Tahmin etmez; kaynak URL ve son kontrol zamanını gösterir.
+        </p>
+      </header>
+
+      {!turns.length && (
+        <ul className="grid gap-2 sm:grid-cols-3">
+          {SUGGESTIONS.map((s) => (
+            <li key={s}>
+              <button
+                type="button"
+                onClick={() => void send(s)}
+                className="h-full w-full rounded-lg border border-line bg-sunken p-3 text-left text-sm text-txt-secondary transition hover:border-brand-300 hover:text-txt"
+              >
+                {s}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div
+        ref={listRef}
+        className="flex-1 space-y-4 overflow-y-auto rounded-xl border border-line bg-surface p-4"
+        aria-live="polite"
+      >
+        {turns.map((turn) => (
+          <div
+            key={turn.id}
+            className={`max-w-3xl ${turn.role === "user" ? "ml-auto" : ""}`}
+          >
+            <div
+              className={`rounded-lg px-3.5 py-2.5 text-sm leading-relaxed ${
+                turn.role === "user"
+                  ? "bg-brand-600 text-white"
+                  : "border border-line bg-sunken text-txt"
+              }`}
+            >
+              {turn.text}
+            </div>
+
+            {turn.payload && (
+              <div className="mt-2 space-y-2">
+                <div className="flex flex-wrap gap-2 text-xs">
+                  <span
+                    className={`rounded-md border px-2 py-0.5 ${
+                      FRESHNESS_BADGE[
+                        turn.payload.observability?.freshness_status || "UNKNOWN"
+                      ] || FRESHNESS_BADGE.UNKNOWN
+                    }`}
+                  >
+                    Güncellik:{" "}
+                    {turn.payload.observability?.freshness_status || "UNKNOWN"}
+                  </span>
+                  <span className="rounded-md border border-line bg-surface px-2 py-0.5 text-txt-muted">
+                    Durum: {turn.payload.status}
+                  </span>
+                  {turn.payload.dataAsOf && (
+                    <span className="rounded-md border border-line bg-surface px-2 py-0.5 text-txt-muted">
+                      dataAsOf:{" "}
+                      {new Date(turn.payload.dataAsOf).toLocaleString("tr-TR")}
+                    </span>
+                  )}
+                </div>
+
+                {turn.payload.warnings?.length > 0 && (
+                  <ul className="space-y-1">
+                    {turn.payload.warnings.map((w) => (
+                      <li
+                        key={w}
+                        className="flex gap-2 rounded-md border border-warn-200 bg-warn-50 px-2.5 py-1.5 text-xs text-warn-900 dark:border-warn-900 dark:bg-warn-950 dark:text-warn-200"
+                      >
+                        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        {w}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {turn.payload.calculation && (
+                  <div className="rounded-md border border-line bg-surface p-2.5 text-xs text-txt-secondary">
+                    <p className="font-medium text-txt">Karşılaştırma kriteri</p>
+                    <p className="mt-1 font-mono">
+                      {turn.payload.calculation.method}
+                    </p>
+                    {turn.payload.calculation.result?.winnerBank != null && (
+                      <p className="mt-1">
+                        Kod sonucu: {String(turn.payload.calculation.result.winnerBank)}{" "}
+                        — {String(turn.payload.calculation.result.winnerMetric ?? "")}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {turn.payload.citations?.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-txt-muted">Kaynaklar</p>
+                    <ul className="grid gap-2 sm:grid-cols-2">
+                      {turn.payload.citations.map((c) => (
+                        <li key={c.id}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedCitation((id) =>
+                                id === c.id ? null : c.id,
+                              )
+                            }
+                            className="w-full rounded-lg border border-line bg-surface p-3 text-left transition hover:border-brand-300"
+                          >
+                            <p className="text-xs font-medium text-txt">
+                              [KAYNAK {c.id}] {c.bankName}
+                            </p>
+                            <p className="mt-0.5 truncate text-xs text-txt-secondary">
+                              {c.title}
+                            </p>
+                            <p className="mt-1 text-[11px] text-txt-muted">
+                              Son kontrol:{" "}
+                              {c.sourceCheckedAt
+                                ? new Date(c.sourceCheckedAt).toLocaleString("tr-TR")
+                                : "bilinmiyor"}
+                            </p>
+                            <a
+                              href={c.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="mt-1 inline-flex items-center gap-1 text-[11px] text-brand-700 hover:underline dark:text-brand-300"
+                            >
+                              Resmî kaynak <ExternalLink className="h-3 w-3" />
+                            </a>
+                            {expandedCitation === c.id && (
+                              <p className="mt-2 border-t border-line pt-2 text-xs leading-relaxed text-txt-secondary">
+                                {c.evidenceText}
+                              </p>
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {loading && (
+          <p className="flex items-center gap-2 text-sm text-txt-muted">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Kaynaklar ve yapılandırılmış veri kontrol ediliyor…
+          </p>
+        )}
+      </div>
+
+      {error && (
+        <p className="flex items-center gap-2 rounded-lg border border-risk-200 bg-risk-50 px-3 py-2 text-sm text-risk-800">
+          <ShieldAlert className="h-4 w-4" />
+          {error}
+        </p>
+      )}
+
+      <form
+        className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-3 shadow-raised sm:flex-row sm:items-end"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void send(input);
+        }}
+      >
+        <label className="min-w-0 flex-1">
+          <span className="sr-only" id={inputId}>
+            Sorunuz
+          </span>
+          <textarea
+            aria-labelledby={inputId}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            rows={2}
+            maxLength={2000}
+            placeholder="Örn. 36 ay vadeli taşıt finansmanında en düşük ilan edilen kâr payı hangisi?"
+            className="w-full resize-none rounded-lg border border-line bg-sunken px-3 py-2 text-sm text-txt outline-none ring-brand-500 focus:ring-2"
+          />
+        </label>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            title="İlgili kaynakları yenilemeyi dene"
+            onClick={() => setForceRefresh((v) => !v)}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm ${
+              forceRefresh
+                ? "border-brand-400 bg-brand-50 text-brand-800"
+                : "border-line bg-sunken text-txt-secondary"
+            }`}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Yenile
+          </button>
+          <button
+            type="submit"
+            disabled={loading || !input.trim()}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          >
+            <Send className="h-4 w-4" />
+            Gönder
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};

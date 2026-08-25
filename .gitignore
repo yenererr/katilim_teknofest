@@ -5,6 +5,7 @@ coverage/
 .DS_Store
 *.log
 .npm-cache/
+.scraper-cache/
 .env*
 !.env.example
 

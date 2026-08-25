@@ -61,7 +61,40 @@ export interface ExtractionResponse {
     duration_ms?: number;
     extracted_at?: string;
     conventional_terms_detected?: string[];
+    provider?: string;
+    requested_model?: string;
+    used_model?: string | null;
+    model_warning?: string | null;
   };
+}
+
+export interface LiveBankProduct {
+  id: string;
+  bankId: string;
+  bankName: string;
+  sourceUrls: string[];
+  lastExtractedAt: string | null;
+  product: KatilimUrunu;
+}
+
+export interface LiveBankState {
+  id: string;
+  bankName: string;
+  urls: string[];
+  status: 'beklemede' | 'degismedi' | 'guncellendi' | 'hata';
+  lastCheckedAt: string | null;
+  lastChangedAt: string | null;
+  lastExtractedAt: string | null;
+  products: KatilimUrunu[];
+  error: string | null;
+}
+
+export interface LiveProductsResponse {
+  enabled: boolean;
+  running: boolean;
+  updated_at: string;
+  banks: LiveBankState[];
+  products: LiveBankProduct[];
 }
 
 export interface SampleBankText {

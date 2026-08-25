@@ -24,7 +24,8 @@ import {
   VARSAYILAN_TUTAR,
   VERI_TARIHI,
 } from '../data/piyasa';
-import { oranBicim, sayiBicim, teklifleriHesapla, tlBicim } from '../lib/finansman';
+import { aylikTaksit, oranBicim, sayiBicim, teklifleriHesapla, tlBicim } from '../lib/finansman';
+import { KarsilastirmaOgesi } from '../lib/compare';
 import { BankMark } from './BankMark';
 import { TabKey } from './nav';
 
@@ -41,6 +42,7 @@ interface HomeViewProps {
   /** Asistan kutusundan gönderilen soru */
   onAsistanaSor: (soru: string) => void;
   talep: KarsilastirmaTalebi;
+  ogeler: KarsilastirmaOgesi[];
 }
 
 const HERO_SEKMELERI: { key: 'finansman' | 'kampanya' | 'ucret' | 'asistan'; etiket: string; icon: typeof HomeIcon }[] = [
@@ -63,6 +65,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onKarsilastir,
   onAsistanaSor,
   talep,
+  ogeler,
 }) => {
   const [heroSekme, setHeroSekme] = useState<'finansman' | 'kampanya' | 'ucret' | 'asistan'>(
     'finansman',
@@ -81,7 +84,51 @@ export const HomeView: React.FC<HomeViewProps> = ({
     () => teklifleriHesapla(talep.tur, talep.tutar, talep.vadeAy),
     [talep],
   );
-  const gecerliSatirlar = satirlar.filter((s) => s.uygunMu);
+  const canliSatirlar = useMemo(
+    () =>
+      ogeler
+        .map((oge) => {
+          const product = oge.product;
+          if (product.urun_turu !== talep.tur) return null;
+
+          const oran = product.terimler?.kar_payi_orani;
+          if (oran?.deger === undefined || oran.deger === null || oran.deger <= 0) return null;
+
+          const aylikKarPayi =
+            oran.periyot === 'yillik' ? oran.deger / 12 : oran.periyot === 'aylik' ? oran.deger : null;
+          if (aylikKarPayi === null) return null;
+
+          const azamiVade = product.terimler?.vade_ay?.max ?? null;
+          const uygunMu = azamiVade === null || talep.vadeAy <= azamiVade;
+          const taksit = aylikTaksit(talep.tutar, aylikKarPayi, talep.vadeAy);
+          const toplamOdeme = taksit * talep.vadeAy;
+          const tahsisUcreti = product.terimler?.tahsis_ucreti?.deger ?? 0;
+          const bankaId = BANKALAR.find((b) => b.ad === oge.bankaAdi)?.id;
+
+          return {
+            id: oge.id,
+            bankaId,
+            bankaAdi: oge.bankaAdi,
+            aylikKarPayi,
+            taksit,
+            toplamOdeme,
+            tahsisUcreti,
+            toplamMaliyet: toplamOdeme + tahsisUcreti,
+            kampanyaliMi: Boolean(product.kampanya_bitis || product.terimler?.odul?.deger),
+            uygunMu,
+            canli: true,
+          };
+        })
+        .filter((s): s is NonNullable<typeof s> => Boolean(s))
+        .sort((a, b) => {
+          if (a.uygunMu !== b.uygunMu) return a.uygunMu ? -1 : 1;
+          return a.toplamMaliyet - b.toplamMaliyet;
+        }),
+    [ogeler, talep],
+  );
+  const canliVeriAktif = canliSatirlar.length > 0;
+  const tabloSatirlari = canliVeriAktif ? canliSatirlar : satirlar;
+  const gecerliSatirlar = tabloSatirlari.filter((s) => s.uygunMu);
   const fastUcretleri = UCRETLER.find((u) => u.key === 'fast')!;
 
   const turDegistir = (yeni: FinansmanTuru) => {
@@ -257,6 +304,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <span className="tnum font-mono">{tlBicim(talep.tutar)}</span> ·{' '}
               <span className="tnum font-mono">{talep.vadeAy} ay</span> · toplam maliyete göre
               sıralı
+              {canliVeriAktif && (
+                <span className="ml-1 rounded border border-brand-200 bg-brand-50 px-1.5 py-0.5 text-[0.625rem] text-brand-700 dark:border-brand-800 dark:bg-brand-950 dark:text-brand-300">
+                  canlı scrape
+                </span>
+              )}
             </p>
 
             <div className="overflow-x-auto px-2 pb-2">
@@ -280,21 +332,23 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </thead>
                 <tbody>
                   {gecerliSatirlar.map((s, i) => {
-                    const banka = BANKA_INDEKS[s.bankaId];
+                    const banka = s.bankaId ? BANKA_INDEKS[s.bankaId] : undefined;
+                    const rowKey = 'id' in s ? s.id : s.bankaId;
+                    const rowBankaAdi = 'bankaAdi' in s ? s.bankaAdi : banka?.ad;
                     return (
                       <tr
-                        key={s.bankaId}
+                        key={rowKey}
                         className="border-t border-line transition-colors hover:bg-sunken"
                       >
                         <th scope="row" className="px-3 py-3 text-left font-medium">
                           <span className="flex items-center gap-2.5">
-                            <BankMark bankaId={s.bankaId} size="sm" />
+                            <BankMark bankaId={s.bankaId} ad={rowBankaAdi} size="sm" />
                             <span
                               className={
                                 i === 0 ? 'text-brand-700 dark:text-brand-400' : 'text-txt'
                               }
                             >
-                              {banka?.ad}
+                              {rowBankaAdi}
                             </span>
                           </span>
                         </th>

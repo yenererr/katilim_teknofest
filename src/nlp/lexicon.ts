@@ -1,4 +1,8 @@
-import { asciiKatla } from './normalize';
+import { asciiKatla } from "./normalize";
+import {
+  KATILIM_SOZLUGU,
+  type KatilimSozlukKaydi,
+} from "../data/katilimSozlugu";
 
 /**
  * Katılım bankacılığı terminoloji sözlüğü — sözlükbirim (leksikon) tabanlı
@@ -21,45 +25,26 @@ export interface TerimKaydi {
   varyantlar?: string[];
 }
 
-export const TERIM_SOZLUGU: TerimKaydi[] = [
-  {
-    konvansiyonel: 'faiz',
-    katilim: 'kâr payı',
-    alan: 'kar_payi_orani',
-    varyantlar: ['faiz oranı', 'faiz orani', 'faiz indirimi'],
-  },
-  {
-    konvansiyonel: 'kredi',
-    katilim: 'finansman',
-    alan: 'urun_turu',
-    varyantlar: ['kredi kullanımı', 'konut kredisi', 'taşıt kredisi', 'ihtiyaç kredisi'],
-  },
-  {
-    konvansiyonel: 'mevduat',
-    katilim: 'katılım fonu',
-    alan: 'urun_turu',
-    varyantlar: ['vadeli mevduat', 'mevduat hesabı'],
-  },
-  {
-    konvansiyonel: 'dosya masrafı',
-    katilim: 'tahsis ücreti',
-    alan: 'tahsis_ucreti',
-    varyantlar: ['dosya masrafi', 'dosya ücreti', 'masraf'],
-  },
-  {
-    konvansiyonel: 'kart puanı',
-    katilim: 'ödül',
-    alan: 'odul_miktari',
-    varyantlar: ['kart puani', 'bonus puan', 'puan kazanımı'],
-  },
-];
+function toTerimKaydi(kayit: KatilimSozlukKaydi): TerimKaydi | null {
+  if (kayit.eslemeAktif === false) return null;
+  return {
+    konvansiyonel: kayit.geleneksel,
+    katilim: kayit.katilim.split(" / ")[0].trim(),
+    alan: kayit.alan || "urun_turu",
+    varyantlar: kayit.varyantlar,
+  };
+}
+
+/** NLP eşlemesi için aktif sözlük kayıtları (uzun kökler önce taranır) */
+export const TERIM_SOZLUGU: TerimKaydi[] = KATILIM_SOZLUGU.map(toTerimKaydi)
+  .filter((k): k is TerimKaydi => k !== null)
+  .sort((a, b) => b.konvansiyonel.length - a.konvansiyonel.length);
 
 /** Türkçe çekim eklerine toleranslı desen üretir. */
 const kokDeseni = (kok: string): RegExp => {
-  const katlanmis = asciiKatla(kok).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  // Kelimeler arası boşluk esnek; sonunda en fazla üç heceye kadar ek olabilir
-  const govde = katlanmis.replace(/\s+/g, '\\s+');
-  return new RegExp(`(^|[^\\p{L}])(${govde})(\\p{L}{0,6})(?=$|[^\\p{L}])`, 'giu');
+  const katlanmis = asciiKatla(kok).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const govde = katlanmis.replace(/\s+/g, "\\s+");
+  return new RegExp(`(^|[^\\p{L}])(${govde})(\\p{L}{0,6})(?=$|[^\\p{L}])`, "giu");
 };
 
 export interface TerimBulgusu {
@@ -93,9 +78,10 @@ export const terimleriBul = (metin: string): TerimBulgusu[] => {
       const desen = kokDeseni(kok);
       let eslesme: RegExpExecArray | null;
       while ((eslesme = desen.exec(katlanmis)) !== null) {
-        const onEk = eslesme[1] ?? '';
+        const onEk = eslesme[1] ?? "";
         const baslangic = eslesme.index + onEk.length;
-        const bitis = baslangic + (eslesme[2]?.length ?? 0) + (eslesme[3]?.length ?? 0);
+        const bitis =
+          baslangic + (eslesme[2]?.length ?? 0) + (eslesme[3]?.length ?? 0);
         if (!cakisiyor(baslangic, bitis)) {
           kullanilanAralik.push([baslangic, bitis]);
           bulgular.push({
@@ -117,7 +103,10 @@ export const terimOzeti = (
   metin: string,
 ): { orig: string; mapped: string; alan: string; adet: number }[] => {
   const bulgular = terimleriBul(metin);
-  const gruplar = new Map<string, { orig: string; mapped: string; alan: string; adet: number }>();
+  const gruplar = new Map<
+    string,
+    { orig: string; mapped: string; alan: string; adet: number }
+  >();
 
   bulgular.forEach((b) => {
     const anahtar = b.kayit.konvansiyonel;
@@ -142,21 +131,16 @@ export const terimOzeti = (
 /* ------------------------------------------------------------------ */
 
 /**
- * "Tahsis ücreti alınmaz" · "dosya masrafı yoktur" gibi ifadelerde
- * olumsuzluk kapsamını tespit eder. Bu ifadeler şemada 0 değerine karşılık
- * gelir — pozitif bir sayı aranarak bulunamazlar.
- */
-/**
  * Türkçede olumsuzluk çekim ekiyle taşınır: -maz/-mez (geniş zaman),
  * -mıyor/-muyor (şimdiki zaman), -mama-/-meme- (mastar olumsuzu).
  * Kritik ayrım: "alınmaz" olumsuz, "alınmaktadır" olumludur — naif bir
  * "alınm" araması ikisini de yakalar ve ücreti yanlışlıkla sıfırlar.
  */
 const OLUMSUZ_KALIPLAR = [
-  /\p{L}+m(az|ez)\b/u, // alınmaz, edilmez, yansıtılmaz, uygulanmaz
-  /\p{L}+m[iu]yor\b/u, // alınmıyor, uygulanmıyor
-  /\p{L}+mam\p{L}*/u, // alınmamakta, alınmamıştır
-  /\p{L}+mem\p{L}*/u, // edilmemekte
+  /\p{L}+m(az|ez)\b/u,
+  /\p{L}+m[iu]yor\b/u,
+  /\p{L}+mam\p{L}*/u,
+  /\p{L}+mem\p{L}*/u,
   /\byok(tur)?\b/,
   /\bmasrafsiz\b/,
   /\bucretsiz\b/,

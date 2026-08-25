@@ -2,30 +2,27 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import { TopNav } from './components/TopNav';
 import { SideRail, SonIslem } from './components/SideRail';
-import { TabKey, TAB_TITLES } from './components/nav';
+import { TabKey, TAB_TITLES, TAB_TO_HASH, tabFromHash } from './components/nav';
 import { HomeView, KarsilastirmaTalebi } from './components/HomeView';
 import { FinansmanView } from './components/FinansmanView';
 import { FeesView } from './components/FeesView';
 import { CampaignsView } from './components/CampaignsView';
 import { Dashboard } from './components/Dashboard';
 import { CampaignList } from './components/CampaignList';
-import { SamplePicker } from './components/SamplePicker';
-import { TextInspector } from './components/TextInspector';
-import { ProductCard } from './components/ProductCard';
 import { JsonViewer } from './components/JsonViewer';
 import { CompareView } from './components/CompareView';
 import { TerminologyGuide } from './components/TerminologyGuide';
+import { AssistantChat } from './components/AssistantChat';
+import { FinansmanAsistaniView } from './components/FinansmanAsistaniView';
 import { ToastProvider, useToast } from './components/Toast';
 import { SAMPLE_BANK_TEXTS } from './data/samples';
 import { FINANSMAN_TURLERI, VERI_TARIHI } from './data/piyasa';
 import { sayiBicim } from './lib/finansman';
-import { ExtractionResponse, KatilimUrunu, SampleBankText } from './types';
+import { ExtractionResponse, KatilimUrunu, LiveProductsResponse } from './types';
 import { KarsilastirmaOgesi } from './lib/compare';
 import {
   Sparkles,
   AlertTriangle,
-  Layers,
-  FileCode2,
   RefreshCw,
   X,
   Scale,
@@ -90,7 +87,30 @@ function AppInner() {
   const { theme, toggleTheme } = useTheme();
   const { showToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<TabKey>('home');
+  const [activeTab, setActiveTabState] = useState<TabKey>(() => {
+    if (typeof window === 'undefined') return 'home';
+    return tabFromHash(window.location.hash) || 'home';
+  });
+
+  const setActiveTab = useCallback((tab: TabKey) => {
+    setActiveTabState(tab);
+    const route = TAB_TO_HASH[tab];
+    if (route) {
+      window.history.replaceState(null, '', `#${route}`);
+    } else if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
+
+  useEffect(() => {
+    const onHash = () => {
+      const tab = tabFromHash(window.location.hash);
+      if (tab) setActiveTabState(tab);
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
   const [text, setText] = useState<string>(SAMPLE_BANK_TEXTS[0].text);
   const [selectedSampleId, setSelectedSampleId] = useState<string | undefined>(
     SAMPLE_BANK_TEXTS[0].id,
@@ -106,6 +126,8 @@ function AppInner() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [talep, setTalep] = useState<KarsilastirmaTalebi>(VARSAYILAN_TALEP);
   const [karsilastirmalar, setKarsilastirmalar] = useState<KarsilastirmaKaydi[]>([]);
+  const [liveProductCount, setLiveProductCount] = useState<number>(0);
+  const [asistanSorusu, setAsistanSorusu] = useState<string | undefined>(undefined);
 
   const lastAttemptRef = useRef<string>(SAMPLE_BANK_TEXTS[0].text);
 
@@ -166,6 +188,55 @@ function AppInner() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const loadLiveProducts = async () => {
+      try {
+        const res = await fetch('/api/live/products');
+        if (!res.ok) return;
+        const data: LiveProductsResponse = await res.json();
+        if (cancelled) return;
+
+        const liveEntries: HistoryEntry[] = data.banks
+          .filter((bank) => bank.products.length > 0)
+          .map((bank) => ({
+            id: `live_${bank.id}`,
+            text: bank.urls.join('\n'),
+            products: bank.products,
+            timestamp: bank.lastExtractedAt
+              ? new Date(bank.lastExtractedAt).toLocaleTimeString('tr-TR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : 'Canlı',
+            bankName: bank.bankName,
+          }));
+
+        setLiveProductCount(data.products.length);
+        if (liveEntries.length > 0) {
+          setHistory((prev) => [
+            ...liveEntries,
+            ...prev.filter((entry) => !entry.id.startsWith('live_')),
+          ]);
+          const latest = liveEntries
+            .map((entry) => entry.timestamp)
+            .find((timestamp) => timestamp && timestamp !== 'Canlı');
+          if (latest) setLastUpdated(latest);
+        }
+      } catch {
+        // Canlı veri yoksa uygulama statik örnek veriyle çalışmaya devam eder.
+      }
+    };
+
+    loadLiveProducts();
+    const id = window.setInterval(loadLiveProducts, 60_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isLoading) return;
     const id = window.setInterval(() => {
       setLoadingStep((s) => Math.min(s + 1, LOADING_STEPS.length - 1));
@@ -177,21 +248,12 @@ function AppInner() {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
         event.preventDefault();
-        if (!isLoading) handleExtract();
+        if (!isLoading && activeTab !== 'asistan') handleExtract();
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handleExtract, isLoading]);
-
-  const handleSelectSample = (sample: SampleBankText) => {
-    setSelectedSampleId(sample.id);
-    setText(sample.text);
-    setError(null);
-    setHighlightSentence(null);
-    setActiveEvidenceKey(null);
-    handleExtract(sample.text);
-  };
+  }, [handleExtract, isLoading, activeTab]);
 
   /** Geçmişteki tüm ürünler, karşılaştırma motorunun beklediği biçimde. */
   const ogeler = useMemo<KarsilastirmaOgesi[]>(() => {
@@ -252,15 +314,10 @@ function AppInner() {
     );
   }, []);
 
-  const handleAsistanaSor = useCallback(
-    (soru: string) => {
-      setText(soru);
-      setSelectedSampleId(undefined);
-      setActiveTab('asistan');
-      handleExtract(soru);
-    },
-    [handleExtract],
-  );
+  const handleAsistanaSor = useCallback((soru: string) => {
+    setAsistanSorusu(soru);
+    setActiveTab('asistan');
+  }, []);
 
   /** Sol paneldeki son işlemler: karşılaştırmalar önce, ardından çıkarımlar. */
   const sonIslemler = useMemo<SonIslem[]>(() => {
@@ -292,10 +349,10 @@ function AppInner() {
     }
     const kayit = history.find((h) => `hist::${h.id}` === id);
     if (kayit) {
-      setText(kayit.text);
-      setSelectedSampleId(SAMPLE_BANK_TEXTS.find((s) => s.text === kayit.text)?.id);
+      setAsistanSorusu(
+        `${kayit.bankName || 'Bu banka'} ürün ve kampanya koşullarını özetle`,
+      );
       setActiveTab('asistan');
-      handleExtract(kayit.text);
     }
   };
 
@@ -337,7 +394,7 @@ function AppInner() {
 
         <div className="flex min-w-0 flex-1 flex-col">
           <main className="flex-1 px-4 pt-5 pb-10 sm:px-6">
-            {activeTab !== 'home' && (
+            {activeTab !== 'home' && activeTab !== 'finansman-asistani' && (
               <div className="mb-4">
                 <h1 className="text-lg font-semibold tracking-tight text-txt">{baslik}</h1>
                 <p className="mt-0.5 text-sm text-txt-secondary">{aciklama}</p>
@@ -395,6 +452,7 @@ function AppInner() {
                   onKarsilastir={handleKarsilastir}
                   onAsistanaSor={handleAsistanaSor}
                   talep={talep}
+                  ogeler={ogeler}
                 />
               </div>
             )}
@@ -447,87 +505,14 @@ function AppInner() {
             )}
 
             {activeTab === 'asistan' && (
-              <div {...panelProps('asistan')} className="space-y-5">
-                <SamplePicker onSelectSample={handleSelectSample} selectedId={selectedSampleId} />
+              <div {...panelProps('asistan')}>
+                <AssistantChat initialQuestion={asistanSorusu} />
+              </div>
+            )}
 
-                <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-12">
-                  <div className="xl:col-span-5 xl:sticky xl:top-24">
-                    <TextInspector
-                      text={text}
-                      setText={setText}
-                      onExtract={() => handleExtract()}
-                      isLoading={isLoading}
-                      highlightSentence={highlightSentence}
-                      evidences={evidences}
-                      onSelectEvidence={handleSelectEvidence}
-                      activeEvidenceKey={activeEvidenceKey}
-                    />
-                  </div>
-
-                  <div className="space-y-4 xl:col-span-7">
-                    <p className="sr-only" aria-live="polite">
-                      {isLoading
-                        ? LOADING_STEPS[loadingStep]
-                        : productCount > 0
-                          ? `${productCount} ürün çıkarıldı.`
-                          : 'Sonuç bekleniyor.'}
-                    </p>
-
-                    {isLoading ? (
-                      <ExtractionSkeleton step={loadingStep} />
-                    ) : productCount > 0 ? (
-                      <div className="space-y-4">
-                        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-                          <h2 className="flex items-center gap-2 text-sm font-medium text-txt">
-                            <Sparkles
-                              className="h-4 w-4 text-brand-600 dark:text-brand-400"
-                              aria-hidden="true"
-                            />
-                            Çıkarılan veri
-                            <span className="tnum rounded-full border border-line bg-sunken px-2 py-0.5 font-mono text-xs text-txt-secondary">
-                              {productCount} ürün
-                            </span>
-                          </h2>
-                          <button
-                            type="button"
-                            onClick={() => setActiveTab('json')}
-                            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs text-txt-secondary transition-colors hover:text-txt"
-                          >
-                            <FileCode2 className="h-3.5 w-3.5" aria-hidden="true" />
-                            Ham JSON
-                          </button>
-                        </div>
-
-                        {latestResult?.urunler?.map((product, idx) => (
-                          <ProductCard
-                            key={`${product.urun_adi ?? 'urun'}-${idx}`}
-                            product={product}
-                            index={idx}
-                            onHighlightSentence={handleHighlightFromCard}
-                            activeEvidenceKey={activeEvidenceKey}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex min-h-96 flex-col items-center justify-center rounded-xl border border-line bg-surface p-10 text-center shadow-raised">
-                        <Layers className="mb-3 h-8 w-8 text-txt-muted" aria-hidden="true" />
-                        <h2 className="text-base font-medium text-txt">Sonuç bekleniyor</h2>
-                        <p className="mx-auto mt-1 max-w-xs text-sm text-txt-secondary">
-                          Soldaki metni düzenleyip çıkarımı başlatın; alanlar kanıt alıntılarıyla
-                          birlikte burada listelenir.
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => handleExtract()}
-                          disabled={!text.trim()}
-                          className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand-600 px-5 text-sm font-medium text-white shadow-raised transition-colors hover:bg-brand-700 disabled:opacity-50"
-                        >
-                          Veri çıkar
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+            {activeTab === 'finansman-asistani' && (
+              <div {...panelProps('finansman-asistani')}>
+                <FinansmanAsistaniView />
               </div>
             )}
 
@@ -550,7 +535,7 @@ function AppInner() {
             )}
           </main>
 
-          <TrustFooter lastUpdated={lastUpdated} />
+          <TrustFooter lastUpdated={lastUpdated} liveProductCount={liveProductCount} />
         </div>
       </div>
     </div>
@@ -568,7 +553,10 @@ export default function App() {
 }
 
 /** Alt güven şeridi — referans arayüzdeki dört maddelik açıklama bandı. */
-const TrustFooter: React.FC<{ lastUpdated: string | null }> = ({ lastUpdated }) => (
+const TrustFooter: React.FC<{ lastUpdated: string | null; liveProductCount: number }> = ({
+  lastUpdated,
+  liveProductCount,
+}) => (
   <footer className="border-t border-line bg-surface">
     <ul className="grid grid-cols-1 gap-4 px-6 py-5 sm:grid-cols-2 lg:grid-cols-4">
       {[
@@ -580,7 +568,10 @@ const TrustFooter: React.FC<{ lastUpdated: string | null }> = ({ lastUpdated }) 
         {
           icon: DatabaseZap,
           baslik: 'Güncel ve Doğru Veri',
-          aciklama: `Örnek veri seti ${VERI_TARIHI} itibarıyla derlendi.`,
+          aciklama:
+            liveProductCount > 0
+              ? `${liveProductCount} canlı ürün banka sitelerinden izlendi.`
+              : `Örnek veri seti ${VERI_TARIHI} itibarıyla derlendi.`,
         },
         {
           icon: Zap,

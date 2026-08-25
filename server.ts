@@ -1,8 +1,26 @@
 import "dotenv/config";
+import crypto from "crypto";
 import express from "express";
+import { promises as fs } from "fs";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { asciiKatla, terimOzeti } from "./src/nlp";
+import { createQdrantRouter } from "./src/server/routes/qdrantRoutes";
+import { createAssistantRouter } from "./src/server/routes/assistantRoutes";
+import {
+  createLiveDataRouter,
+  createSystemRouter,
+} from "./src/server/routes/liveDataRoutes";
+import { bindOfficialScraperBridge, runOfficialScrapeJob } from "./src/server/services/scraper/orchestrator";
+import {
+  buildIndexDocumentsFromScrape,
+  getCollectionHealth,
+  getDocumentIndexer,
+  isQdrantConfigured,
+  sanitizeErrorMessage,
+} from "./src/server/services/qdrant";
+
+bindOfficialScraperBridge();
 
 const app = express();
 const PORT = 3000;
@@ -14,6 +32,60 @@ const EVREN_BASE_URL = process.env.EVREN_BASE_URL || "https://evren-llmapi.ssyz.
 const EVREN_MODEL = process.env.EVREN_MODEL || "llm-fast";
 const EVREN_TIMEOUT_MS = 1_800_000;
 const MAX_EVREN_ATTEMPTS = 3;
+const SCRAPER_ENABLED = process.env.SCRAPER_ENABLED !== "false";
+const SCRAPER_INTERVAL_MINUTES = Math.max(Number(process.env.SCRAPER_INTERVAL_MINUTES || 30), 5);
+const SCRAPER_CACHE_FILE = path.join(process.cwd(), ".scraper-cache", "katilim-bankalari.json");
+const SCRAPER_TEXT_LIMIT = 10_000;
+
+interface BankScrapeSource {
+  id: string;
+  bankName: string;
+  urls: string[];
+}
+
+interface BankScrapeState extends BankScrapeSource {
+  status: "beklemede" | "degismedi" | "guncellendi" | "hata";
+  contentHash: string | null;
+  lastCheckedAt: string | null;
+  lastChangedAt: string | null;
+  lastExtractedAt: string | null;
+  products: any[];
+  error: string | null;
+  /** Qdrant indeksleme durumu — sayısal ürün verisinden bağımsız */
+  indexStatus?: "atlandi" | "indekslendi" | "hata" | "yapilandirilmadi" | null;
+  indexError?: string | null;
+  indexedAt?: string | null;
+}
+
+const BANK_SCRAPE_SOURCES: BankScrapeSource[] = [
+  { id: "adil-katilim", bankName: "Adil Katılım", urls: ["https://www.adilkatilim.com.tr/"] },
+  { id: "albaraka", bankName: "Albaraka Türk", urls: ["https://www.albarakaturk.com.tr/"] },
+  { id: "dunya-katilim", bankName: "Dünya Katılım", urls: ["https://dunyakatilim.com.tr/"] },
+  { id: "hayat-finans", bankName: "Hayat Finans", urls: ["https://hayatfinans.com.tr/"] },
+  { id: "kuveyt-turk", bankName: "Kuveyt Türk", urls: ["https://www.kuveytturk.com.tr/"] },
+  { id: "tom-katilim", bankName: "T.O.M. Katılım", urls: ["https://www.tombank.com.tr/"] },
+  { id: "emlak-katilim", bankName: "Emlak Katılım", urls: ["https://www.emlakbank.com.tr/"] },
+  { id: "turkiye-finans", bankName: "Türkiye Finans", urls: ["https://www.turkiyefinans.com.tr/"] },
+  { id: "vakif-katilim", bankName: "Vakıf Katılım", urls: ["https://www.vakifkatilim.com.tr/"] },
+  { id: "ziraat-katilim", bankName: "Ziraat Katılım", urls: ["https://www.ziraatkatilim.com.tr/"] },
+];
+
+let scrapeStates: Record<string, BankScrapeState> = Object.fromEntries(
+  BANK_SCRAPE_SOURCES.map((source) => [
+    source.id,
+    {
+      ...source,
+      status: "beklemede",
+      contentHash: null,
+      lastCheckedAt: null,
+      lastChangedAt: null,
+      lastExtractedAt: null,
+      products: [],
+      error: null,
+    },
+  ]),
+);
+let scrapeRunning = false;
 
 /**
  * SSB EVREN chat completions çağrısı.
@@ -108,6 +180,206 @@ async function callEvren(
   throw lastError ?? new Error("EVREN API çağrısı başarısız oldu.");
 }
 
+async function loadScrapeCache() {
+  try {
+    const raw = await fs.readFile(SCRAPER_CACHE_FILE, "utf8");
+    const parsed = JSON.parse(raw);
+    if (parsed?.banks && typeof parsed.banks === "object") {
+      scrapeStates = {
+        ...scrapeStates,
+        ...Object.fromEntries(
+          Object.entries(parsed.banks).map(([id, state]: [string, any]) => [
+            id,
+            { ...scrapeStates[id], ...state },
+          ]),
+        ),
+      };
+    }
+  } catch {
+    // İlk çalıştırmada cache dosyası olmayabilir.
+  }
+}
+
+async function saveScrapeCache() {
+  await fs.mkdir(path.dirname(SCRAPER_CACHE_FILE), { recursive: true });
+  await fs.writeFile(
+    SCRAPER_CACHE_FILE,
+    JSON.stringify({ updatedAt: new Date().toISOString(), banks: scrapeStates }, null, 2),
+    "utf8",
+  );
+}
+
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&uuml;/gi, "ü")
+    .replace(/&Uuml;/g, "Ü")
+    .replace(/&ouml;/gi, "ö")
+    .replace(/&Ouml;/g, "Ö")
+    .replace(/&ccedil;/gi, "ç")
+    .replace(/&Ccedil;/g, "Ç")
+    .replace(/&scedil;/gi, "ş")
+    .replace(/&Scedil;/g, "Ş")
+    .replace(/&gbreve;/gi, "ğ")
+    .replace(/&Gbreve;/g, "Ğ")
+    .replace(/&imath;/gi, "ı")
+    .replace(/&Idot;/g, "İ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function fetchText(url: string): Promise<string> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 45_000);
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": "KatilimFinansAsistani/1.0 (+https://github.com/yenererr/katilim_teknofest)",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return htmlToPlainText(await res.text());
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function scrapeOneBank(source: BankScrapeSource, force = false): Promise<BankScrapeState> {
+  const now = new Date().toISOString();
+  const previous = scrapeStates[source.id];
+
+  try {
+    const pageTexts = await Promise.all(
+      source.urls.map(async (url) => {
+        const text = await fetchText(url);
+        return `KAYNAK: ${url}\n${text}`;
+      }),
+    );
+    const combinedText = pageTexts.join("\n\n---\n\n").slice(0, SCRAPER_TEXT_LIMIT);
+    const contentHash = crypto.createHash("sha256").update(combinedText).digest("hex");
+
+    if (!force && previous?.contentHash === contentHash) {
+      scrapeStates[source.id] = {
+        ...previous,
+        ...source,
+        status: "degismedi",
+        lastCheckedAt: now,
+        error: null,
+        indexStatus: previous.indexStatus ?? "atlandi",
+        indexError: null,
+      };
+      return scrapeStates[source.id];
+    }
+
+    let resultJson: any = null;
+    try {
+      const evrenResponse = await callEvren(
+        EXTRACTION_SYSTEM_PROMPT,
+        `${source.bankName} web sitesinden alınan aşağıdaki metinleri analiz et. Finansman, kampanya, ücret, masraf, vade, kâr payı ve ödül bilgilerini JSON şemasına göre çıkar. Yalnızca metinde açıkça bulunan alanları doldur. Tekrarlanan menü, footer ve navigasyon metinlerini yok say. En fazla 8 en anlamlı ürün/kampanya döndür; geçerli JSON dışında metin yazma.\n\n${combinedText}`,
+      );
+
+      if (evrenResponse?.content) {
+        let cleanText = evrenResponse.content.trim();
+        if (cleanText.startsWith("```json")) {
+          cleanText = cleanText.replace(/^```json\s*/, "").replace(/```$/, "").trim();
+        } else if (cleanText.startsWith("```")) {
+          cleanText = cleanText.replace(/^```\s*/, "").replace(/```$/, "").trim();
+        }
+        resultJson = JSON.parse(cleanText);
+      }
+    } catch (err: any) {
+      console.warn(`[Scraper] ${source.bankName} EVREN çıkarımı başarısız:`, err?.message || err);
+    }
+
+    if (!resultJson || !Array.isArray(resultJson.urunler)) {
+      resultJson = fallbackRuleExtractor(combinedText);
+    }
+
+    const products = resultJson.urunler || [];
+    let indexStatus: BankScrapeState["indexStatus"] = "yapilandirilmadi";
+    let indexError: string | null = null;
+    let indexedAt: string | null = null;
+
+    if (isQdrantConfigured()) {
+      try {
+        const docs = buildIndexDocumentsFromScrape({
+          bankId: source.id,
+          bankName: source.bankName,
+          sourceId: source.id,
+          sourceUrls: source.urls,
+          combinedText,
+          contentHash,
+          sourceCheckedAt: now,
+          products,
+        });
+        const indexer = getDocumentIndexer();
+        await indexer.replaceSourceDocuments(source.id, docs);
+        indexStatus = "indekslendi";
+        indexedAt = new Date().toISOString();
+      } catch (indexErr: any) {
+        indexStatus = "hata";
+        indexError = sanitizeErrorMessage(
+          indexErr?.message || "Qdrant indeksleme başarısız oldu.",
+        );
+        console.warn(`[Qdrant] ${source.bankName} indeksleme:`, indexError);
+      }
+    }
+
+    scrapeStates[source.id] = {
+      ...source,
+      status: "guncellendi",
+      contentHash,
+      lastCheckedAt: now,
+      lastChangedAt: now,
+      lastExtractedAt: now,
+      products,
+      error: null,
+      indexStatus,
+      indexError,
+      indexedAt,
+    };
+    return scrapeStates[source.id];
+  } catch (err: any) {
+    scrapeStates[source.id] = {
+      ...previous,
+      ...source,
+      status: "hata",
+      lastCheckedAt: now,
+      error: err?.message || "Scrape işlemi başarısız oldu.",
+      indexStatus: previous?.indexStatus ?? null,
+      indexError: previous?.indexError ?? null,
+      indexedAt: previous?.indexedAt ?? null,
+    };
+    return scrapeStates[source.id];
+  }
+}
+
+async function refreshScrapeSources(force = false, bankIds?: string[]) {
+  if (scrapeRunning) return scrapeStates;
+  scrapeRunning = true;
+  try {
+    const sources = bankIds?.length
+      ? BANK_SCRAPE_SOURCES.filter((s) => bankIds.includes(s.id))
+      : BANK_SCRAPE_SOURCES;
+    for (const source of sources) {
+      await scrapeOneBank(source, force);
+      await saveScrapeCache();
+    }
+    return scrapeStates;
+  } finally {
+    scrapeRunning = false;
+  }
+}
+
 const EXTRACTION_SYSTEM_PROMPT = `
 Sen katılım bankacılığı alanında uzmanlaşmış bir bilgi çıkarım ajanısın.
 Görevin, Türkiye'deki katılım bankalarının resmî web sitelerinden alınmış ham kampanya ve ürün metinlerini okuyup, aşağıda tanımlanan şemaya uygun yapılandırılmış JSON üretmektir.
@@ -116,13 +388,19 @@ Görevin, Türkiye'deki katılım bankalarının resmî web sitelerinden alınm�
 Yalnızca metinde AÇIKÇA yazan bilgiyi çıkar. Çıkarım yapma, tahmin etme, sektör ortalamasıyla doldurma. Bir alan metinde yoksa değeri null olmalı ve o alan için güven skoru 0 verilmelidir. Eksik veri, yanlış veriden iyidir.
 
 ## TERMİNOLOJİ
-Katılım bankacılığı terminolojisini kullan. Konvansiyonel terimleri karşılıklarına eşle, çıktıda ASLA konvansiyonel terimi yazma:
-  faiz / faiz oranı      → kâr payı        → alan: kar_payi_orani
-  kredi                  → finansman       → alan: urun_turu
-  mevduat                → katılım fonu    → alan: urun_turu
-  dosya masrafı          → tahsis ücreti   → alan: tahsis_ucreti
-  kart puanı             → ödül            → alan: odul_miktari
-Kaynak metin konvansiyonel terim kullanıyorsa (örneğin "kredi", "faiz", "mevduat", "dosya masrafı", "kart puanı"), çıkarımı yine yap ancak terim_esleme_uygulandi: true işaretle.
+Katılım bankacılığı terminolojisini kullan. Konvansiyonel terimleri karşılıklarına eşle, çıktıda ASLA konvansiyonel terimi yazma.
+Temel eşlemeler (denklik farklı olabilir; yine de katılım ifadesini kullan):
+  faiz / faiz oranı / kredi faizi     → kâr payı / kâr marjı     → alan: kar_payi_orani
+  kredi / konut-taşıt-ticari kredi    → finansman                → alan: urun_turu
+  faizli kredi                        → murabaha finansmanı      → alan: urun_turu
+  mevduat                             → katılma hesabı           → alan: urun_turu
+  mevduat faizi                       → kâr payı                 → alan: kar_payi_orani
+  anapara                             → finanse edilen tutar     → alan: tutar
+  kredi vadesi / taksiti / limiti     → finansman vadesi/taksiti/limiti
+  dosya masrafı                       → tahsis ücreti            → alan: tahsis_ucreti
+  kart puanı                          → ödül                     → alan: odul
+Kaynak metin konvansiyonel terim kullanıyorsa çıkarımı yine yap ancak terim_esleme_uygulandi: true işaretle.
+"Denk değil" seviyesindeki çiftlerde (faiz≠kâr payı, mevduat≠katılma hesabı) asla geleneksel terimi çıktıya yazma.
 
 ## NORMALİZASYON KURALLARI
 1. Oranlar: "%2,05" · "2.05 %" · "yüzde 2,05" → 0.0205 (ondalık, nokta ayraç)
@@ -195,6 +473,11 @@ Yalnızca geçerli JSON döndür. Kod bloğu markatörleri veya açıklama EKLEM
 `;
 
 // API Routes
+app.use("/api/qdrant", createQdrantRouter());
+app.use("/api/assistant", createAssistantRouter());
+app.use("/api/live", createLiveDataRouter());
+app.use("/api/system", createSystemRouter());
+
 app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
@@ -203,6 +486,7 @@ app.get("/api/health", (req, res) => {
     model: EVREN_MODEL,
     base_url: EVREN_BASE_URL,
     api_key_configured: Boolean(process.env.EVREN_API_KEY),
+    qdrant_configured: isQdrantConfigured(),
   });
 });
 
@@ -409,6 +693,8 @@ function fallbackRuleExtractor(text: string) {
 
 // Start server function with Vite middleware
 async function startServer() {
+  await loadScrapeCache();
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -425,6 +711,43 @@ async function startServer() {
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`[Katılım Bilgi Çıkarım Ajanı] Sunucu 0.0.0.0:${PORT} adresinde aktif.`);
+    if (SCRAPER_ENABLED) {
+      console.log(
+        `[Resmi Kaynak Scraper] ${BANK_SCRAPE_SOURCES.length} katılım bankası ${SCRAPER_INTERVAL_MINUTES} dk aralıkla (jitterli) kontrol edilecek.`,
+      );
+      setTimeout(() => {
+        runOfficialScrapeJob({ force: false }).catch((err) =>
+          console.warn("[OfficialScraper]", err),
+        );
+      }, 8_000);
+      setInterval(
+        () => {
+          runOfficialScrapeJob({ force: false }).catch((err) =>
+            console.warn("[OfficialScraper]", err),
+          );
+        },
+        SCRAPER_INTERVAL_MINUTES * 60_000,
+      );
+    }
+
+    if (isQdrantConfigured()) {
+      getCollectionHealth()
+        .then((health) => {
+          console.log(
+            `[Qdrant] ${health.ok ? "hazır" : "uyarı"}: ${health.message}`,
+          );
+        })
+        .catch((err) => {
+          console.warn(
+            "[Qdrant]",
+            sanitizeErrorMessage(err instanceof Error ? err.message : String(err)),
+          );
+        });
+    } else {
+      console.log(
+        "[Qdrant] Yapılandırılmamış — vektör arama kapalı (EVREN_QDRANT_* tanımlayın).",
+      );
+    }
   });
 }
 
