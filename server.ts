@@ -9,45 +9,103 @@ const PORT = 3000;
 
 app.use(express.json({ limit: "5mb" }));
 
-// NVIDIA NIM (OpenAI uyumlu) yapılandırması
-const NVIDIA_BASE_URL = process.env.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1";
-const NVIDIA_MODEL = process.env.NVIDIA_MODEL || "meta/llama-3.3-70b-instruct";
+// SSB EVREN (OpenAI uyumlu) yapılandırması
+const EVREN_BASE_URL = process.env.EVREN_BASE_URL || "https://evren-llmapi.ssyz.org.tr/v1";
+const EVREN_MODEL = process.env.EVREN_MODEL || "llm-fast";
+const EVREN_TIMEOUT_MS = 1_800_000;
+const MAX_EVREN_ATTEMPTS = 3;
 
 /**
- * NVIDIA NIM chat completions çağrısı.
+ * SSB EVREN chat completions çağrısı.
  * API anahtarı yoksa null döner; çağıran taraf kural tabanlı fallback'e düşer.
  */
-async function callNvidia(systemPrompt: string, userPrompt: string): Promise<string | null> {
-  const apiKey = process.env.NVIDIA_API_KEY;
+async function callEvren(
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<{ content: string; usedModel: string | null; modelWarning: string | null } | null> {
+  const apiKey = process.env.EVREN_API_KEY;
   if (!apiKey) return null;
 
-  const res = await fetch(`${NVIDIA_BASE_URL}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: NVIDIA_MODEL,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.1,
-      top_p: 0.7,
-      max_tokens: 4096,
-      response_format: { type: "json_object" },
-      stream: false,
-    }),
-  });
+  let lastError: Error | null = null;
 
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    throw new Error(`NVIDIA API ${res.status}: ${detail.slice(0, 500)}`);
+  for (let attempt = 1; attempt <= MAX_EVREN_ATTEMPTS; attempt += 1) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), EVREN_TIMEOUT_MS);
+
+    try {
+      const res = await fetch(`${EVREN_BASE_URL}/chat/completions`, {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: EVREN_MODEL,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.0,
+          max_tokens: 4096,
+          response_format: { type: "json_object" },
+          stream: false,
+        }),
+      });
+
+      if (!res.ok) {
+        const retryable = res.status === 408 || res.status === 429 || res.status >= 500;
+        const detail = await res.text().catch(() => "");
+        const safeDetail = detail.replace(apiKey, "[gizlendi]").slice(0, 500);
+        const error = new Error(`EVREN API ${res.status}: ${safeDetail}`);
+
+        if (retryable && attempt < MAX_EVREN_ATTEMPTS) {
+          lastError = error;
+          await new Promise((resolve) => setTimeout(resolve, 750 * 2 ** (attempt - 1)));
+          continue;
+        }
+
+        throw error;
+      }
+
+      const data: any = await res.json();
+      const choice = data?.choices?.[0];
+      const content = choice?.message?.content;
+      const finishReason = choice?.finish_reason ?? "bilinmiyor";
+      const usedModel = typeof data?.model === "string" ? data.model : null;
+      const modelWarning =
+        usedModel && usedModel !== EVREN_MODEL
+          ? `İstenen model "${EVREN_MODEL}" idi, API "${usedModel}" modelini çalıştırdı.`
+          : null;
+
+      if (typeof content === "string" && content.trim().length > 0) {
+        return { content, usedModel, modelWarning };
+      }
+
+      throw new Error(`EVREN API boş yanıt döndürdü. finish_reason=${finishReason}`);
+    } catch (err: any) {
+      const isTimeout = err?.name === "AbortError";
+      const isConnectionError = err instanceof TypeError;
+      lastError = new Error(
+        isTimeout
+          ? "EVREN API isteği zaman aşımına uğradı."
+          : isConnectionError
+            ? "EVREN API bağlantısı kurulamadı."
+            : err?.message || "EVREN API çağrısı başarısız oldu.",
+      );
+
+      if ((isTimeout || isConnectionError) && attempt < MAX_EVREN_ATTEMPTS) {
+        await new Promise((resolve) => setTimeout(resolve, 750 * 2 ** (attempt - 1)));
+        continue;
+      }
+
+      throw lastError;
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
-  const data: any = await res.json();
-  return data?.choices?.[0]?.message?.content ?? "";
+  throw lastError ?? new Error("EVREN API çağrısı başarısız oldu.");
 }
 
 const EXTRACTION_SYSTEM_PROMPT = `
@@ -141,9 +199,10 @@ app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
     service: "katilim-bilgi-cikarim-ajani",
-    provider: "nvidia-nim",
-    model: NVIDIA_MODEL,
-    api_key_configured: Boolean(process.env.NVIDIA_API_KEY),
+    provider: "ssb-evren",
+    model: EVREN_MODEL,
+    base_url: EVREN_BASE_URL,
+    api_key_configured: Boolean(process.env.EVREN_API_KEY),
   });
 });
 
@@ -156,16 +215,21 @@ app.post("/api/extract", async (req, res) => {
     }
 
     let resultJson: any = null;
+    let usedModel: string | null = null;
+    let modelWarning: string | null = null;
 
     try {
-      const rawTextResponse = await callNvidia(
+      const evrenResponse = await callEvren(
         EXTRACTION_SYSTEM_PROMPT,
         `Aşağıdaki katılım bankacılığı metnini analiz et ve JSON verisini üret:\n\nMETİN:\n${text}`
       );
 
-      if (rawTextResponse !== null) {
+      if (evrenResponse !== null) {
+        usedModel = evrenResponse.usedModel;
+        modelWarning = evrenResponse.modelWarning;
+
         // Bazı modeller JSON'u markdown kod bloğu içinde döndürebiliyor
-        let cleanText = rawTextResponse.trim();
+        let cleanText = evrenResponse.content.trim();
         if (cleanText.startsWith("```json")) {
           cleanText = cleanText.replace(/^```json\s*/, "").replace(/```$/, "").trim();
         } else if (cleanText.startsWith("```")) {
@@ -174,11 +238,11 @@ app.post("/api/extract", async (req, res) => {
 
         resultJson = JSON.parse(cleanText);
       }
-    } catch (nvidiaError) {
-      console.warn("NVIDIA API call warning/fallback:", nvidiaError);
+    } catch (evrenError: any) {
+      console.warn("EVREN API uyarısı, kural tabanlı çıkarıma düşüldü:", evrenError?.message || evrenError);
     }
 
-    // NVIDIA erişilemezse veya hata verirse kural tabanlı çıkarıma düş
+    // EVREN erişilemezse veya hata verirse kural tabanlı çıkarıma düş
     if (!resultJson || !Array.isArray(resultJson.urunler)) {
       resultJson = fallbackRuleExtractor(text);
     }
@@ -198,6 +262,10 @@ app.post("/api/extract", async (req, res) => {
         duration_ms: duration,
         extracted_at: new Date().toISOString(),
         conventional_terms_detected: conventionalTermsFound,
+        provider: "ssb-evren",
+        requested_model: EVREN_MODEL,
+        used_model: usedModel,
+        model_warning: modelWarning,
       },
     });
   } catch (err: any) {

@@ -279,7 +279,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {gecerliSatirlar.slice(0, 5).map((s, i) => {
+                  {gecerliSatirlar.map((s, i) => {
                     const banka = BANKA_INDEKS[s.bankaId];
                     return (
                       <tr
