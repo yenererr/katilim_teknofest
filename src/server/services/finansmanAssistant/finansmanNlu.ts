@@ -137,6 +137,13 @@ export function isPaymentPlanRequest(text: string): boolean {
 
 export function parseFinancingType(text: string): FinancingType | null {
   const t = asciiKatla(text);
+  // "eğitim kampanyaları" → finansman türü değil; kampanya teması
+  if (
+    /kampanya|kmapnaya|kmapanya|kampnya|kampnyal|kampanyal/.test(t) &&
+    !/finansman|kredi\b|taksit|vade|\btl\b|\bbin\b/.test(t)
+  ) {
+    return null;
+  }
   // "ev alcam", "ev alacağım", "ev bakıyorum"
   if (
     /konut|mortgage|gayrimenkul|\bev\s+alc|\bev\s+al[iı]|\bev almak|\bev bak|\bev istiyorum/.test(
@@ -514,7 +521,8 @@ export function mergeMessageIntoState(
 
   const prevType = next.financingType;
   const fType = parseFinancingType(text);
-  if (fType) next.financingType = fType;
+  // Kampanya sorusunda amaç slotunu doldurma (eğitim kampanyası ≠ eğitim finansmanı)
+  if (fType && !kampanyaSinyaliVar(text)) next.financingType = fType;
 
   const qr = asciiKatla(selectedQuickReply || "");
   if (qr === "ihtiyac" || qr === "ihtiyac finansmani") next.financingType = "consumer";

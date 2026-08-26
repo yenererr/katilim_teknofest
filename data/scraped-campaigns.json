@@ -57,7 +57,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "f9d10bab8abf1cbfaaf776dd",
@@ -96,7 +97,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "ad5c646dbdb7ef4156d602c4",
@@ -135,7 +137,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "d8a077324e3af4a724f619f2",
@@ -174,7 +177,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "181cb0649fafa347b85e7bef",
@@ -213,7 +217,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "db6ca558bd4ef8ce12e4e291",
@@ -252,7 +257,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "91d85899151b3f91ca9b4940",
@@ -291,7 +297,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "e258c7d9d0c9942f65520408",
@@ -330,7 +337,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "74009f06390d9f8976b4751e",
@@ -369,7 +377,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     },
     {
       "id": "23158e8bbdbfd8343598eda4",
@@ -408,7 +417,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "9f7ebb212056a205323a5bf8",
@@ -447,7 +457,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "3e30fd0ddbea89bb10ca94ee",
@@ -486,7 +497,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "e9938490acab6dd84911847d",
@@ -525,7 +537,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "0bb6fd6f1574b8696578d61d",
@@ -564,7 +577,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "education"
     },
     {
       "id": "97e2cbabbc20f3579dddb789",
@@ -603,7 +617,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "0fd08e1337232a196bc7c9d0",
@@ -642,7 +657,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "ee5650dc78fd585271c1b4e9",
@@ -681,7 +697,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "3b4bb0808aaf7b3f8bb2dc29",
@@ -720,7 +737,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "education"
     },
     {
       "id": "c0629c814148785ab3eb3330",
@@ -759,7 +777,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "d61b744557d71caf8512203e",
@@ -798,7 +817,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "ecd9f98d9dcc83e622be9630",
@@ -837,7 +857,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "2ab676d04b09a1588dd94b50",
@@ -876,7 +897,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "1417e5972f9fb4a200a1f493",
@@ -915,7 +937,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "f76912007f6e7b36136154d8",
@@ -954,7 +977,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "a0fb3c905da0bf23a11d2de4",
@@ -993,7 +1017,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "974c006cc0981aac33a5452d",
@@ -1032,7 +1057,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "education"
     },
     {
       "id": "2ed8b35c7515419657571e6e",
@@ -1071,7 +1097,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "c17bafaec5ff9a14a863f290",
@@ -1110,7 +1137,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     },
     {
       "id": "06971f0c638000acf823beca",
@@ -1149,7 +1177,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     },
     {
       "id": "7cda4d66fde50ff82aa938a1",
@@ -1188,7 +1217,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "ac905bdaab93351a5f19745d",
@@ -1227,7 +1257,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "fb01ade6f026362e221f804c",
@@ -1266,7 +1297,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     },
     {
       "id": "01bc9c47f34fda887228e450",
@@ -1305,7 +1337,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "1f43bc95d398e450ac1768b1",
@@ -1344,7 +1377,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "5824e534b3eaf5a3e4be097c",
@@ -1383,7 +1417,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "a4e46b8ddbeb0f08422f0cac",
@@ -1422,7 +1457,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "da428489db9a958e364cd983",
@@ -1461,7 +1497,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "housing"
     },
     {
       "id": "02e08a5d3cb24aa1e10ec0e0",
@@ -1500,7 +1537,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "vehicle"
     },
     {
       "id": "e04585dc33e3ae3fb4ca5be9",
@@ -1539,7 +1577,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "c285dea6429b9c4d9950d2d3",
@@ -1578,7 +1617,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "56081926e6191a008aa56589",
@@ -1617,7 +1657,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "4797033bae2a9e4f9ecd33e4",
@@ -1656,7 +1697,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "vehicle"
     },
     {
       "id": "0b876468dd68357938c9f79b",
@@ -1695,7 +1737,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "housing"
     },
     {
       "id": "5a2c2d91802b1c3201e46f2e",
@@ -1734,7 +1777,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "58c567397a449976e4da722c",
@@ -1773,7 +1817,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "eec8b799bad9400f7ffc1089",
@@ -1812,7 +1857,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "b0eb9c2c3dd6db0a8a943646",
@@ -1851,7 +1897,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "new_customer"
     },
     {
       "id": "2bf06e3f503af8906da8a138",
@@ -1890,7 +1937,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "02631358485537946921eaa0",
@@ -1929,7 +1977,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "0d537eb6b2b05f9e9d212637",
@@ -1968,7 +2017,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "d2122ed68d0d54bbeee4c362",
@@ -2007,7 +2057,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "29f8cebca6462af0d08db372",
@@ -2046,7 +2097,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "5dd23b5cd1fcca87ba963493",
@@ -2085,7 +2137,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "161876a8b6a58a6100fb3132",
@@ -2124,7 +2177,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "079edc7b3140d390f22a9918",
@@ -2163,7 +2217,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "25a782ebb179aa2cdd577b3e",
@@ -2202,7 +2257,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "bd71634a3f5998310729d30a",
@@ -2241,7 +2297,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "b7587eed45a1fc746ca24267",
@@ -2280,7 +2337,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "1a2ea5644e0e4d95ba322756",
@@ -2319,7 +2377,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "31211b76a40e665f9c4e96ad",
@@ -2358,7 +2417,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "fc20b3eaea1140bc23c3dfc9",
@@ -2397,7 +2457,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "3956f3ac32c7df5e8a6cbebc",
@@ -2436,7 +2497,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "vehicle"
     },
     {
       "id": "fde7ab339373137e87b00a60",
@@ -2475,7 +2537,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "67859692f2f0d7b434f70ba1",
@@ -2514,7 +2577,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "91daf96bd3d665ac46d9a006",
@@ -2553,7 +2617,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "f7394c29a8911a021634c598",
@@ -2592,7 +2657,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "education"
     },
     {
       "id": "aea583d6aeac049ae50ed01d",
@@ -2631,7 +2697,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "53d1b36bc80433eed276cca8",
@@ -2670,7 +2737,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "9ea97722ea36095cadcabac5",
@@ -2709,7 +2777,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "fefe3e45253c4d59752d7b4d",
@@ -2748,7 +2817,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "cfcd1fd4777681053e3e7a78",
@@ -2787,7 +2857,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "860ed0ec9613b180cadeb848",
@@ -2826,7 +2897,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "0f67f1e52784f6c1dd321d57",
@@ -2865,7 +2937,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "4803cb88d68eb9b43b2a4c3d",
@@ -2904,7 +2977,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "2a7a8b1d1887dd5ec830cf97",
@@ -2943,7 +3017,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "9b2187bdefbafbb05b7b5ce6",
@@ -2982,7 +3057,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "vehicle"
     },
     {
       "id": "a9b87b260cf1955294bede43",
@@ -3021,7 +3097,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "housing"
     },
     {
       "id": "e9d7b3e2c41dee5b1f26adb9",
@@ -3060,7 +3137,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "949c7734a2c85b64bf36af0d",
@@ -3099,7 +3177,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "7d77109f3f422a987d36af93",
@@ -3138,7 +3217,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "c409eff365964358e19bd092",
@@ -3177,7 +3257,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "d5e2865e11e92e4a7e747729",
@@ -3216,7 +3297,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "37165fd284b7e992436cb0d4",
@@ -3265,7 +3347,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "2f67d481f476c8b9cdff22e5",
@@ -3309,7 +3392,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "166556ec1ee189169b7aef1c",
@@ -3342,7 +3426,8 @@
       "evidence": [],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "f5c4199a18dba937a095071d",
@@ -3391,7 +3476,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "10237f7d84a236620cfa60c8",
@@ -3430,7 +3516,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "24631f5f4afa32b5b1789730",
@@ -3469,7 +3556,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "0192ca3c9c4b7686bcb7a8d2",
@@ -3508,7 +3596,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     },
     {
       "id": "a5592aff43662239db6a117e",
@@ -3547,7 +3636,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "housing"
     },
     {
       "id": "ca3c7e63631f673a1be42f81",
@@ -3586,7 +3676,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "general"
     },
     {
       "id": "834506a9cd946bf4ea444f0a",
@@ -3625,7 +3716,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     },
     {
       "id": "8c98019247aa9e6013822167",
@@ -3664,7 +3756,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     },
     {
       "id": "094d93c35a90df8c05d9eb5e",
@@ -3703,7 +3796,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     },
     {
       "id": "794e55eb0c0c7bcae20c8f49",
@@ -3742,7 +3836,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     },
     {
       "id": "d81ed5af95bb3460753cacfb",
@@ -3781,7 +3876,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     },
     {
       "id": "37125bafefd68f45805de4a0",
@@ -3820,7 +3916,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     },
     {
       "id": "60870f459fffcae972bc622f",
@@ -3859,7 +3956,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     },
     {
       "id": "1baef4ad3c43a5e61fbf9703",
@@ -3898,7 +3996,8 @@
       ],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     },
     {
       "id": "6db6a63ff9eba5da68ed2061",
@@ -3931,12 +4030,13 @@
       "evidence": [],
       "manualReviewRequired": true,
       "isDemo": false,
-      "version": 1
+      "version": 1,
+      "campaignTheme": "card"
     }
   ],
   "meta": {
-    "cleanedAt": "2026-08-26T20:27:29.530Z",
-    "before": 182,
+    "cleanedAt": "2026-08-26T20:36:50.351Z",
+    "before": 100,
     "after": 100
   }
 }

@@ -11,7 +11,12 @@ import { listMemoryCampaigns } from "../postgres/store";
 import { getLiveBankStates } from "../liveData/liveDataBridge";
 import { asciiKatla } from "../../../nlp/normalize";
 import { BANKA_INDEKS, UCRETLER, VERI_TARIHI } from "../../../data/piyasa";
-import { prettifyCampaignTitle } from "../scraper/campaignNormalize";
+import {
+  CAMPAIGN_THEME_LABEL,
+  campaignMatchesTheme,
+  parseCampaignThemeFromMessage,
+  prettifyCampaignTitle,
+} from "../scraper/campaignNormalize";
 
 export type RehberSonucu = {
   message: string;
@@ -140,12 +145,15 @@ export function rehberNiyetiTespit(mesaj: string): RehberNiyeti {
   }
 
   // Tüm bankaların kampanyalarını listeleme (belirli banka belirtilmeden)
+  // "eğitim kampanyaları" → tema var; ekstra fiil gerekmez
+  const kampanyaTemasi = parseCampaignThemeFromMessage(mesaj);
   if (
     kampanya &&
     !bankaBul(mesaj) &&
-    /(hangi|listele|neler|goster|tumu|hepsi|aktif|guncel|karsilastir|var mi|var\?|ne tur|ne cesit|hakkinda|bilgi|ogren|anlat|istiyorum)/.test(
-      t,
-    )
+    (kampanyaTemasi != null ||
+      /(hangi|listele|neler|goster|tumu|hepsi|aktif|guncel|karsilastir|var mi|var\?|ne tur|ne cesit|hakkinda|bilgi|ogren|anlat|istiyorum|sirala)/.test(
+        t,
+      ))
   ) {
     return "genel_kampanyalar";
   }
@@ -362,14 +370,20 @@ function yeniMusteriKampanyaYaniti(): RehberSonucu {
   };
 }
 
-function genelKampanyaYaniti(): RehberSonucu {
-  const tumKampanyalar = listMemoryCampaigns({ activeOnly: true });
+function genelKampanyaYaniti(mesaj?: string): RehberSonucu {
+  const tema = mesaj ? parseCampaignThemeFromMessage(mesaj) : null;
+  const tumKampanyalar = listMemoryCampaigns({ activeOnly: true }).filter(
+    (c) => (tema ? campaignMatchesTheme(c, tema) : true),
+  );
 
   if (!tumKampanyalar.length) {
+    const temaEtiket = tema ? CAMPAIGN_THEME_LABEL[tema] : null;
     return {
-      message:
-        "Şu anda kayıtlı aktif kampanya bulunamadı. Banka sayfaları henüz taranmamış olabilir.\n\n" +
-        "Belirli bir bankanın kampanyalarını sorabilirsiniz; yenileme tetiklenir.",
+      message: temaEtiket
+        ? `Şu anda başlığında veya kategorisinde “${temaEtiket.toLocaleLowerCase("tr-TR")}” geçen aktif kampanya bulamadım.\n\n` +
+          `Başka bir kategori deneyebilir veya banka adı yazarak o bankanın tüm kampanyalarına bakabilirsiniz.`
+        : "Şu anda kayıtlı aktif kampanya bulunamadı. Banka sayfaları henüz taranmamış olabilir.\n\n" +
+          "Belirli bir bankanın kampanyalarını sorabilirsiniz; yenileme tetiklenir.",
       citations: [],
     };
   }
@@ -386,21 +400,28 @@ function genelKampanyaYaniti(): RehberSonucu {
     const cfg = BANK_SOURCE_CONFIGS.find((b) => b.bankId === bankId);
     const ad = cfg?.bankName.replace(/ Katılım Bankası A\.Ş\./, "") || bankId;
     satirlar.push(`**${ad}** (${kampanyalar.length} kampanya)`);
-    for (const c of kampanyalar.slice(0, 3)) {
+    for (const c of kampanyalar.slice(0, 4)) {
       satirlar.push(kampanyaSatiri(c));
     }
-    if (kampanyalar.length > 3) {
-      satirlar.push(`  … ve ${kampanyalar.length - 3} kampanya daha`);
+    if (kampanyalar.length > 4) {
+      satirlar.push(`  … ve ${kampanyalar.length - 4} kampanya daha`);
     }
     satirlar.push("");
   }
 
+  const temaEtiket = tema ? CAMPAIGN_THEME_LABEL[tema] : null;
+  const baslik = temaEtiket
+    ? `${bankaGrup.size} bankada ${tumKampanyalar.length} ${temaEtiket.toLocaleLowerCase("tr-TR")} kampanyası buldum`
+    : `${bankaGrup.size} katılım bankasında toplam ${tumKampanyalar.length} aktif kampanya var`;
+
   return {
     message:
-      `${bankaGrup.size} katılım bankasında toplam ${tumKampanyalar.length} aktif kampanya var:\n\n` +
+      `${baslik}:\n\n` +
       satirlar.join("\n").trim() +
-      `\n\nBelirli bir bankanın kampanyalarını detaylı görmek isterseniz banka adını yazın.`,
-    citations: tumKampanyalar.slice(0, 8).map((c: Record<string, unknown>, i: number) => ({
+      (tema
+        ? `\n\nBaşka kategori için “kart kampanyaları” veya banka adı yazabilirsiniz.`
+        : `\n\nBelirli bir bankanın kampanyalarını detaylı görmek isterseniz banka adını yazın.`),
+    citations: tumKampanyalar.slice(0, 10).map((c: Record<string, unknown>, i: number) => ({
       id: i + 1,
       bankName: prettifyCampaignTitle(String(c.title || c.productName || c.bankName || "")),
       sourceUrl: String(c.sourceUrl || ""),
@@ -419,7 +440,7 @@ export function rehberYaniti(
   const aktifler = BANK_SOURCE_CONFIGS.filter((b) => b.enabled);
 
   if (niyet === "yeni_musteri_avantaj") return yeniMusteriKampanyaYaniti();
-  if (niyet === "genel_kampanyalar") return genelKampanyaYaniti();
+  if (niyet === "genel_kampanyalar") return genelKampanyaYaniti(mesaj);
   if (niyet === "ucret_karsilastir") return ucretYaniti(mesaj);
 
   if (niyet === "banka_sayisi") {
@@ -488,15 +509,9 @@ export function rehberYaniti(
     activeOnly: true,
   });
 
-  const t = asciiKatla(mesaj);
-  const egitimFiltresi = /egitim|okul|universite|ogrenci/.test(t);
-  const kampanyalar = egitimFiltresi
-    ? tumKampanyalar.filter((c) => {
-        const haystack = asciiKatla(
-          `${c.title || ""} ${c.productName || ""} ${c.summary || ""}`,
-        );
-        return /egitim|okul|universite|ogrenci|burs/.test(haystack);
-      })
+  const tema = parseCampaignThemeFromMessage(mesaj);
+  const kampanyalar = tema
+    ? tumKampanyalar.filter((c) => campaignMatchesTheme(c, tema))
     : tumKampanyalar;
 
   if (!tumKampanyalar.length) {
@@ -509,10 +524,11 @@ export function rehberYaniti(
     };
   }
 
-  if (egitimFiltresi && !kampanyalar.length) {
+  if (tema && !kampanyalar.length) {
+    const temaEtiket = CAMPAIGN_THEME_LABEL[tema];
     return {
       message:
-        `${cfg.bankName} kayıtlarında başlığında eğitim geçen aktif kampanya bulamadım. ` +
+        `${cfg.bankName} kayıtlarında “${temaEtiket.toLocaleLowerCase("tr-TR")}” temalı aktif kampanya bulamadım. ` +
         `Toplam ${tumKampanyalar.length} kampanya var; “kampanyaları listele” dersen hepsini gösterebilirim.\n\n` +
         `Resmî kampanya sayfası: ${anaSayfa(cfg.bankId)}`,
       citations: [],
@@ -520,8 +536,9 @@ export function rehberYaniti(
   }
 
   const gosterilecek = kampanyalar.slice(0, 8);
-  const baslik = egitimFiltresi
-    ? `${cfg.bankName} için eğitimle ilgili ${kampanyalar.length} kampanya görünüyor`
+  const temaEtiket = tema ? CAMPAIGN_THEME_LABEL[tema] : null;
+  const baslik = temaEtiket
+    ? `${cfg.bankName} için ${kampanyalar.length} ${temaEtiket.toLocaleLowerCase("tr-TR")} kampanyası görünüyor`
     : `${cfg.bankName} için ${kampanyalar.length} aktif kampanya görünüyor`;
   return {
     message:

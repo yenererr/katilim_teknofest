@@ -82,6 +82,14 @@ export type ExtractedFinancialRecord = {
   conditions: string[];
   exclusions: string[];
   campaignStatus: CampaignStatus;
+  /** Eğitim / kart / konut vb. — finansman türünden bağımsız */
+  campaignTheme?:
+    | "education"
+    | "card"
+    | "housing"
+    | "vehicle"
+    | "new_customer"
+    | "general";
   evidence: Array<{ field: string; text: string; confidence: number }>;
   manualReviewRequired: boolean;
 };

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   dedupeCampaignRecords,
+  inferCampaignTheme,
   isCampaignListingUrl,
   isJunkCampaignTitle,
+  parseCampaignThemeFromMessage,
   prettifyCampaignTitle,
 } from "../campaignNormalize";
 
@@ -27,6 +29,23 @@ describe("campaignNormalize", () => {
 
   it("slug başlığını güzelleştirir", () => {
     expect(prettifyCampaignTitle("tamamla kazan")).toBe("Tamamla Kazan");
+  });
+
+  it("mesajdan kampanya temasını çıkarır (finansman değil)", () => {
+    expect(parseCampaignThemeFromMessage("eğitim kampanyaları")).toBe(
+      "education",
+    );
+    expect(parseCampaignThemeFromMessage("kart kampanyası var mı")).toBe("card");
+    expect(parseCampaignThemeFromMessage("200 bin eğitim finansmanı")).toBeNull();
+  });
+
+  it("başlıktan eğitim temasını çıkarır", () => {
+    expect(
+      inferCampaignTheme({
+        title: "Biz Kart ile Okula Dönüş Kampanyası",
+        category: "card_campaign",
+      }),
+    ).toBe("education");
   });
 
   it("aynı URL / case-farklı başlıkları tekilleştirir", () => {

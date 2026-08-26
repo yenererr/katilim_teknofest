@@ -324,6 +324,7 @@ import {
   isJunkCampaignTitle,
   normalizeCampaignUrl,
   prettifyCampaignTitle,
+  inferCampaignTheme,
 } from "./campaignNormalize";
 
 export function stubCampaignFromUrl(opts: {
@@ -388,6 +389,12 @@ export function stubCampaignFromUrl(opts: {
     conditions: [],
     exclusions: [],
     campaignStatus: "active",
+    campaignTheme: inferCampaignTheme({
+      title,
+      productName: title,
+      sourceUrl: opts.sourceUrl,
+      category,
+    }),
     evidence: [
       {
         field: "title",

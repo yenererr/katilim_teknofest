@@ -3,6 +3,7 @@ import { BANK_SOURCE_CONFIGS } from "../scraper/bankSourceConfig";
 import type { ExtractedFinancialRecord } from "../scraper/scraperTypes";
 import {
   dedupeCampaignRecords,
+  inferCampaignTheme,
   isCampaignListingUrl,
   isJunkCampaignTitle,
   normalizeCampaignUrl,
@@ -153,7 +154,18 @@ export async function upsertExtractedRecords(
         String(r.title || r.productName || ""),
       );
       if (isJunkCampaignTitle(title)) continue;
-      r = { ...r, title, productName: r.productName || title };
+      const campaignTheme = inferCampaignTheme({
+        title,
+        productName: r.productName,
+        sourceUrl: r.sourceUrl,
+        category: r.category,
+      });
+      r = {
+        ...r,
+        title,
+        productName: r.productName || title,
+        campaignTheme,
+      } as ExtractedFinancialRecord & { campaignTheme: string };
     }
 
     const id = crypto
@@ -325,6 +337,14 @@ export async function hydrateMemoryFromPostgres(): Promise<{
         sourceUrl: row.source_url,
         sourceCheckedAt: row.source_checked_at,
         recordType: "campaign",
+        campaignTheme:
+          payload.campaignTheme ||
+          inferCampaignTheme({
+            title: String(row.title || payload.title || ""),
+            productName: String(payload.productName || ""),
+            sourceUrl: row.source_url,
+            category: row.category,
+          }),
       });
     }
 

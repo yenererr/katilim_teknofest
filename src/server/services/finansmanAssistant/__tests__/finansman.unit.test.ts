@@ -79,6 +79,8 @@ describe("finansman NLU", () => {
     expect(parseTermMonths("36")).toBe(36);
     expect(parseFinancingType("ihtiyaç finansmanı")).toBe("consumer");
     expect(parseFinancingType("bir araç almak")).toBe("vehicle");
+    expect(parseFinancingType("eğitim kampanyaları")).toBeNull();
+    expect(parseFinancingType("eğitim finansmanı")).toBe("education");
   });
 
   it("yalnızca 24 yazınca vade tamamlanır, tutar korunur", () => {

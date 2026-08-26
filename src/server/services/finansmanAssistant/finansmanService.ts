@@ -22,7 +22,8 @@ import {
 } from "./finansmanTypes";
 import { asciiKatla } from "../../../nlp/normalize";
 import { runRagChat } from "../rag/ragService";
-import { rehberNiyetiTespit, rehberYaniti, bekleyenTakibiCoz, kampanyaSinyaliVar } from "./bankDirectory";
+import { rehberNiyetiTespit, rehberYaniti, bekleyenTakibiCoz, kampanyaSinyaliVar, bankaBul } from "./bankDirectory";
+import { parseCampaignThemeFromMessage } from "../scraper/campaignNormalize";
 import { sozluktenYanitla } from "./terimSozlugu";
 import { hesaplaOdemePlani } from "../../../lib/odemePlani";
 import { enrichWithLiveCalculators } from "./liveCalculatorEnrichment";
@@ -538,11 +539,15 @@ export async function runFinansmanAssistantChat(
     bekleyenTakibiCoz(req.message, state.pendingFollowUp) ||
     rehberNiyetiTespit(req.message);
 
-  // Oturumda banka seçiliyken “eğitim kampanyaları var mı” → o bankaya bağla
+  // Oturumda banka seçiliyken kısa “kampanyalar” takibi → o banka.
+  // Tema sorusu (“eğitim kampanyaları”) tüm bankalarda kalsın.
+  const kampanyaTemasi = parseCampaignThemeFromMessage(req.message);
   if (
     kampanyaSinyaliVar(req.message) &&
     state.selectedBankIds.length === 1 &&
-    (rehberNiyeti == null || rehberNiyeti === "genel_kampanyalar")
+    !kampanyaTemasi &&
+    (rehberNiyeti == null || rehberNiyeti === "genel_kampanyalar") &&
+    !bankaBul(req.message)
   ) {
     rehberNiyeti = "banka_kampanyalari";
   }
@@ -574,11 +579,20 @@ export async function runFinansmanAssistantChat(
               rehberNiyeti === "genel_kampanyalar"
             ? [
                 {
+                  id: "c-edu",
+                  label: "Eğitim kampanyaları",
+                  value: "Eğitim kampanyaları",
+                },
+                {
                   id: "c-new",
                   label: "Yeni müşteri kampanyaları",
                   value: "Yeni müşteri kampanyalarını göster",
                 },
-                ...purposeQuickReplies().slice(0, 2),
+                {
+                  id: "c-card",
+                  label: "Kart kampanyaları",
+                  value: "Kart kampanyaları",
+                },
               ]
             : [
                 ...purposeQuickReplies().slice(0, 3),

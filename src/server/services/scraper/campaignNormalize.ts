@@ -1,5 +1,99 @@
 import { asciiKatla } from "../../../nlp/normalize";
 
+/** Kampanya konu kategorisi — finansman türünden bağımsız. */
+export type CampaignTheme =
+  | "education"
+  | "card"
+  | "housing"
+  | "vehicle"
+  | "new_customer"
+  | "general";
+
+export const CAMPAIGN_THEME_LABEL: Record<CampaignTheme, string> = {
+  education: "Eğitim",
+  card: "Kart",
+  housing: "Konut",
+  vehicle: "Taşıt",
+  new_customer: "Yeni müşteri",
+  general: "Genel",
+};
+
+const THEME_PATTERNS: Array<{ theme: CampaignTheme; re: RegExp }> = [
+  {
+    theme: "education",
+    re: /egitim|okul|universite|ogrenci|burs|okula\s*don|dershane|yurt\b|kitap/,
+  },
+  {
+    theme: "new_customer",
+    re: /yeni\s*musteri|hosgeldin|ilk\s*kez|yeni\s*uyelik|yeni\s*hesap|ilk\s*kart/,
+  },
+  {
+    theme: "card",
+    re: /\bkart\b|kredi\s*kart|debit|vclub|worldcard|bonus|miles|chip/,
+  },
+  {
+    theme: "housing",
+    re: /konut|mortgage|gayrimenkul|ev\s*finans|konut\s*finans/,
+  },
+  {
+    theme: "vehicle",
+    re: /tasit|arac\s*finans|otomobil|araba\s*finans|tasit\s*finans/,
+  },
+];
+
+/** Başlık / URL / kategori metninden kampanya temasını çıkarır. */
+export function inferCampaignTheme(opts: {
+  title?: string | null;
+  productName?: string | null;
+  sourceUrl?: string | null;
+  category?: string | null;
+}): CampaignTheme {
+  const haystack = asciiKatla(
+    `${opts.title || ""} ${opts.productName || ""} ${opts.sourceUrl || ""} ${opts.category || ""}`,
+  );
+  if (opts.category === "card_campaign" || /kart.?kampanya|card_campaign/.test(haystack)) {
+    // Eğitim + kart birlikteyse eğitim öncelikli (okula dönüş kart kampanyası)
+    if (THEME_PATTERNS[0]!.re.test(haystack)) return "education";
+    return "card";
+  }
+  if (opts.category === "new_customer_financing") return "new_customer";
+  for (const { theme, re } of THEME_PATTERNS) {
+    if (re.test(haystack)) return theme;
+  }
+  return "general";
+}
+
+/** Kullanıcı mesajından kampanya teması (finansman amacı değil). */
+export function parseCampaignThemeFromMessage(mesaj: string): CampaignTheme | null {
+  const t = asciiKatla(mesaj);
+  // "eğitim kampanyaları", "kart kampanyası var mı"
+  if (!/kampanya|kmapnaya|kmapanya|kampnya|kampnyal|kampanyal|firsat|avantaj/.test(t)) {
+    return null;
+  }
+  for (const { theme, re } of THEME_PATTERNS) {
+    if (re.test(t)) return theme;
+  }
+  return null;
+}
+
+/** Kampanya kaydı verilen temaya uyuyor mu? */
+export function campaignMatchesTheme(
+  c: { title?: unknown; productName?: unknown; sourceUrl?: unknown; category?: unknown; campaignTheme?: unknown },
+  theme: CampaignTheme,
+): boolean {
+  if (theme === "general") return true;
+  const stored = c.campaignTheme as CampaignTheme | undefined;
+  if (stored === theme) return true;
+  return (
+    inferCampaignTheme({
+      title: String(c.title || ""),
+      productName: String(c.productName || ""),
+      sourceUrl: String(c.sourceUrl || ""),
+      category: String(c.category || ""),
+    }) === theme
+  );
+}
+
 /** Karşılaştırma / ID için URL'yi normalize eder. */
 export function normalizeCampaignUrl(url: string): string {
   try {

@@ -36,6 +36,10 @@ describe("banka rehberi niyet tespiti", () => {
     expect(
       rehberNiyetiTespit("kampanyalar hakkında bilgi almak istiyorum"),
     ).toBe("genel_kampanyalar");
+    expect(rehberNiyetiTespit("eğitim kampanyaları")).toBe("genel_kampanyalar");
+    expect(rehberNiyetiTespit("kart kampanyaları göster")).toBe(
+      "genel_kampanyalar",
+    );
   });
 
   it("tek başına listele banka listesi döner", () => {

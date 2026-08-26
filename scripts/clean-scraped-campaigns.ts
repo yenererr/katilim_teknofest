@@ -1,6 +1,7 @@
 import fs from "fs";
 import {
   dedupeCampaignRecords,
+  inferCampaignTheme,
   isCampaignListingUrl,
   isJunkCampaignTitle,
   prettifyCampaignTitle,
@@ -20,12 +21,19 @@ const cleaned = dedupeCampaignRecords(
       const title = prettifyCampaignTitle(
         String(c.title || c.productName || ""),
       );
+      const productName = prettifyCampaignTitle(
+        String(c.productName || c.title || ""),
+      );
       return {
         ...c,
         title,
-        productName: prettifyCampaignTitle(
-          String(c.productName || c.title || ""),
-        ),
+        productName,
+        campaignTheme: inferCampaignTheme({
+          title,
+          productName,
+          sourceUrl: String(c.sourceUrl || ""),
+          category: String(c.category || ""),
+        }),
       } as Record<string, unknown>;
     }),
 ) as Array<Record<string, unknown>>;
@@ -38,6 +46,12 @@ j.meta = {
 };
 fs.writeFileSync(path, JSON.stringify(j, null, 2));
 console.log("before", before, "after", cleaned.length);
-const v = cleaned.filter((c) => c.bankId === "vakif-katilim");
-console.log("vakif", v.length);
-for (const c of v) console.log("-", c.title, c.sourceUrl);
+const themes: Record<string, number> = {};
+for (const c of cleaned) {
+  const t = String(c.campaignTheme || "general");
+  themes[t] = (themes[t] || 0) + 1;
+}
+console.log("themes", themes);
+const edu = cleaned.filter((c) => c.campaignTheme === "education");
+console.log("education", edu.length);
+for (const c of edu) console.log("-", c.bankId, c.title);
