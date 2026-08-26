@@ -149,8 +149,12 @@ describe("finansman NLU", () => {
     });
     expect(second.query.financingType).toBe("consumer");
     expect(second.query.preferredTermMonths).toBe(24);
-    expect(second.assistantMessage).toMatch(/yalnızca katılım bankalarının/i);
+    // Konu dışı mesaj RAG katmanına devredilir: finansman eşleştirme motoru
+    // çalışmaz, önceki tür/vade korunur, yine de bir cevap üretilir.
     expect(second.exactMatches).toEqual([]);
+    expect(second.flexibleMatches).toEqual([]);
+    expect(second.assistantMessage.length).toBeGreaterThan(0);
+    expect(second.assistantMessage).not.toMatch(/yalnızca katılım bankalarının/i);
   });
 });
 

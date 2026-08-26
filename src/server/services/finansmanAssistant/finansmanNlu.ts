@@ -184,6 +184,9 @@ export type TurnKind =
   | "greeting"
   | "meta_question"
   | "bank_focus"
+  // Finansman formuyla karşılanamayan bilgi sorusu (ör. "murabaha nedir?")
+  // — kanıtlı RAG katmanına devredilir.
+  | "general_question"
   | "sort_only";
 
 /** Selam / genel yardım — finansman parametresi yok */
@@ -249,6 +252,23 @@ export function classifyTurn(
   const flags = detectFollowUpFlags(t);
   if (flags.amountCapStrict || flags.hideUnknownFees || flags.onlyNewCustomer) {
     return "param_update";
+  }
+
+  const somutTalep =
+    parseTurkishAmount(t) != null ||
+    parseTermMonths(t) != null ||
+    parseFinancingType(t) != null;
+
+  // "murabaha nedir", "kar payı nasıl hesaplanır", "faizsiz mi" gibi
+  // bilgi soruları eşleştirme motoruyla cevaplanamaz; slot doldurmaya
+  // sokmak yerine kanıtlı RAG katmanına devredilir.
+  const bilgiSorusuKalibi =
+    /(nedir|ne demek|ne anlama|neye gore|nasil (calis|hesaplan|isle|belirlen)|farki nedir|ne fark|avantaj|dezavantaj|helal mi|caiz mi|faizsiz mi|sart(lar)?i ne|hangi durumlarda|ne ise yarar|kimler (alabilir|basvurabilir))/.test(
+      t,
+    );
+
+  if (bilgiSorusuKalibi && !somutTalep) {
+    return "general_question";
   }
 
   const hasFinanceSignal =

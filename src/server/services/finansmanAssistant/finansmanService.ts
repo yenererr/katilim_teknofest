@@ -13,6 +13,7 @@ import {
   type FinancingConversationState,
 } from "./finansmanTypes";
 import { asciiKatla } from "../../../nlp/normalize";
+import { runRagChat } from "../rag/ragService";
 
 const conversations = new Map<string, FinancingConversationState>();
 
@@ -364,13 +365,17 @@ export async function runFinansmanAssistantChat(
 
   const turn = classifyTurn(req.message, req.selectedQuickReply);
 
+  // Konu tamamen dışarıdaysa (yemek tarifi, hava durumu…) kapsam dışı
+  // yanıtı korunur; RAG katmanına yalnızca katılım bankacılığına dair
+  // bilgi soruları devredilir.
   if (turn === "unsupported") {
     conversations.set(conversationId, state);
     return {
       conversationId,
       assistantMessage:
-        "Bu konuda yardımcı olamam. Ben yalnızca katılım bankalarının doğrulanmış " +
-        "finansman seçeneklerini karşılaştırmak için buradayım.\n\n" +
+        "Bu konuda yardımcı olamam. Ben katılım bankalarının doğrulanmış " +
+        "finansman seçeneklerini karşılaştırmak ve katılım bankacılığı " +
+        "sorularınızı yanıtlamak için buradayım.\n\n" +
         "Tutar, vade veya finansman amacınızı (ihtiyaç, taşıt, konut…) yazabilirsiniz.",
       status: "needs_information",
       missingFields: [],
@@ -384,6 +389,44 @@ export async function runFinansmanAssistantChat(
       summary: emptySummary(),
       warnings: [],
       citations: [],
+    };
+  }
+
+  if (turn === "general_question") {
+    conversations.set(conversationId, state);
+
+    // Finansman eşleştirme motoru bu soruyu karşılamıyor. Kullanıcıyı boş
+    // çevirmek yerine kanıtlı RAG katmanına devrediyoruz; böylece tek bir
+    // asistan hem finansman karşılaştırmasını hem genel soruları yanıtlar.
+    const rag = await runRagChat({
+      message: req.message,
+      conversationId,
+    });
+
+    return {
+      conversationId,
+      assistantMessage: rag.answer,
+      status: rag.citations.length ? "general_answer" : "needs_information",
+      missingFields: [],
+      quickReplies: [
+        ...purposeQuickReplies().slice(0, 3),
+        ...termQuickReplies().slice(0, 2),
+      ],
+      query: state,
+      exactMatches: [],
+      flexibleMatches: [],
+      summary: {
+        ...emptySummary(),
+        dataAsOf: rag.dataAsOf ?? null,
+      },
+      warnings: rag.warnings,
+      citations: rag.citations.map((c) => ({
+        id: c.id,
+        bankName: c.bankName,
+        sourceUrl: c.sourceUrl,
+        sourceCheckedAt: c.sourceCheckedAt,
+        evidenceText: c.evidenceText,
+      })),
     };
   }
 

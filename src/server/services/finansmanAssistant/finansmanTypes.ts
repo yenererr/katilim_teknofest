@@ -103,6 +103,8 @@ export type FinancingAssistantResponse = {
     | "results_ready"
     | "no_exact_match"
     | "no_verified_data"
+    // Finansman motoru kapsamadığı sorular RAG katmanına devredilir.
+    | "general_answer"
     | "error";
   missingFields: string[];
   quickReplies: Array<{ id: string; label: string; value: string }>;
