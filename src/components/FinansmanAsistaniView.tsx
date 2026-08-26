@@ -12,8 +12,10 @@ import {
   BadgePercent,
   User,
 } from "lucide-react";
+import { WELCOME_MESSAGE } from "../lib/assistantPersona";
 
 const AGENT_LOGO = "/logos/katilim-agent.png";
+const WELCOME_TURN_ID = "welcome-assistant";
 
 export type FinancingMatchRow = {
   bankId: string;
@@ -232,13 +234,13 @@ const STARTERS: StarterCard[] = [
   {
     icon: TrendingDown,
     label: "Finansman karşılaştır",
-    value: "Finansman seçeneklerini karşılaştırmak istiyorum",
+    value: "200.000 TL ihtiyaç finansmanı, 24 ay",
     color: "text-brand-600 dark:text-brand-400",
   },
   {
     icon: BadgePercent,
-    label: "Kampanyalar",
-    value: "Aktif kampanyaları göster",
+    label: "Neler yapabilirsin?",
+    value: "Neler yapabilirsin?",
     color: "text-accent-600 dark:text-accent-400",
   },
   {
@@ -428,7 +430,9 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
 }) => {
   const isWidget = variant === "widget";
   const [input, setInput] = useState("");
-  const [turns, setTurns] = useState<Turn[]>([]);
+  const [turns, setTurns] = useState<Turn[]>(() => [
+    { id: WELCOME_TURN_ID, role: "assistant", text: WELCOME_MESSAGE },
+  ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState(() =>
@@ -557,6 +561,9 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
     latest &&
     (latest.exactMatches.length > 0 || latest.flexibleMatches.length > 0);
 
+  const showStarters =
+    turns.length === 1 && turns[0]?.id === WELCOME_TURN_ID && !loading;
+
   return (
     <div
       className={
@@ -570,54 +577,6 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
         ref={listRef}
         className={`min-h-0 flex-1 overflow-y-auto ${isWidget ? "px-2 py-3" : "px-2 py-4 sm:px-4"}`}
       >
-        {/* Boş durum — hoş geldin */}
-        {turns.length === 0 && (
-          <div
-            className={`flex h-full flex-col items-center justify-center px-3 ${isWidget ? "gap-4" : "gap-6 px-4"}`}
-          >
-            <div className="flex flex-col items-center gap-2.5">
-              {!isWidget && (
-                <img
-                  src={AGENT_LOGO}
-                  alt="Katılım Bankası Agent"
-                  className="h-16 w-16 rounded-2xl object-contain shadow-raised"
-                />
-              )}
-              <div className="text-center">
-                <h1
-                  className={`font-semibold tracking-tight text-txt ${isWidget ? "text-base" : "text-xl"}`}
-                >
-                  {isWidget ? "Size nasıl yardımcı olabilirim?" : "KatılımFinans Asistanı"}
-                </h1>
-                <p className={`mt-1 text-txt-secondary ${isWidget ? "text-xs" : "text-sm"}`}>
-                  Katılım bankacılığı hakkında her şeyi sorabilirsiniz
-                </p>
-              </div>
-            </div>
-
-            <div
-              className={`grid w-full grid-cols-2 ${isWidget ? "gap-2" : "max-w-lg gap-2.5"}`}
-            >
-              {STARTERS.map((s) => {
-                const Icon = s.icon;
-                return (
-                  <button
-                    key={s.label}
-                    type="button"
-                    onClick={() => void send(s.value)}
-                    className={`flex items-start gap-2 rounded-xl border border-line bg-surface text-left transition-all hover:border-brand-300 hover:shadow-raised ${isWidget ? "p-2.5" : "gap-2.5 p-3"}`}
-                  >
-                    <Icon className={`mt-0.5 shrink-0 ${s.color} ${isWidget ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
-                    <span className={`font-medium text-txt ${isWidget ? "text-xs" : "text-sm"}`}>
-                      {s.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Konuşma geçmişi */}
         {turns.map((t) => (
           <div
@@ -642,6 +601,29 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
             </div>
           </div>
         ))}
+
+        {showStarters && (
+          <div
+            className={`mb-4 grid w-full grid-cols-2 ${isWidget ? "gap-2 px-1" : "max-w-lg gap-2.5"}`}
+          >
+            {STARTERS.map((s) => {
+              const Icon = s.icon;
+              return (
+                <button
+                  key={s.label}
+                  type="button"
+                  onClick={() => void send(s.value)}
+                  className={`flex items-start gap-2 rounded-xl border border-line bg-surface text-left transition-all hover:border-brand-300 hover:shadow-raised ${isWidget ? "p-2.5" : "gap-2.5 p-3"}`}
+                >
+                  <Icon className={`mt-0.5 shrink-0 ${s.color} ${isWidget ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
+                  <span className={`font-medium text-txt ${isWidget ? "text-xs" : "text-sm"}`}>
+                    {s.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Yükleniyor */}
         {loading && (

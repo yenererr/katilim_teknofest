@@ -224,7 +224,7 @@ export type TurnKind =
   | "sort_only"
   | "payment_plan";
 
-/** Selam / genel yardım — finansman parametresi yok */
+/** Selam / sohbet / yardım — finansman parametresi yok */
 export function isGreetingOrHelpRequest(text: string): boolean {
   const t = asciiKatla(text).trim();
   if (!t) return false;
@@ -235,18 +235,62 @@ export function isGreetingOrHelpRequest(text: string): boolean {
     parseFinancingType(t) != null ||
     parseProfitRatePercent(t) != null ||
     isPaymentPlanRequest(t) ||
-    /finansman|kredi|faiz|kar pay|vade\b|kampanya|konut|tasit|araba|arac|otomobil|banka|kat[iı]l[iı]m|tahsis|masraf|\btl\b|\bbin\b|milyon/.test(
+    /finansman|kredi|faiz|kar pay|vade\b|kampanya|konut|tasit|araba|arac|otomobil|tahsis|masraf|\btl\b|\bbin\b|milyon/.test(
       t,
     );
 
   if (hasRealFinance) return false;
 
   return (
-    /^(merhaba|selam|selamlar|hey|hi|hello|iyi gunler|gunaydin)\b/.test(t) ||
-    /yardim(a|iniz)?\s+ihtiyac|bana yardim|yardim eder misin|ne yapabilirsin|nasil (calisir|kullan)/.test(
+    isCapabilitiesRequest(t) ||
+    isSmallTalkRequest(t) ||
+    isThanksRequest(t) ||
+    isFarewellRequest(t) ||
+    /^(merhaba|selam|selamlar|hey|hi|hello|iyi gunler|gunaydin|iyi aksamlar|iyi geceler)\b/.test(
       t,
     ) ||
-    /^(merhaba|selam).{0,60}yardim/.test(t)
+    /yardim(a|iniz)?\s+ihtiyac|bana yardim|yardim eder misin|nasil (calisir|kullan)/.test(
+      t,
+    ) ||
+    /^(merhaba|selam).{0,80}(yardim|nasil)/.test(t)
+  );
+}
+
+/** “Neler yapabilirsin / kimsin / yeteneklerin” */
+export function isCapabilitiesRequest(text: string): boolean {
+  const t = asciiKatla(text).trim();
+  return (
+    /\b(neler yapabilirsin|ne yapabilirsin|neler yapabiliyorsun|ne yapabiliyorsun|ne yaparsin|yeteneklerin|neler sunuyorsun|bana ne sunuyorsun|ne ise yarar|ne ise yariyorsun|ozelliklerin|fonksiyonlarin)\b/.test(
+      t,
+    ) ||
+    /\b(kimsin|kendini tanit|ne is yapiyorsun|ne icin buradasin|nasil yardimci olabilirsin)\b/.test(
+      t,
+    )
+  );
+}
+
+/** “Nasılsın / naber” */
+export function isSmallTalkRequest(text: string): boolean {
+  const t = asciiKatla(text).trim();
+  return (
+    /^(nasilsin|naber|nabersin|ne haber|iyi misin|keyifler nasil|ne var ne yok)[\s!?.]*$/.test(
+      t,
+    ) ||
+    /\b(nasilsin|nabersin|iyi misin)\b/.test(t)
+  );
+}
+
+export function isThanksRequest(text: string): boolean {
+  const t = asciiKatla(text).trim();
+  return /^(tesekkur|tesekkurler|sag ol|sagol|eyvallah|thanks|thx)([\s!?.]|$)/.test(
+    t,
+  );
+}
+
+export function isFarewellRequest(text: string): boolean {
+  const t = asciiKatla(text).trim();
+  return /^(gorusuruz|gorusmek uzere|hosca kal|bb|bye|elveda|iyi gunler dilerim)([\s!?.]|$)/.test(
+    t,
   );
 }
 
@@ -372,6 +416,8 @@ export function createEmptyState(conversationId: string): FinancingConversationS
     customProfitRatePercent: null,
     askedFields: [],
     lastResultIds: [],
+    pendingFollowUp: null,
+    recentUserMessages: [],
   };
 }
 

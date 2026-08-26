@@ -100,10 +100,46 @@ describe("finansman NLU", () => {
     expect(classifyTurn("pardon 24 ay")).toBe("param_update");
     expect(classifyTurn("merhaba")).toBe("greeting");
     expect(classifyTurn("merhaba yardıma ihtiyacım var")).toBe("greeting");
+    expect(classifyTurn("nasılsın")).toBe("greeting");
+    expect(classifyTurn("Nasılsın?")).toBe("greeting");
+    expect(classifyTurn("neler yapabilirsin")).toBe("greeting");
+    expect(classifyTurn("Neler yapabilirsin?")).toBe("greeting");
+    expect(classifyTurn("kimsin")).toBe("greeting");
+    expect(classifyTurn("teşekkürler")).toBe("greeting");
     expect(classifyTurn("baska banka yok mu")).toBe("meta_question");
     expect(classifyTurn("niye hep aynı cevabı veriyorsun")).toBe("meta_question");
     expect(classifyTurn("albarakada oranlar ne")).toBe("bank_focus");
     expect(classifyTurn("ziraat katılım oranları ne")).toBe("bank_focus");
+  });
+
+  it("kaç banka var → listele takip eder", async () => {
+    resetConversationsForTests();
+    const sayi = await runFinansmanAssistantChat({
+      message: "kaç tane katılım bankası var",
+    });
+    expect(sayi.assistantMessage).toMatch(/katılım bankası/i);
+    expect(sayi.query.pendingFollowUp).toBe("banka_listesi");
+
+    const liste = await runFinansmanAssistantChat({
+      conversationId: sayi.conversationId,
+      message: "listele",
+    });
+    expect(liste.assistantMessage).toMatch(/Kuveyt Türk|Albaraka|Vakıf/i);
+    expect(liste.assistantMessage).not.toMatch(/Bu konuda yardımcı olamam/);
+  });
+
+  it("nasılsın ve neler yapabilirsin anlamlı yanıt verir", async () => {
+    resetConversationsForTests();
+    const how = await runFinansmanAssistantChat({ message: "nasılsın" });
+    expect(how.assistantMessage).toMatch(/[İiI]yiyim/);
+    expect(how.exactMatches).toEqual([]);
+
+    const caps = await runFinansmanAssistantChat({
+      conversationId: how.conversationId,
+      message: "neler yapabilirsin",
+    });
+    expect(caps.assistantMessage).toMatch(/Finansman karşılaştırma|karşılaştır/i);
+    expect(caps.assistantMessage).toMatch(/Ödeme planı|ödeme planı/i);
   });
 
   it("selamlaşma önceki aramayı yeniden çalıştırmaz", async () => {

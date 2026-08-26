@@ -5,6 +5,10 @@ import {
   missingRequiredFields,
   classifyTurn,
   buildHesaplamaHref,
+  isCapabilitiesRequest,
+  isSmallTalkRequest,
+  isThanksRequest,
+  isFarewellRequest,
 } from "./finansmanNlu";
 import { runFinancingMatchEngine } from "./finansmanMatcher";
 import { buildMatchesFromQdrantEvidence } from "./finansmanEvidence";
@@ -17,9 +21,16 @@ import {
 } from "./finansmanTypes";
 import { asciiKatla } from "../../../nlp/normalize";
 import { runRagChat } from "../rag/ragService";
-import { rehberNiyetiTespit, rehberYaniti } from "./bankDirectory";
+import { rehberNiyetiTespit, rehberYaniti, bekleyenTakibiCoz } from "./bankDirectory";
 import { sozluktenYanitla } from "./terimSozlugu";
 import { hesaplaOdemePlani } from "../../../lib/odemePlani";
+import {
+  CAPABILITIES_MESSAGE,
+  FAREWELL_MESSAGE,
+  SMALLTALK_MESSAGE,
+  THANKS_MESSAGE,
+  WELCOME_MESSAGE,
+} from "../../../lib/assistantPersona";
 
 const conversations = new Map<string, FinancingConversationState>();
 
@@ -406,11 +417,70 @@ export async function runFinansmanAssistantChat(
   state = mergeMessageIntoState(state, req.message, req.selectedQuickReply);
   state = applyFlexibleClick(state, req.selectedQuickReply);
   state.conversationId = conversationId;
+  state.recentUserMessages = [
+    ...(state.recentUserMessages || []).slice(-4),
+    req.message.trim(),
+  ];
+  // Eski oturumlar / test state'leri için varsayılanlar
+  if (state.pendingFollowUp === undefined) state.pendingFollowUp = null;
+  if (!Array.isArray(state.recentUserMessages)) state.recentUserMessages = [req.message.trim()];
+
+  const turn = classifyTurn(req.message, req.selectedQuickReply);
+
+  // Selam / nasılsın / neler yapabilirsin — sözlük ve rehberden ÖNCE
+  if (turn === "greeting") {
+    conversations.set(conversationId, { ...state, pendingFollowUp: null });
+    const hasContext =
+      state.requestedAmountTl != null ||
+      state.financingType != null ||
+      state.preferredTermMonths != null;
+
+    let assistantMessage = WELCOME_MESSAGE;
+    if (isCapabilitiesRequest(req.message)) {
+      assistantMessage = CAPABILITIES_MESSAGE;
+    } else if (isThanksRequest(req.message)) {
+      assistantMessage = THANKS_MESSAGE;
+    } else if (isFarewellRequest(req.message)) {
+      assistantMessage = FAREWELL_MESSAGE;
+    } else if (isSmallTalkRequest(req.message)) {
+      assistantMessage = SMALLTALK_MESSAGE;
+    } else if (hasContext) {
+      assistantMessage =
+        "Tekrar merhaba! Kaldığımız yerden devam edebiliriz. Tutarı, vadeyi ya da amacı değiştirebilir; kampanya veya ödeme planı da sorabilirsiniz.\n\nİstersen “neler yapabilirsin” diye yaz, kısaca anlatayım.";
+    }
+
+    return {
+      conversationId,
+      assistantMessage,
+      status: "needs_information",
+      missingFields: missingRequiredFields(state),
+      quickReplies: [
+        {
+          id: "g-cap",
+          label: "Neler yapabilirsin?",
+          value: "Neler yapabilirsin?",
+        },
+        {
+          id: "g-ihtiyac",
+          label: "200.000 TL ihtiyaç, 24 ay",
+          value: "200.000 TL ihtiyaç finansmanı, 24 ay",
+        },
+        ...purposeQuickReplies().slice(0, 3),
+        ...termQuickReplies().slice(0, 2),
+      ],
+      query: state,
+      exactMatches: [],
+      flexibleMatches: [],
+      summary: emptySummary(),
+      warnings: [],
+      citations: [],
+    };
+  }
 
   // Terminoloji soruları doğrulanmış sözlükten anında yanıtlanır.
   const sozluk = sozluktenYanitla(req.message);
   if (sozluk) {
-    conversations.set(conversationId, state);
+    conversations.set(conversationId, { ...state, pendingFollowUp: null });
     return {
       conversationId,
       assistantMessage:
@@ -431,22 +501,36 @@ export async function runFinansmanAssistantChat(
     };
   }
 
-  // Banka rehberi soruları (liste, sayı, resmî site, kampanya listesi)
-  // doğrulanmış yapılandırmadan anında yanıtlanır; LLM beklenmez.
-  const rehberNiyeti = rehberNiyetiTespit(req.message);
+  // Bekleyen takip (ör. “listele yazın”) veya yeni rehber sorusu
+  const rehberNiyeti =
+    bekleyenTakibiCoz(req.message, state.pendingFollowUp) ||
+    rehberNiyetiTespit(req.message);
   if (rehberNiyeti) {
-    conversations.set(conversationId, state);
     const sonuc = rehberYaniti(rehberNiyeti, req.message);
+    const nextPending =
+      rehberNiyeti === "banka_sayisi"
+        ? ("banka_listesi" as const)
+        : null;
+    conversations.set(conversationId, {
+      ...state,
+      pendingFollowUp: nextPending,
+    });
     return {
       conversationId,
       assistantMessage: sonuc.message,
       status: "general_answer",
       missingFields: [],
-      quickReplies: [
-        ...purposeQuickReplies().slice(0, 3),
-        ...termQuickReplies().slice(0, 2),
-      ],
-      query: state,
+      quickReplies:
+        rehberNiyeti === "banka_sayisi"
+          ? [
+              { id: "r-listele", label: "Listele", value: "listele" },
+              ...purposeQuickReplies().slice(0, 3),
+            ]
+          : [
+              ...purposeQuickReplies().slice(0, 3),
+              ...termQuickReplies().slice(0, 2),
+            ],
+      query: { ...state, pendingFollowUp: nextPending },
       exactMatches: [],
       flexibleMatches: [],
       summary: emptySummary(),
@@ -454,8 +538,6 @@ export async function runFinansmanAssistantChat(
       citations: sonuc.citations,
     };
   }
-
-  const turn = classifyTurn(req.message, req.selectedQuickReply);
 
   // Ödeme planı → Hesaplama sayfasına yönlendir
   if (turn === "payment_plan") {
@@ -530,19 +612,25 @@ export async function runFinansmanAssistantChat(
   // yanıtı korunur; RAG katmanına yalnızca katılım bankacılığına dair
   // bilgi soruları devredilir.
   if (turn === "unsupported") {
-    conversations.set(conversationId, state);
+    conversations.set(conversationId, { ...state, pendingFollowUp: null });
     return {
       conversationId,
       assistantMessage:
         "Bu konuda yardımcı olamam. Ben katılım bankalarının finansman " +
         "seçeneklerini karşılaştırmak ve katılım bankacılığıyla ilgili " +
         "sorularınızı yanıtlamak için buradayım.\n\n" +
-        "Tutar, vade veya finansman amacınızı (ihtiyaç, taşıt, konut…) yazabilirsiniz.",
+        "Tutar, vade veya finansman amacınızı (ihtiyaç, taşıt, konut…) yazabilirsiniz.\n" +
+        "İstersen “neler yapabilirsin” diye de sorabilirsin.",
       status: "needs_information",
       missingFields: [],
       quickReplies: [
-        ...purposeQuickReplies().slice(0, 4),
-        ...termQuickReplies().slice(0, 3),
+        {
+          id: "u-cap",
+          label: "Neler yapabilirsin?",
+          value: "Neler yapabilirsin?",
+        },
+        ...purposeQuickReplies().slice(0, 3),
+        ...termQuickReplies().slice(0, 2),
       ],
       query: state,
       exactMatches: [],
@@ -588,37 +676,6 @@ export async function runFinansmanAssistantChat(
         sourceCheckedAt: c.sourceCheckedAt,
         evidenceText: c.evidenceText,
       })),
-    };
-  }
-
-  if (turn === "greeting") {
-    conversations.set(conversationId, state);
-    const hasContext =
-      state.requestedAmountTl != null ||
-      state.financingType != null ||
-      state.preferredTermMonths != null;
-    return {
-      conversationId,
-      assistantMessage: hasContext
-        ? "Kaldığımız yerden devam ediyoruz. Tutarı, vadeyi ya da amacı değiştirebilir, kampanyaları da sorabilirsiniz."
-        : "Merhaba! Katılım bankalarının finansman seçeneklerini birlikte karşılaştıralım.\n\nNe kadar tutara ihtiyacınız var ve ne için kullanacaksınız? Bu ikisi yeter.",
-      status: "needs_information",
-      missingFields: missingRequiredFields(state),
-      quickReplies: [
-        {
-          id: "g-ihtiyac",
-          label: "200.000 TL ihtiyaç, 24 ay",
-          value: "200.000 TL ihtiyaç finansmanı, 24 ay",
-        },
-        ...purposeQuickReplies().slice(0, 3),
-        ...termQuickReplies().slice(0, 3),
-      ],
-      query: state,
-      exactMatches: [],
-      flexibleMatches: [],
-      summary: emptySummary(),
-      warnings: [],
-      citations: [],
     };
   }
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   bankaBul,
+  bekleyenTakibiCoz,
   rehberNiyetiTespit,
   rehberYaniti,
 } from "../bankDirectory";
@@ -26,6 +27,17 @@ describe("banka rehberi niyet tespiti", () => {
     expect(rehberNiyetiTespit("Albaraka kampanyaları neler?")).toBe(
       "banka_kampanyalari",
     );
+  });
+
+  it("tek başına listele banka listesi döner", () => {
+    expect(rehberNiyetiTespit("listele")).toBe("banka_listesi");
+    expect(rehberNiyetiTespit("Listele!")).toBe("banka_listesi");
+  });
+
+  it("bekleyen takip ile listele çözülür", () => {
+    expect(bekleyenTakibiCoz("listele", "banka_listesi")).toBe("banka_listesi");
+    expect(bekleyenTakibiCoz("evet", "banka_listesi")).toBe("banka_listesi");
+    expect(bekleyenTakibiCoz("200 bin TL ihtiyaç", "banka_listesi")).toBeNull();
   });
 
   it("finansman talebini rehber sorusu sanmaz", () => {

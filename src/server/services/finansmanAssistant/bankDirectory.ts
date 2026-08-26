@@ -107,6 +107,12 @@ export type RehberNiyeti =
   | "genel_kampanyalar"
   | null;
 
+export type BekleyenTakip =
+  | "banka_listesi"
+  | "banka_kampanyalari"
+  | "capabilities"
+  | null;
+
 /** Rehber sorusu mu? Değilse null döner ve normal akış sürer. */
 export function rehberNiyetiTespit(mesaj: string): RehberNiyeti {
   const t = asciiKatla(mesaj);
@@ -154,14 +160,41 @@ export function rehberNiyetiTespit(mesaj: string): RehberNiyeti {
   }
 
   if (
-    bankaSozu &&
     /(hangileri|\bhangi\b|neler|listele|liste|say\b|sirala|tumu|hepsi|isimleri|adlari|\bvar\b|kimler|sayabilir)/.test(
+      t,
+    ) &&
+    bankaSozu
+  ) {
+    return "banka_listesi";
+  }
+
+  // Tek başına "listele" / "isimleri göster" — sayı sorusundan sonra önerilen takip
+  if (
+    /^(listele|liste|isimleri|adlari|hepsini (goster|listele)|bankalari (listele|goster)|isimlerini (goster|listele|yaz))[\s!?.]*$/.test(
       t,
     )
   ) {
     return "banka_listesi";
   }
 
+  return null;
+}
+
+/** Bekleyen takip + kısa onay mesajını rehber niyetine çevirir. */
+export function bekleyenTakibiCoz(
+  mesaj: string,
+  pending: BekleyenTakip,
+): RehberNiyeti {
+  if (!pending) return null;
+  const t = asciiKatla(mesaj).trim();
+  const kisaOnay =
+    /^(listele|liste|evet|olur|tamam|goster|hepsini goster|isimleri|adlari|yaz|soyle)[\s!?.]*$/.test(
+      t,
+    ) ||
+    (t.length <= 24 && /^(listele|liste|goster|isim)/.test(t));
+  if (!kisaOnay) return null;
+  if (pending === "banka_listesi") return "banka_listesi";
+  if (pending === "banka_kampanyalari") return "banka_kampanyalari";
   return null;
 }
 

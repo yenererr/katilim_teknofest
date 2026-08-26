@@ -37,6 +37,13 @@ export type FinancingConversationState = {
   customProfitRatePercent: number | null;
   askedFields: string[];
   lastResultIds: string[];
+  /**
+   * Asistanın önerdiği kısa takip (ör. “listele yazın”).
+   * Sonraki kısa mesaj bu niyetle yorumlanır.
+   */
+  pendingFollowUp: "banka_listesi" | "banka_kampanyalari" | "capabilities" | null;
+  /** Son birkaç kullanıcı mesajı — kısa takip için bağlam */
+  recentUserMessages: string[];
 };
 
 export type FinancingMatch = {
