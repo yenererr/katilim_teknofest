@@ -9,6 +9,15 @@ type ProductLike = {
   kanitlar?: Record<string, string | null | undefined> | null;
   notlar?: string | null;
   terimler?: Record<string, { ham?: string | null } | null> | null;
+  /** Kaydın çıkarıldığı gerçek sayfa (orchestrator tarafından eklenir). */
+  _sourceUrl?: string | null;
+};
+
+export type ScrapedPage = {
+  url: string;
+  text: string;
+  /** bankSourceConfig içindeki sourceType; keşfedilen sayfalar için "detail" */
+  sourceType: string;
 };
 
 export type ScrapeIndexContext = {
@@ -16,11 +25,38 @@ export type ScrapeIndexContext = {
   bankName: string;
   sourceId: string;
   sourceUrls: string[];
+  /** Sayfa bazlı metinler — her parça kendi URL'sine atfedilir. */
+  pages?: ScrapedPage[];
   combinedText: string;
   contentHash: string;
   sourceCheckedAt: string;
   products: ProductLike[];
 };
+
+/**
+ * Ana sayfa ve keşif sayfaları yalnızca bağlantı bulmak için taranır;
+ * içerikleri kurumsal tanıtım metnidir ve kanıt olarak indekslendiğinde
+ * ürün/oran sorularında alakasız sonuç üretir.
+ */
+const INDEKSLENMEYEN_SAYFA_TURLERI = new Set(["homepage", "discovery_only"]);
+
+/** Sayfa başlığı: URL yolunun son anlamlı parçasından okunabilir etiket. */
+function pageTitleFromUrl(url: string, bankName: string): string {
+  try {
+    const parcalar = new URL(url).pathname
+      .split("/")
+      .filter((p) => p && !/^(tr|tr-tr|sayfalar)$/i.test(p));
+    const son = parcalar[parcalar.length - 1];
+    if (!son) return `${bankName} — kaynak sayfa`;
+    const etiket = son
+      .replace(/\.(aspx|html?|php)$/i, "")
+      .replace(/[-_]+/g, " ")
+      .trim();
+    return etiket ? `${bankName} — ${etiket}` : `${bankName} — kaynak sayfa`;
+  } catch {
+    return `${bankName} — kaynak sayfa`;
+  }
+}
 
 function campaignStatusOf(product: ProductLike): "active" | "expired" | "unknown" {
   const end = product.kampanya_bitis;
@@ -40,7 +76,30 @@ export function buildIndexDocumentsFromScrape(
   const primaryUrl = ctx.sourceUrls[0] || "";
   const docs: IndexDocumentInput[] = [];
 
-  if (ctx.combinedText.trim().length > 80) {
+  const indekslenecek = (ctx.pages || []).filter(
+    (p) =>
+      !INDEKSLENMEYEN_SAYFA_TURLERI.has(p.sourceType) &&
+      p.text.trim().length > 80,
+  );
+
+  if (indekslenecek.length) {
+    // Her sayfa kendi URL'siyle indekslenir; kaynak künyesi doğru sayfayı
+    // gösterir ve tek bir 20 bin karakterlik blok diğer sayfaları kırpmaz.
+    for (const page of indekslenecek) {
+      docs.push({
+        bankId: ctx.bankId,
+        bankName: ctx.bankName,
+        sourceId: ctx.sourceId,
+        sourceUrl: page.url,
+        documentType: "evidence",
+        title: pageTitleFromUrl(page.url, ctx.bankName),
+        text: page.text,
+        sourceCheckedAt: ctx.sourceCheckedAt,
+        contentHash: hashText(`${ctx.contentHash}:${page.url}`),
+      });
+    }
+  } else if (ctx.combinedText.trim().length > 80) {
+    // Sayfa dökümü yoksa (eski çağrı biçimi) birleşik metne düşülür.
     docs.push({
       bankId: ctx.bankId,
       bankName: ctx.bankName,
@@ -73,12 +132,14 @@ export function buildIndexDocumentsFromScrape(
     if (productText.length < 40) continue;
 
     const productHash = hashText(`${ctx.contentHash}:${name}:${productText}`);
+    // Kayıt hangi sayfadan çıkarıldıysa künye o sayfayı göstersin.
+    const productUrl = product._sourceUrl?.trim() || primaryUrl;
 
     docs.push({
       bankId: ctx.bankId,
       bankName: ctx.bankName,
       sourceId: ctx.sourceId,
-      sourceUrl: primaryUrl,
+      sourceUrl: productUrl,
       documentType: product.kampanya_baslangic || product.kampanya_bitis
         ? "campaign"
         : "product",
@@ -99,7 +160,7 @@ export function buildIndexDocumentsFromScrape(
         bankId: ctx.bankId,
         bankName: ctx.bankName,
         sourceId: ctx.sourceId,
-        sourceUrl: primaryUrl,
+        sourceUrl: productUrl,
         documentType: key.includes("ucret") || key.includes("tahsis")
           ? "fee"
           : key.includes("vade") || key.includes("sart")

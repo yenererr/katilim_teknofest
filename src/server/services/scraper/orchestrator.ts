@@ -162,6 +162,12 @@ async function scrapeOneBankOfficial(
   const now = new Date().toISOString();
   const state = runtimeStates[bankId];
   const allTexts: string[] = [];
+  // Indeksleme sayfa bazlı yapılır: her parça kendi URL'sine atfedilsin.
+  const scrapedPages: Array<{
+    url: string;
+    text: string;
+    sourceType: string;
+  }> = [];
   const discovered = new Set<string>();
   const records: any[] = [];
   let anyChanged = false;
@@ -183,6 +189,11 @@ async function scrapeOneBankOfficial(
       if (!force && prev?.hash === normalizedHash) {
         sourceStatuses[sourceKey] = "unchanged";
         allTexts.push(doc.text);
+        scrapedPages.push({
+          url: page.finalUrl,
+          text: doc.text,
+          sourceType: seed.sourceType,
+        });
         continue;
       }
 
@@ -190,6 +201,11 @@ async function scrapeOneBankOfficial(
       anyChanged = true;
       setMemorySnapshot(sourceKey, normalizedHash, doc.text);
       allTexts.push(doc.text);
+      scrapedPages.push({
+        url: page.finalUrl,
+        text: doc.text,
+        sourceType: seed.sourceType,
+      });
 
       const details = await adapter.discoverDetailUrls(page);
       for (const d of details.slice(0, 8)) discovered.add(d);
@@ -244,6 +260,11 @@ async function scrapeOneBankOfficial(
       anyChanged = true;
       setMemorySnapshot(sourceKey, normalizedHash, doc.text);
       allTexts.push(doc.text);
+      scrapedPages.push({
+        url: page.finalUrl,
+        text: doc.text,
+        sourceType: "detail",
+      });
       const category =
         adapter.classifyContent?.(doc, page.finalUrl) || "financing_campaign";
       if (category === "irrelevant" || category === "card_campaign") {
@@ -288,6 +309,7 @@ async function scrapeOneBankOfficial(
         bankName: config.bankName,
         sourceId: bankId,
         sourceUrls: config.seedUrls.map((s) => s.url),
+        pages: scrapedPages,
         combinedText: combined,
         contentHash,
         sourceCheckedAt: now,
