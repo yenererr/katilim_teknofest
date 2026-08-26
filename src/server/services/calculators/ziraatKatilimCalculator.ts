@@ -69,8 +69,16 @@ function parseTrNumber(raw: string | null | undefined): number | null {
 
 export { parseTrNumber as parseZiraatTrNumber };
 
-function pickEid(financingType: ZiraatFinansmanTuru, termMonths: number): string {
+function pickEid(
+  financingType: ZiraatFinansmanTuru,
+  termMonths: number,
+  amountTl?: number,
+): string {
   if (financingType === "ihtiyac_finansmani") {
+    // 1–24 ay paketi ~250 bin TL üstünü kabul etmiyor; yüksek tutarda 1–36 paketi.
+    if (amountTl != null && amountTl > 249_999 && termMonths <= 36) {
+      return "64356287";
+    }
     if (termMonths <= 12) return "64356289";
     if (termMonths <= 24) return "64356288";
     return "64356287"; // 1–36
@@ -148,8 +156,9 @@ export async function getZiraatUrunMeta(
   financingType: ZiraatFinansmanTuru,
   termMonths: number,
   fetchImpl: typeof fetch = fetch,
+  amountTl?: number,
 ): Promise<{ ratio: number | null; minAmount: number | null; maxAmount: number | null; range: number[] }> {
-  const eid = pickEid(financingType, termMonths);
+  const eid = pickEid(financingType, termMonths, amountTl);
   const res = await fetchWithTimeout(
     `${BASE_URL}${VADE_PATH}`,
     {
@@ -192,7 +201,7 @@ export async function hesaplaZiraatKatilim(
   opts: ZiraatHesaplamaOpts,
   fetchImpl: typeof fetch = fetch,
 ): Promise<ZiraatHesaplamaSonucu> {
-  const eid = pickEid(opts.financingType, opts.termMonths);
+  const eid = pickEid(opts.financingType, opts.termMonths, opts.amountTl);
   const useBankRatio =
     opts.profitRatePercent == null ||
     !Number.isFinite(opts.profitRatePercent) ||
@@ -200,7 +209,12 @@ export async function hesaplaZiraatKatilim(
 
   // Vade / tutar kısıtı
   try {
-    const meta = await getZiraatUrunMeta(opts.financingType, opts.termMonths, fetchImpl);
+    const meta = await getZiraatUrunMeta(
+      opts.financingType,
+      opts.termMonths,
+      fetchImpl,
+      opts.amountTl,
+    );
     if (meta.range.length > 0 && !meta.range.includes(opts.termMonths)) {
       throw new ZiraatKisitHatasi(
         `Ziraat Katılım bu ürün için ${opts.termMonths} ay vade sunmuyor.`,

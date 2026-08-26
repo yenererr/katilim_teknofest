@@ -1,0 +1,117 @@
+import { describe, expect, it, vi, beforeEach } from "vitest";
+import { createEmptyState } from "../finansmanNlu";
+
+vi.mock("../../calculators/vakifKatilimCalculator", () => ({
+  hesaplaVakifKatilim: vi.fn(async () => ({
+    bankId: "vakif-katilim",
+    financingType: "ihtiyac_finansmani",
+    amountTl: 200000,
+    termMonths: 24,
+    calculateType: "1",
+    profitRatePercent: 3.99,
+    monthlyInstallmentTl: 10500.5,
+    totalPaymentTl: 252012,
+    appraisementFeeTl: 0,
+    mortgageReleaseFeeTl: 0,
+    installmentLabel: null,
+    sourceUrl: "https://www.vakifkatilim.com.tr/tr",
+    calculatedAt: new Date().toISOString(),
+  })),
+}));
+
+vi.mock("../../calculators/ziraatKatilimCalculator", () => ({
+  ZIRAAT_FINANSMAN_EID: {
+    ihtiyac_finansmani: "1",
+    tasit_finansmani: "2",
+    konut_finansmani: "3",
+    isyeri_finansmani: "4",
+    arsa_finansmani: "5",
+    konut_finansmani_ikinci_el: "3",
+    tasit_finansmani_ikinci_el: "2",
+  },
+  hesaplaZiraatKatilim: vi.fn(async () => ({
+    bankId: "ziraat-katilim",
+    financingType: "ihtiyac_finansmani",
+    amountTl: 200000,
+    termMonths: 24,
+    profitRatePercent: 4.99,
+    monthlyInstallmentTl: 11200,
+    totalPaymentTl: 268800,
+    appraisementFeeTl: null,
+    mortgageReleaseFeeTl: null,
+    sourceUrl: "https://www.ziraatkatilim.com.tr",
+    calculatedAt: new Date().toISOString(),
+  })),
+}));
+
+vi.mock("../../calculators/kuveytTurkCalculator", () => ({
+  resolveKuveytProduct: () => ({ code: "SAGLIKFINANSMANI", title: "İhtiyaç" }),
+  hesaplaKuveytTurk: vi.fn(async () => ({
+    bankId: "kuveyt-turk",
+    financingType: "ihtiyac_finansmani",
+    amountTl: 200000,
+    termMonths: 24,
+    profitRatePercent: 4.01,
+    monthlyInstallmentTl: 10800,
+    totalPaymentTl: 259200,
+    appraisementFeeTl: 0,
+    mortgageReleaseFeeTl: 0,
+    allocationFeeTl: 0,
+    sourceUrl: "https://www.kuveytturk.com.tr",
+    calculatedAt: new Date().toISOString(),
+  })),
+}));
+
+describe("liveCalculatorEnrichment", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("scrape oranı olmasa da üç canlı bankayı ekler", async () => {
+    const { enrichWithLiveCalculators } = await import(
+      "../liveCalculatorEnrichment"
+    );
+    const state = createEmptyState("live-test");
+    state.financingType = "consumer";
+    state.requestedAmountTl = 200000;
+    state.preferredTermMonths = 24;
+
+    const out = await enrichWithLiveCalculators(
+      [
+        {
+          bankId: "ziraat-katilim",
+          bankName: "Ziraat Katılım",
+          productId: "scraped-z",
+          productName: "İhtiyaç",
+          financingType: "ihtiyac_finansmani",
+          requestedAmountTl: 200000,
+          termMonths: 24,
+          profitRate: null,
+          ratePeriod: null,
+          estimatedMonthlyPaymentTl: null,
+          estimatedTotalPaymentTl: null,
+          allocationFeeTl: null,
+          customerCondition: null,
+          campaignEnd: null,
+          freshnessStatus: "fresh",
+          sourceCheckedAt: new Date().toISOString(),
+          sourceUrl: "https://example.com",
+          evidence: ["Bankanın resmî kaynağında hesaplama için yeterli bilgi bulunmuyor."],
+          calculationAvailable: false,
+          calculationWarning:
+            "Bankanın resmî kaynağında hesaplama için yeterli bilgi bulunmuyor.",
+        },
+      ],
+      state,
+    );
+
+    expect(out.liveBankIds.sort()).toEqual(
+      ["kuveyt-turk", "vakif-katilim", "ziraat-katilim"].sort(),
+    );
+    const ziraat = out.matches.find((m) => m.bankId === "ziraat-katilim");
+    expect(ziraat?.calculationAvailable).toBe(true);
+    expect(ziraat?.estimatedMonthlyPaymentTl).toBe(11200);
+    expect(ziraat?.profitRate).toBeCloseTo(0.0499);
+    expect(out.matches.every((m) => m.calculationAvailable)).toBe(true);
+  });
+});

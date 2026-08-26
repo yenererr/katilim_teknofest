@@ -24,6 +24,7 @@ import { runRagChat } from "../rag/ragService";
 import { rehberNiyetiTespit, rehberYaniti, bekleyenTakibiCoz } from "./bankDirectory";
 import { sozluktenYanitla } from "./terimSozlugu";
 import { hesaplaOdemePlani } from "../../../lib/odemePlani";
+import { enrichWithLiveCalculators } from "./liveCalculatorEnrichment";
 import {
   CAPABILITIES_MESSAGE,
   FAREWELL_MESSAGE,
@@ -289,7 +290,7 @@ function buildResultMessage(
     `${totalBanks} katılım bankası içinde koşullarınıza uyan ${exactCount} seçenek buldum. ` +
     (state.customProfitRatePercent != null
       ? `Taksitleri sizin belirlediğiniz aylık %${state.customProfitRatePercent.toLocaleString("tr-TR", { maximumFractionDigits: 4 })} kâr oranına göre hesapladım.`
-      : `Aşağıdaki tabloyu ilan edilen kâr payı oranına göre sıraladım.`) +
+      : `Mümkün olan bankalarda canlı hesaplama motorundan gelen kâr payı ve taksitleri kullandım.`) +
     (flexCount > 0
       ? `\n\nAyrıca tutar veya vadede küçük bir değişiklik yapmanız hâlinde ` +
         `yararlanabileceğiniz ${flexCount} aktif kampanyayı ikinci tabloda gösterdim.`
@@ -791,6 +792,20 @@ export async function runFinansmanAssistantChat(
     }
   }
 
+  // Canlı hesaplama motorları (Vakıf / Ziraat / Kuveyt) — scrape oranı olmasa da taksit üretir
+  if (!opts?.matchOverride) {
+    const live = await enrichWithLiveCalculators(match.exactMatches, state);
+    evidenceWarnings.push(...live.warnings);
+    if (live.liveBankIds.length > 0) {
+      match = {
+        ...match,
+        hasVerifiedData: true,
+        exactMatches: live.matches,
+        checkedBanks: Math.max(match.checkedBanks, live.liveBankIds.length),
+      };
+    }
+  }
+
   if (!match.hasVerifiedData) {
     conversations.set(conversationId, state);
     const failNote = match.failedBanks.length
@@ -846,7 +861,19 @@ export async function runFinansmanAssistantChat(
 
   let exactMatches = match.exactMatches;
   if (state.customProfitRatePercent != null) {
-    exactMatches = applyCustomProfitRate(exactMatches, state);
+    // Canlı motordan gelen satırları koru; diğerlerine yerel formül uygula
+    const liveIds = new Set(
+      exactMatches
+        .filter((m) => m.productId.startsWith("live-") || m.evidence.some((e) => /canlı motor/i.test(e)))
+        .map((m) => m.bankId),
+    );
+    const withCustom = applyCustomProfitRate(exactMatches, state);
+    exactMatches = withCustom.map((m, i) =>
+      liveIds.has(exactMatches[i]?.bankId || m.bankId) &&
+      exactMatches[i]?.calculationAvailable
+        ? exactMatches[i]!
+        : m,
+    );
   }
 
   const warnings: string[] = [...evidenceWarnings];
