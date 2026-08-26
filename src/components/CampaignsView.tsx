@@ -36,9 +36,9 @@ export const CampaignsView: React.FC = () => {
               type="button"
               onClick={() => setKategori(k.key)}
               aria-pressed={isActive}
-              className={`min-h-9 rounded-full border px-3 text-xs transition-colors ${
+              className={`min-h-11 rounded-lg border px-3.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                 isActive
-                  ? 'border-brand-600 bg-brand-600 text-white'
+                  ? 'border-brand-600 bg-brand-600 font-semibold text-white'
                   : 'border-line bg-surface text-txt-secondary hover:bg-sunken'
               }`}
             >
@@ -52,7 +52,7 @@ export const CampaignsView: React.FC = () => {
         {liste.map((k) => (
           <li
             key={k.id}
-            className="flex flex-col rounded-xl border border-line bg-surface p-4 shadow-flat transition-shadow hover:shadow-raised"
+            className="flex flex-col rounded-xl border border-line bg-surface p-4"
           >
             <div className="flex items-start justify-between gap-2">
               <span className="flex min-w-0 items-center gap-2">

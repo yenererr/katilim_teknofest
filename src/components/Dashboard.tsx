@@ -52,7 +52,7 @@ const KpiKart: React.FC<{
       initial={reduceMotion ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.24, delay: reduceMotion ? 0 : index * 0.04 }}
-      className="rounded-lg border border-line bg-surface p-4 shadow-flat"
+      className="rounded-lg border border-line bg-surface p-4"
     >
       <div className="flex items-start justify-between gap-2">
         <span className="text-xs text-txt-secondary">{etiket}</span>
@@ -120,7 +120,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ ogeler, isLoading, onSelec
 
   if (ogeler.length === 0) {
     return (
-      <div className="flex min-h-96 flex-col items-center justify-center rounded-xl border border-line bg-surface p-10 text-center shadow-raised">
+      <div className="flex min-h-96 flex-col items-center justify-center rounded-xl border border-line bg-surface p-10 text-center">
         <Layers className="mb-3 h-8 w-8 text-txt-muted" aria-hidden="true" />
         <h2 className="text-base font-medium text-txt">Henüz veri yok</h2>
         <p className="mx-auto mt-1 max-w-sm text-sm text-txt-secondary">
@@ -163,7 +163,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ ogeler, isLoading, onSelec
       {/* En avantajlı kartları */}
       <section
         aria-labelledby="kriter-basligi"
-        className="rounded-xl border border-line bg-surface p-4 shadow-raised sm:p-5"
+        className="rounded-xl border border-line bg-surface p-4 sm:p-5"
       >
         <h2 id="kriter-basligi" className="flex items-center gap-2 text-sm font-medium text-txt">
           <Star className="h-4 w-4 text-brand-600 dark:text-brand-400" aria-hidden="true" />
@@ -234,7 +234,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ ogeler, isLoading, onSelec
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         {/* Dağılımlar */}
         <section className="space-y-4 xl:col-span-2">
-          <div className="rounded-xl border border-line bg-surface p-4 shadow-raised sm:p-5">
+          <div className="rounded-xl border border-line bg-surface p-4 sm:p-5">
             <h2 className="text-sm font-medium text-txt">Ürün türüne göre dağılım</h2>
             <ul className="mt-4 space-y-2.5">
               {turler.map((t) => (
@@ -244,7 +244,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ ogeler, isLoading, onSelec
           </div>
 
           {bankaOranlari.length > 0 && (
-            <div className="rounded-xl border border-line bg-surface p-4 shadow-raised sm:p-5">
+            <div className="rounded-xl border border-line bg-surface p-4 sm:p-5">
               <h2 className="text-sm font-medium text-txt">Bankaya göre ortalama kâr payı</h2>
               <p className="mt-0.5 text-xs text-txt-secondary">
                 Aylığa normalize edilmiş; periyodu belirsiz ürünler hariç. En düşük vurgulanmıştır.
@@ -274,7 +274,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ ogeler, isLoading, onSelec
           )}
 
           {yaklasan.length > 0 && (
-            <div className="rounded-xl border border-line bg-surface p-4 shadow-raised sm:p-5">
+            <div className="rounded-xl border border-line bg-surface p-4 sm:p-5">
               <h2 className="flex items-center gap-2 text-sm font-medium text-txt">
                 <Clock className="h-4 w-4 text-warn-600 dark:text-warn-400" aria-hidden="true" />
                 Yakında sona erecek kampanyalar
@@ -325,7 +325,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ ogeler, isLoading, onSelec
 
         {/* Bulgular ve güven dağılımı */}
         <section className="space-y-4">
-          <div className="rounded-xl border border-brand-200 bg-brand-50/60 p-4 shadow-raised sm:p-5 dark:border-brand-800 dark:bg-brand-950/40">
+          <div className="rounded-xl border border-brand-200 bg-brand-50/60 p-4 sm:p-5 dark:border-brand-800 dark:bg-brand-950/40">
             <h2 className="flex items-center gap-2 text-sm font-medium text-txt">
               <Sparkles className="h-4 w-4 text-brand-600 dark:text-brand-400" aria-hidden="true" />
               Otomatik bulgular
@@ -352,7 +352,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ ogeler, isLoading, onSelec
             </ul>
           </div>
 
-          <div className="rounded-xl border border-line bg-surface p-4 shadow-raised sm:p-5">
+          <div className="rounded-xl border border-line bg-surface p-4 sm:p-5">
             <h2 className="text-sm font-medium text-txt">Güven bandı dağılımı</h2>
             <div
               className="mt-3 flex h-3 overflow-hidden rounded-full bg-sunken"

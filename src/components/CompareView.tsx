@@ -231,7 +231,7 @@ export const CompareView: React.FC<CompareViewProps> = ({ history, ogeler, secil
 
   if (gosterilen.length === 0) {
     return (
-      <div className="rounded-xl border border-line bg-surface p-10 text-center shadow-raised">
+      <div className="rounded-xl border border-line bg-surface p-10 text-center">
         <ArrowLeftRight className="mx-auto mb-3 h-8 w-8 text-txt-muted" aria-hidden="true" />
         <h2 className="text-base font-medium text-txt">Karşılaştırılacak ürün yok</h2>
         <p className="mx-auto mt-1 max-w-md text-sm text-txt-secondary">
@@ -254,7 +254,7 @@ export const CompareView: React.FC<CompareViewProps> = ({ history, ogeler, secil
     >
       {/* Özet yorum — veriden türetilmiş, uydurma yok */}
       {enAvantajli?.kazanan && (
-        <div className="rounded-xl border border-brand-200 bg-brand-50/60 p-4 shadow-flat sm:p-5 dark:border-brand-800 dark:bg-brand-950/40">
+        <div className="rounded-xl border border-brand-200 bg-brand-50/60 p-4 sm:p-5 dark:border-brand-800 dark:bg-brand-950/40">
           <h2 className="flex items-center gap-2 text-sm font-medium text-txt">
             <Sparkles className="h-4 w-4 text-brand-600 dark:text-brand-400" aria-hidden="true" />
             Karşılaştırma özeti
@@ -283,7 +283,7 @@ export const CompareView: React.FC<CompareViewProps> = ({ history, ogeler, secil
         </div>
       )}
 
-      <div className="rounded-xl border border-line bg-surface p-4 shadow-raised sm:p-5">
+      <div className="rounded-xl border border-line bg-surface p-4 sm:p-5">
         <div className="border-b border-line pb-4">
           <h2 className="flex items-center gap-2 text-sm font-medium text-txt">
             <ArrowLeftRight className="h-4 w-4 text-brand-600 dark:text-brand-400" aria-hidden="true" />
@@ -295,7 +295,12 @@ export const CompareView: React.FC<CompareViewProps> = ({ history, ogeler, secil
           </p>
         </div>
 
-        <div className="mt-4 overflow-x-auto">
+        <div
+          className="mt-4 overflow-x-auto"
+          tabIndex={0}
+          role="region"
+          aria-label="Ürün karşılaştırma tablosu"
+        >
           <table className="w-full border-collapse text-left text-sm">
             <caption className="sr-only">
               Katılım bankacılığı ürünlerinin kâr payı oranı, vade, tahsis ücreti, tutar, ödül,

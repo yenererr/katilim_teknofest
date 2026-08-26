@@ -67,6 +67,21 @@ function parseTrNumber(raw: string | null | undefined): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/**
+ * Ziraat get-vade `ratio` alanı çoğu zaman yüzde×100 tamsayıdır (499 → %4,99).
+ * Zaten yüzde ise (3.49, 4.99) olduğu gibi bırakılır.
+ */
+export function normalizeZiraatRatioPercent(
+  raw: number | null | undefined,
+): number | null {
+  if (raw == null || !Number.isFinite(raw) || raw <= 0) return null;
+  // Aylık kâr payı için makul üst sınır ~%25; üstü API ölçeği
+  if (raw > 25) {
+    return Math.round((raw / 100) * 10_000) / 10_000;
+  }
+  return raw;
+}
+
 export { parseTrNumber as parseZiraatTrNumber };
 
 function pickEid(
@@ -137,7 +152,7 @@ function extractOzetFromHtml(html: string): {
       amountTl: parseTrNumber(tryMatch[1]),
       installmentTl: parseTrNumber(tryMatch[2]),
       termMonths: Number(tryMatch[3]) || null,
-      profitRatePercent: parseTrNumber(tryMatch[4]),
+      profitRatePercent: normalizeZiraatRatioPercent(parseTrNumber(tryMatch[4])),
       totalPaymentTl: parseTrNumber(tryMatch[5]),
     };
   }
@@ -146,7 +161,9 @@ function extractOzetFromHtml(html: string): {
     amountTl: null,
     installmentTl: null,
     termMonths: null,
-    profitRatePercent: oran ? parseTrNumber(oran[1]) : null,
+    profitRatePercent: oran
+      ? normalizeZiraatRatioPercent(parseTrNumber(oran[1]))
+      : null,
     totalPaymentTl: null,
   };
 }
@@ -188,7 +205,9 @@ export async function getZiraatUrunMeta(
   };
   const d = json.data || {};
   return {
-    ratio: parseTrNumber(d.ratio != null ? String(d.ratio) : null),
+    ratio: normalizeZiraatRatioPercent(
+      parseTrNumber(d.ratio != null ? String(d.ratio) : null),
+    ),
     minAmount:
       d.minimum_amount != null ? Number(String(d.minimum_amount).replace(",", ".")) : null,
     maxAmount:

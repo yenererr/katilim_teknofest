@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   hesaplaZiraatKatilim,
+  normalizeZiraatRatioPercent,
   parseZiraatTrNumber,
+  getZiraatUrunMeta,
 } from "../ziraatKatilimCalculator";
 import { hesaplaKuveytTurk } from "../kuveytTurkCalculator";
 
@@ -9,6 +11,40 @@ describe("Ziraat sayı ayrıştırma", () => {
   it("TRY özet satırını çözer", () => {
     expect(parseZiraatTrNumber("11.401,85")).toBe(11401.85);
     expect(parseZiraatTrNumber("3,99")).toBe(3.99);
+  });
+
+  it("API ratio 499 → %4,99 ölçeğini düzeltir", () => {
+    expect(normalizeZiraatRatioPercent(499)).toBe(4.99);
+    expect(normalizeZiraatRatioPercent(349)).toBe(3.49);
+    expect(normalizeZiraatRatioPercent(3.99)).toBe(3.99);
+    expect(normalizeZiraatRatioPercent(4.99)).toBe(4.99);
+    expect(normalizeZiraatRatioPercent(null)).toBeNull();
+  });
+});
+
+describe("Ziraat get-vade meta", () => {
+  it("tamsayı ratio alanını yüzdeye çevirir", async () => {
+    const impl = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        status: true,
+        data: {
+          ratio: "349",
+          range: [1, 12],
+          minimum_amount: 1,
+          maximum_amount: 500000,
+        },
+      }),
+    })) as unknown as typeof fetch;
+
+    const meta = await getZiraatUrunMeta(
+      "ihtiyac_finansmani",
+      12,
+      impl,
+      100000,
+    );
+    expect(meta.ratio).toBe(3.49);
   });
 });
 

@@ -173,8 +173,8 @@
   --color-line: #e3e8f0;
   --color-line-strong: #c4cddb;
   --color-txt: #16191f;
-  --color-txt-secondary: #525c68;
-  --color-txt-muted: #6a7480;
+  --color-txt-secondary: #3f4854;
+  --color-txt-muted: #5a6470;
   --color-focus: #3d6bae;
 
   /* --- Yarıçap --- */
@@ -255,6 +255,19 @@
     outline: 2px solid var(--color-focus);
     outline-offset: 2px;
     border-radius: var(--radius-sm);
+  }
+
+  /* Mouse ile tıklamada outline kalmasın; klavyede kalsın */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  button,
+  a,
+  [role="button"],
+  [role="tab"],
+  summary {
+    touch-action: manipulation;
   }
 
   ::selection {
@@ -338,6 +351,53 @@
   border: 1px solid var(--color-line);
   border-radius: var(--radius-md);
   animation: skeleton-pulse 1.6s var(--ease-standard) infinite;
+}
+
+/* Skip link — klavye ile içeriğe atla */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: 0;
+  z-index: 100;
+  transform: translateY(-120%);
+  border-radius: var(--radius-lg);
+  background: var(--color-brand-700);
+  color: #fff;
+  padding: 0.625rem 1rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0.75rem);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Bölüm kabı — gölgeli kart yerine sade yüzey */
+@utility panel {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+}
+
+@utility panel-quiet {
+  border-block: 1px solid var(--color-line);
+  background-color: transparent;
+}
+
+@utility touch-target {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+}
+
+@utility table-zebra {
+  & tbody tr:nth-child(even) {
+    background-color: color-mix(in oklab, var(--color-sunken) 55%, transparent);
+  }
 }
 
 /* Hareket azaltma tercihi: tüm süreler ihmal edilebilir seviyeye iner */

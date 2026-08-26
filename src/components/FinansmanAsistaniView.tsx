@@ -268,7 +268,7 @@ const MatchCard: React.FC<{
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="group rounded-xl border border-line bg-surface shadow-flat transition-shadow hover:shadow-raised">
+    <div className="group rounded-xl border border-line bg-surface">
       <div className="flex items-start gap-3 p-4">
         <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-50 text-sm font-bold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
           {rank}
@@ -277,32 +277,32 @@ const MatchCard: React.FC<{
           <p className="font-semibold text-txt">{row.bankName}</p>
           <p className="text-xs text-txt-secondary">{row.productName}</p>
 
-          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-4">
+          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs sm:grid-cols-4">
             <div>
-              <p className="text-txt-muted">Kâr payı</p>
-              <p className="font-medium text-txt">
+              <p className="text-[11px] text-txt-muted">Kâr payı</p>
+              <p className="mt-0.5 text-sm font-semibold tabular-nums text-txt">
                 {formatRate(row.profitRate, row.ratePeriod)}
               </p>
             </div>
             <div>
-              <p className="text-txt-muted">Aylık ödeme</p>
-              <p className="font-medium text-txt">
+              <p className="text-[11px] text-txt-muted">Aylık ödeme</p>
+              <p className="mt-0.5 text-sm font-semibold tabular-nums text-txt">
                 {row.calculationAvailable
                   ? formatTl(row.estimatedMonthlyPaymentTl)
                   : "Teklif alınmalı"}
               </p>
             </div>
             <div>
-              <p className="text-txt-muted">Toplam ödeme</p>
-              <p className="font-medium text-txt">
+              <p className="text-[11px] text-txt-muted">Toplam ödeme</p>
+              <p className="mt-0.5 text-sm font-medium tabular-nums text-txt">
                 {row.calculationAvailable
                   ? formatTl(row.estimatedTotalPaymentTl)
                   : "Teklif alınmalı"}
               </p>
             </div>
             <div>
-              <p className="text-txt-muted">Tahsis ücreti</p>
-              <p className="font-medium text-txt">
+              <p className="text-[11px] text-txt-muted">Tahsis ücreti</p>
+              <p className="mt-0.5 text-sm font-medium tabular-nums text-txt">
                 {row.allocationFeeTl == null
                   ? "Belirtilmemiş"
                   : row.allocationFeeTl === 0
@@ -624,7 +624,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
                   key={s.label}
                   type="button"
                   onClick={() => void send(s.value)}
-                  className={`flex items-start gap-2 rounded-xl border border-line bg-surface text-left transition-all hover:border-brand-300 hover:shadow-raised ${isWidget ? "p-2.5" : "gap-2.5 p-3"}`}
+                  className={`flex min-h-11 items-start gap-2 rounded-xl border border-line bg-surface text-left transition-colors hover:border-brand-300 hover:bg-brand-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-brand-950/30 ${isWidget ? "p-2.5" : "gap-2.5 p-3"}`}
                 >
                   <Icon className={`mt-0.5 shrink-0 ${s.color} ${isWidget ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
                   <span className={`font-medium text-txt ${isWidget ? "text-xs" : "text-sm"}`}>
@@ -666,7 +666,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
           <button
             type="button"
             onClick={() => setResultsOpen((v) => !v)}
-            className="flex w-full shrink-0 items-center justify-between gap-2 px-3 py-2.5 text-left sm:px-4"
+            className="flex min-h-11 w-full shrink-0 items-center justify-between gap-2 px-3 py-2.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 sm:px-4"
             aria-expanded={resultsOpen}
           >
             <span className="text-xs font-medium text-txt-muted">
@@ -750,7 +750,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
               key={q.id}
               type="button"
               onClick={() => void send(q.value, q.value)}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              className={`min-h-11 rounded-lg border px-3.5 py-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                 q.value.startsWith("__navigate__:")
                   ? "border-brand-400 bg-brand-50 text-brand-800 hover:bg-brand-100 dark:border-brand-700 dark:bg-brand-950 dark:text-brand-200"
                   : "border-line bg-sunken text-txt hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950"
@@ -810,13 +810,13 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
             onKeyDown={onKeyDown}
             rows={1}
             placeholder="Sorunuzu yazın..."
-            className="max-h-32 min-h-10 flex-1 resize-none rounded-xl border border-line bg-sunken px-3.5 py-2.5 text-sm text-txt placeholder:text-txt-muted focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900"
+            className="max-h-32 min-h-11 flex-1 resize-none rounded-xl border border-line bg-sunken px-3.5 py-2.5 text-sm text-txt placeholder:text-txt-muted focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900"
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-600 text-white transition-colors hover:bg-brand-700 disabled:opacity-40"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-600 text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 disabled:opacity-40 dark:ring-offset-surface"
             aria-label="Gönder"
           >
             <Send className="h-4 w-4" />

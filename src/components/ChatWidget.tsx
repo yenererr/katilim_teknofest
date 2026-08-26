@@ -56,7 +56,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="pointer-events-auto flex h-[min(640px,calc(100dvh-6.5rem))] w-[min(420px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-raised"
+            className="pointer-events-auto flex h-[min(640px,calc(100dvh-6.5rem))] w-[min(420px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-float"
           >
             <header className="flex shrink-0 items-center gap-2.5 border-b border-line bg-surface px-3 py-2.5">
               <img
@@ -79,7 +79,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                     setOpen(false);
                     onExpand();
                   }}
-                  className="grid h-9 w-9 place-items-center rounded-lg text-txt-secondary transition-colors hover:bg-sunken hover:text-txt"
+                  className="grid h-11 w-11 place-items-center rounded-lg text-txt-secondary transition-colors hover:bg-sunken hover:text-txt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                   aria-label="Tam sayfada aç"
                   title="Tam sayfada aç"
                 >
@@ -90,7 +90,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
                 ref={closeRef}
                 type="button"
                 onClick={() => setOpen(false)}
-                className="grid h-9 w-9 place-items-center rounded-lg text-txt-secondary transition-colors hover:bg-sunken hover:text-txt"
+                className="grid h-11 w-11 place-items-center rounded-lg text-txt-secondary transition-colors hover:bg-sunken hover:text-txt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 aria-label="Sohbeti kapat"
               >
                 <X className="h-4 w-4" />

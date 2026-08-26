@@ -7,7 +7,7 @@ import { tlBicim2 } from '../lib/finansman';
 /** Ücret matrisi: satırlar ücret kalemi, sütunlar banka. */
 export const FeesView: React.FC = () => (
   <div className="space-y-4">
-    <section className="rounded-xl border border-line bg-surface shadow-raised">
+    <section className="rounded-xl border border-line bg-surface">
       <div className="border-b border-line px-4 py-3.5">
         <h2 className="text-base font-semibold tracking-tight text-txt">
           Ücret ve Masraf Karşılaştırması
@@ -17,13 +17,18 @@ export const FeesView: React.FC = () => (
         </p>
       </div>
 
-      <div className="overflow-x-auto p-2">
-        <table className="w-full min-w-[52rem] border-collapse text-sm">
+      <div
+        className="overflow-x-auto p-2"
+        tabIndex={0}
+        role="region"
+        aria-label="Ücret karşılaştırma tablosu"
+      >
+        <table className="table-zebra w-full min-w-[52rem] border-collapse text-sm">
           <caption className="sr-only">
             Katılım bankalarının ücret kalemleri; sıfır değerler ücretsiz anlamına gelir.
           </caption>
           <thead>
-            <tr>
+            <tr className="sticky top-0 z-10 bg-surface">
               <th scope="col" className="px-3 py-2.5 text-left text-xs font-medium text-txt-secondary">
                 Ücret Kalemi
               </th>

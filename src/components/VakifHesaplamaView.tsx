@@ -335,7 +335,7 @@ export const VakifHesaplamaView: React.FC = () => {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-raised">
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface">
         <div
           role="tablist"
           aria-label="Hesaplama türü"
@@ -346,10 +346,10 @@ export const VakifHesaplamaView: React.FC = () => {
             role="tab"
             aria-selected={mode === "kar-payi"}
             onClick={() => setMode("kar-payi")}
-            className={`min-h-12 px-4 text-sm font-medium transition-colors ${
+            className={`min-h-12 px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 ${
               mode === "kar-payi"
-                ? "border-b-2 border-brand-600 text-brand-700 dark:text-brand-300"
-                : "text-txt-secondary hover:bg-sunken hover:text-txt"
+                ? "border-b-2 border-brand-600 text-brand-800 dark:text-brand-200"
+                : "font-medium text-txt-secondary hover:bg-sunken hover:text-txt"
             }`}
           >
             Kâr Payı Hesapla
@@ -359,10 +359,10 @@ export const VakifHesaplamaView: React.FC = () => {
             role="tab"
             aria-selected={mode === "finansman"}
             onClick={() => setMode("finansman")}
-            className={`min-h-12 px-4 text-sm font-medium transition-colors ${
+            className={`min-h-12 px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 ${
               mode === "finansman"
-                ? "border-b-2 border-brand-600 text-brand-700 dark:text-brand-300"
-                : "text-txt-secondary hover:bg-sunken hover:text-txt"
+                ? "border-b-2 border-brand-600 text-brand-800 dark:text-brand-200"
+                : "font-medium text-txt-secondary hover:bg-sunken hover:text-txt"
             }`}
           >
             Finansman Hesapla
@@ -544,7 +544,7 @@ export const VakifHesaplamaView: React.FC = () => {
                 type="button"
                 onClick={() => odemePlaniGetir()}
                 disabled={planYukleniyor || !sonuc || yukleniyor}
-                className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-brand-700 px-5 text-sm font-medium text-brand-800 transition-colors hover:bg-brand-50 disabled:opacity-40 dark:border-brand-400 dark:text-brand-200 dark:hover:bg-brand-950"
+                className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-brand-700 px-5 text-sm font-medium text-brand-800 transition-colors hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-40 dark:border-brand-400 dark:text-brand-200 dark:hover:bg-brand-950"
               >
                 {planYukleniyor ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -563,14 +563,14 @@ export const VakifHesaplamaView: React.FC = () => {
       {plan && mode === "finansman" && (
         <div
           ref={planRef}
-          className="space-y-4 rounded-2xl border border-line bg-surface p-5 shadow-flat"
+          className="space-y-4 rounded-2xl border border-line bg-surface p-5"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-semibold text-txt">{plan.baslik}</h3>
             <button
               type="button"
               onClick={yazdir}
-              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-txt-secondary hover:bg-sunken hover:text-txt"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm text-txt-secondary hover:bg-sunken hover:text-txt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
             >
               <Printer className="h-3.5 w-3.5" />
               Yazdır
@@ -591,10 +591,15 @@ export const VakifHesaplamaView: React.FC = () => {
             ))}
           </dl>
 
-          <div className="overflow-x-auto rounded-xl border border-line">
+          <div
+            className="overflow-x-auto rounded-xl border border-line"
+            tabIndex={0}
+            role="region"
+            aria-label="Ödeme planı tablosu"
+          >
             <table className="w-full min-w-[720px] border-collapse text-xs">
               <thead>
-                <tr className="bg-brand-800 text-left text-white dark:bg-brand-900">
+                <tr className="sticky top-0 z-10 bg-brand-800 text-left text-white dark:bg-brand-900">
                   {plan.tableHead.map((h) => (
                     <th key={h} scope="col" className="px-2.5 py-2.5 font-medium">
                       {h}

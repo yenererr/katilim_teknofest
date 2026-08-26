@@ -81,7 +81,7 @@ export const TerminologyGuide: React.FC = () => {
       initial={reduceMotion ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.16, 1, 0.3, 1] }}
-      className="space-y-8 rounded-xl border border-line bg-surface p-4 shadow-raised sm:p-6"
+      className="space-y-8 rounded-xl border border-line bg-surface p-4 sm:p-6"
     >
       <header className="border-b border-line pb-4">
         <p className="flex items-center gap-2 text-xs text-brand-700 dark:text-brand-400">

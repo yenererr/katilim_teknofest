@@ -82,7 +82,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
   if (ogeler.length === 0) {
     return (
-      <div className="flex min-h-96 flex-col items-center justify-center rounded-xl border border-line bg-surface p-10 text-center shadow-raised">
+      <div className="flex min-h-96 flex-col items-center justify-center rounded-xl border border-line bg-surface p-10 text-center">
         <Megaphone className="mb-3 h-8 w-8 text-txt-muted" aria-hidden="true" />
         <h2 className="text-base font-medium text-txt">Henüz kampanya yok</h2>
         <p className="mx-auto mt-1 max-w-sm text-sm text-txt-secondary">
@@ -173,7 +173,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
               initial={reduceMotion ? false : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: reduceMotion ? 0 : 0.24, delay: reduceMotion ? 0 : Math.min(idx, 8) * 0.03 }}
-              className={`flex flex-col rounded-xl border bg-surface p-4 shadow-raised transition-colors ${
+              className={`flex flex-col rounded-xl border bg-surface p-4 transition-colors ${
                 isSelected
                   ? 'border-brand-400 ring-1 ring-brand-400 dark:border-brand-600 dark:ring-brand-600'
                   : p.manuel_dogrulama_gerekli

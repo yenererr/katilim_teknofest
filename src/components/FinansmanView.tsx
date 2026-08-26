@@ -232,7 +232,15 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
 
   return (
     <div className="space-y-5">
-      <section className="space-y-3 rounded-xl border border-line bg-surface p-4 shadow-raised">
+      <section aria-labelledby="finansman-form-baslik" className="space-y-3 rounded-xl border border-line bg-surface p-4 sm:p-5">
+        <div>
+          <h2 id="finansman-form-baslik" className="text-base font-semibold tracking-tight text-txt">
+            Karşılaştırma koşulları
+          </h2>
+          <p className="mt-0.5 text-xs text-txt-secondary">
+            Tutar ve vade girin; doğrulanmış teklifler aşağıda listelenir.
+          </p>
+        </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <label className="block">
             <span className="mb-1 block text-xs text-txt-secondary">Finansman Türü</span>
@@ -375,14 +383,24 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
         </p>
       )}
 
-      <section className="rounded-xl border border-line bg-surface shadow-raised">
-        <div className="overflow-x-auto p-2">
-          <table className="w-full min-w-[46rem] border-collapse text-sm">
+      <section aria-labelledby="finansman-sonuc-baslik" className="rounded-xl border border-line bg-surface">
+        <div className="border-b border-line px-4 py-3">
+          <h2 id="finansman-sonuc-baslik" className="text-base font-semibold tracking-tight text-txt">
+            Teklifler
+          </h2>
+        </div>
+        <div
+          className="overflow-x-auto p-2"
+          tabIndex={0}
+          role="region"
+          aria-label="Finansman teklifleri tablosu"
+        >
+          <table className="table-zebra w-full min-w-[46rem] border-collapse text-sm">
             <caption className="sr-only">
               Doğrulanmış finansman teklifleri ve veri paylaşmayan bankalar.
             </caption>
             <thead>
-              <tr className="text-left text-xs text-txt-secondary">
+              <tr className="sticky top-0 z-10 bg-surface text-left text-xs text-txt-secondary">
                 <th scope="col" className="px-3 py-2.5 font-medium">Banka</th>
                 <th scope="col" className="px-3 py-2.5 font-medium">
                   {hesapTipi === '2' ? 'Finansman / Taksit' : 'Aylık Taksit'}

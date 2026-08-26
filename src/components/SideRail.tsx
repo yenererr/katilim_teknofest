@@ -69,10 +69,12 @@ export const SideRail: React.FC<SideRailProps> = ({
   sonIslemler,
   onSonIslemSec,
 }) => (
-  <aside className="sticky top-[4.25rem] hidden h-[calc(100dvh-4.25rem)] w-70 shrink-0 flex-col gap-5 overflow-y-auto border-r border-line bg-surface px-4 py-5 lg:flex">
+  <aside className="sticky top-[4.25rem] hidden h-[calc(100dvh-4.25rem)] w-70 shrink-0 flex-col gap-4 overflow-y-auto border-r border-line bg-surface px-3 py-4 lg:flex">
     <section>
-      <h2 className="px-1 pb-2 text-sm font-semibold tracking-tight text-txt">İhtiyacını Seç</h2>
-      <ul className="space-y-1.5">
+      <h2 className="px-1 pb-1.5 text-xs font-semibold tracking-wide text-txt-secondary uppercase">
+        İhtiyacını Seç
+      </h2>
+      <ul className="space-y-0.5">
         {IHTIYACLAR.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.key;
@@ -83,10 +85,10 @@ export const SideRail: React.FC<SideRailProps> = ({
                 onClick={() => setActiveTab(item.key)}
                 aria-current={isActive ? 'page' : undefined}
                 title={item.tooltip || item.baslik}
-                className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors ${
+                className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:ring-offset-surface ${
                   isActive
-                    ? 'border-brand-200 bg-brand-50 dark:border-brand-800 dark:bg-brand-950'
-                    : 'border-line bg-surface hover:bg-sunken'
+                    ? 'bg-brand-50 ring-1 ring-brand-200 dark:bg-brand-950 dark:ring-brand-800'
+                    : 'hover:bg-sunken'
                 }`}
               >
                 <Icon
@@ -121,7 +123,7 @@ export const SideRail: React.FC<SideRailProps> = ({
               <button
                 type="button"
                 onClick={() => onSonIslemSec(islem.id)}
-                className="flex w-full items-center gap-3 rounded-xl border border-line px-3 py-2.5 text-left transition-colors hover:bg-sunken"
+                className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
               >
                 <BankMark ad={islem.bankaAdi ?? islem.baslik} bankaId={undefined} size="sm" />
                 <span className="min-w-0">

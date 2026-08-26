@@ -17,7 +17,7 @@ export const JsonViewer: React.FC<JsonViewerProps> = ({ data, onUpdateJson }) =>
 
   if (!data) {
     return (
-      <div className="rounded-xl border border-line bg-surface p-10 text-center shadow-raised">
+      <div className="rounded-xl border border-line bg-surface p-10 text-center">
         <FileCode2 className="mx-auto mb-3 h-8 w-8 text-txt-muted" aria-hidden="true" />
         <h2 className="text-base font-medium text-txt">Henüz bir çıkarım yapılmadı</h2>
         <p className="mx-auto mt-1 max-w-sm text-sm text-txt-secondary">
@@ -77,7 +77,7 @@ export const JsonViewer: React.FC<JsonViewerProps> = ({ data, onUpdateJson }) =>
     'inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3 text-xs transition-colors';
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-line bg-surface p-4 shadow-raised sm:p-5">
+    <div className="flex h-full flex-col rounded-xl border border-line bg-surface p-4 sm:p-5">
       <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="flex items-center gap-2 text-sm font-medium text-txt">

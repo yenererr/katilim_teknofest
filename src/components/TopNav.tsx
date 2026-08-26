@@ -51,12 +51,12 @@ export const TopNav: React.FC<TopNavProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('home')}
-          className="flex shrink-0 items-center gap-2.5 rounded-lg pr-2 text-left"
+          className="flex shrink-0 items-center gap-2.5 rounded-lg pr-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:ring-offset-canvas"
         >
           <img
             src="/logos/katilim-agent.png"
             alt="Katılım Bankası Agent"
-            className="h-10 w-10 rounded-xl object-contain shadow-raised"
+            className="h-10 w-10 rounded-xl object-contain"
           />
           <span className="hidden min-w-0 sm:block">
             <span className="block text-base leading-tight font-semibold tracking-tight text-txt">
@@ -88,10 +88,10 @@ export const TopNav: React.FC<TopNavProps> = ({
                 tabIndex={isActive ? 0 : -1}
                 onClick={() => setActiveTab(item.key)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
-                className={`relative flex min-h-11 items-center rounded-lg px-3 text-sm transition-colors ${
+                className={`relative flex min-h-11 items-center rounded-lg px-3.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:ring-offset-canvas ${
                   isActive
-                    ? 'font-medium text-brand-700 dark:text-brand-400'
-                    : 'text-txt-secondary hover:text-txt'
+                    ? 'font-semibold text-brand-800 dark:text-brand-300'
+                    : 'text-txt-secondary hover:bg-sunken/80 hover:text-txt'
                 }`}
               >
                 {item.label}
@@ -173,7 +173,7 @@ export const TopNav: React.FC<TopNavProps> = ({
       <nav
         role="tablist"
         aria-label="Ana bölümler (mobil)"
-        className="flex gap-1 overflow-x-auto border-t border-line px-3 py-1.5 lg:hidden"
+        className="flex gap-1.5 overflow-x-auto border-t border-line px-3 py-2 lg:hidden"
       >
         {ANA_NAV.map((item) => {
           const isActive = activeTab === item.key;
@@ -187,10 +187,10 @@ export const TopNav: React.FC<TopNavProps> = ({
               aria-controls={`panel-${item.key}`}
               tabIndex={isActive ? 0 : -1}
               onClick={() => setActiveTab(item.key)}
-              className={`flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-3 text-sm transition-colors ${
-                isActive
-                  ? 'bg-brand-50 font-medium text-brand-700 dark:bg-brand-950 dark:text-brand-300'
-                  : 'text-txt-secondary'
+              className={`flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+                  isActive
+                  ? 'bg-brand-50 font-semibold text-brand-800 dark:bg-brand-950 dark:text-brand-200'
+                  : 'text-txt-secondary hover:bg-sunken'
               }`}
             >
               <Icon className="h-4 w-4" aria-hidden="true" />

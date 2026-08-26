@@ -370,6 +370,9 @@ function AppInner() {
 
   return (
     <div className="min-h-dvh bg-canvas text-txt">
+      <a href="#main-content" className="skip-link">
+        İçeriğe atla
+      </a>
       <TopNav
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -389,7 +392,7 @@ function AppInner() {
         />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <main className="flex-1 px-4 pt-5 pb-10 sm:px-6">
+          <main id="main-content" className="flex-1 px-4 pt-5 pb-10 sm:px-6">
             {activeTab !== 'home' &&
               activeTab !== 'finansman-asistani' &&
               activeTab !== 'hesaplama' && (
@@ -575,50 +578,53 @@ const TrustFooter: React.FC<{ lastUpdated: string | null; liveProductCount: numb
   liveProductCount,
 }) => (
   <footer className="border-t border-line bg-surface">
-    <ul className="grid grid-cols-1 gap-4 px-6 py-5 sm:grid-cols-2 lg:grid-cols-4">
+    <ul className="mx-auto grid max-w-6xl grid-cols-1 gap-x-8 gap-y-5 px-6 py-6 sm:grid-cols-2 lg:grid-cols-4">
       {[
         {
           icon: Scale,
-          baslik: 'Tarafsız Karşılaştırma',
-          aciklama: 'Tüm bankalar aynı kriterlerle karşılaştırılır.',
+          baslik: 'Tarafsız karşılaştırma',
+          aciklama: 'Tüm bankalar aynı kriterlerle yan yana konur.',
         },
         {
           icon: DatabaseZap,
-          baslik: 'Güncel ve Doğru Veri',
+          baslik: 'Güncel kaynak',
           aciklama:
             liveProductCount > 0
-              ? `${liveProductCount} canlı ürün banka sitelerinden izlendi.`
-              : `Örnek veri seti ${VERI_TARIHI} itibarıyla derlendi.`,
+              ? `${liveProductCount} ürün banka sitelerinden izlendi.`
+              : `Örnek veri ${VERI_TARIHI} itibarıyla derlendi.`,
         },
         {
           icon: Zap,
-          baslik: 'Kolay ve Hızlı',
-          aciklama: 'İhtiyacını seç, en iyi seçenekleri hemen gör.',
+          baslik: 'Hızlı seçim',
+          aciklama: 'İhtiyacını yaz, uygun seçenekleri hemen gör.',
         },
         {
           icon: Lock,
-          baslik: 'Gizliliğin Güvende',
-          aciklama: 'Çıkarım yerelde çalışır, dış servise veri gitmez.',
+          baslik: 'Gizlilik',
+          aciklama: 'Çıkarım yerelde çalışır; dışarıya veri gitmez.',
         },
       ].map((k) => {
         const Icon = k.icon;
         return (
           <li key={k.baslik} className="flex items-start gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-sunken text-txt-secondary">
-              <Icon className="h-4.5 w-4.5" aria-hidden="true" />
-            </span>
+            <Icon
+              className="mt-0.5 h-5 w-5 shrink-0 text-brand-600 dark:text-brand-400"
+              aria-hidden="true"
+            />
             <span className="min-w-0">
               <span className="block text-sm font-medium text-txt">{k.baslik}</span>
-              <span className="block text-xs leading-relaxed text-txt-muted">{k.aciklama}</span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-txt-secondary">
+                {k.aciklama}
+              </span>
             </span>
           </li>
         );
       })}
     </ul>
     <div className="flex flex-col items-center justify-between gap-2 border-t border-line px-6 py-3 text-xs text-txt-muted sm:flex-row">
-      <span>© 2026 KatılımFinans Asistanı · Katılım Bankacılığı Bilgi Çıkarım Ajanı</span>
+      <span>© 2026 KatılımFinans Asistanı</span>
       <span className="font-mono">
-        {lastUpdated ? `Son çıkarım ${lastUpdated}` : 'kar_payi_orani · vade_ay · tahsis_ucreti'}
+        {lastUpdated ? `Son çıkarım ${lastUpdated}` : 'Resmî kaynaklara dayalı karşılaştırma'}
       </span>
     </div>
   </footer>
