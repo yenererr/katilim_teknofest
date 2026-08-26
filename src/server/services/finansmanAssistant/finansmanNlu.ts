@@ -1,6 +1,7 @@
 import { asciiKatla } from "../../../nlp/normalize";
 import { BANK_NAME_TO_ID } from "../rag/ragTypes";
 import type { FinancingConversationState, FinancingType } from "./finansmanTypes";
+import { bankaBul } from "./bankDirectory";
 
 /** Türkçe tutar ifadelerini TL'ye çevirir */
 export function parseTurkishAmount(text: string): number | null {
@@ -269,21 +270,34 @@ export function isCapabilitiesRequest(text: string): boolean {
   );
 }
 
-/** “Nasılsın / naber” */
+/** “Nasılsın / naber / iyiyim” */
 export function isSmallTalkRequest(text: string): boolean {
   const t = asciiKatla(text).trim();
   return (
     /^(nasilsin|naber|nabersin|ne haber|iyi misin|keyifler nasil|ne var ne yok)[\s!?.]*$/.test(
       t,
     ) ||
-    /\b(nasilsin|nabersin|iyi misin)\b/.test(t)
+    /\b(nasilsin|nabersin|iyi misin)\b/.test(t) ||
+    /^(ben de )?iyiyim\b/.test(t) ||
+    /\b(ben de iyiyim|bende iyiyim)\b/.test(t)
   );
 }
 
 export function isThanksRequest(text: string): boolean {
   const t = asciiKatla(text).trim();
-  return /^(tesekkur|tesekkurler|sag ol|sagol|eyvallah|thanks|thx)([\s!?.]|$)/.test(
-    t,
+  return (
+    /^(tes+e?kk?ur(ler)?|sag\s*ol|sagol|eyvallah|thanks|thx)([\s!?.]|$)/.test(
+      t,
+    ) || /\b(tes+e?kk?ur(ler)?|sag\s*ol|sagol)\b/.test(t)
+  );
+}
+
+/** “İyiyim / ben de iyiyim” cevabı (nasılsın’a dönüş) */
+export function isWellbeingReply(text: string): boolean {
+  const t = asciiKatla(text).trim();
+  return (
+    /^(ben de )?iyiyim\b/.test(t) ||
+    /\b(ben de iyiyim|bende iyiyim)\b/.test(t)
   );
 }
 
@@ -486,10 +500,14 @@ export function mergeMessageIntoState(
   }
 
   const banks = parseBanks(text);
-  if (banks.requested.length) next.selectedBankIds = banks.requested;
-  else if (fType && fType !== prevType) {
+  if (banks.requested.length) {
+    next.selectedBankIds = banks.requested;
+  } else if (fType && fType !== prevType) {
     // Amaç değişince önceki banka filtresini temizle
     next.selectedBankIds = [];
+  } else {
+    const bul = bankaBul(text);
+    if (bul) next.selectedBankIds = [bul];
   }
   if (/tum banka|tumunu goster|filtreyi kaldir|butun banka/.test(asciiKatla(text))) {
     next.selectedBankIds = [];

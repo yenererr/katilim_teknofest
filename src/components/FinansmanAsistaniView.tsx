@@ -439,6 +439,8 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
     crypto.randomUUID(),
   );
   const [latest, setLatest] = useState<FinansmanChatResponse | null>(null);
+  /** Sonuç paneli sohbeti ezmesin diye daraltılabilir + max yükseklik */
+  const [resultsOpen, setResultsOpen] = useState(true);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const inputId = useId();
@@ -447,6 +449,15 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [turns, loading]);
+
+  useEffect(() => {
+    if (
+      latest &&
+      (latest.exactMatches.length > 0 || latest.flexibleMatches.length > 0)
+    ) {
+      setResultsOpen(true);
+    }
+  }, [latest]);
 
   useEffect(() => {
     if (bootstrapped.current) return;
@@ -568,14 +579,14 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
     <div
       className={
         isWidget
-          ? "flex h-full min-h-0 flex-col"
-          : "mx-auto flex h-[calc(100dvh-4rem)] max-w-4xl flex-col"
+          ? "flex h-full min-h-0 flex-col overflow-hidden"
+          : "mx-auto flex h-[calc(100dvh-4rem)] max-w-4xl min-h-0 flex-col overflow-hidden"
       }
     >
-      {/* Chat Area */}
+      {/* Chat Area — alt paneller büyürken sohbet görünür kalsın */}
       <div
         ref={listRef}
-        className={`min-h-0 flex-1 overflow-y-auto ${isWidget ? "px-2 py-3" : "px-2 py-4 sm:px-4"}`}
+        className={`min-h-[38%] flex-1 overflow-y-auto ${isWidget ? "px-2 py-3" : "px-2 py-4 sm:px-4"}`}
       >
         {/* Konuşma geçmişi */}
         {turns.map((t) => (
@@ -641,36 +652,64 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
         )}
       </div>
 
-      {/* Sonuç kartları — chat alanının altında */}
+      {/* Sonuç kartları — sabit tavan; Detay açılınca paneli kaydır, sohbeti ezme */}
       {hasResults && (
         <div
-          className={`shrink-0 overflow-y-auto border-t border-line bg-sunken/30 px-2 py-3 sm:px-4 ${isWidget ? "max-h-40" : "py-4"}`}
+          className={`flex shrink-0 flex-col border-t border-line bg-sunken/30 ${
+            resultsOpen
+              ? isWidget
+                ? "max-h-40"
+                : "max-h-[min(34dvh,18rem)]"
+              : ""
+          }`}
         >
-          {latest.exactMatches.length > 0 && (
-            <div className="space-y-2.5">
-              <p className="text-xs font-medium text-txt-muted">
-                {latest.summary.exactMatchBankCount} uygun seçenek
-              </p>
-              {latest.exactMatches.map((r, i) => (
-                <MatchCard key={r.productId} row={r} rank={i + 1} />
-              ))}
-            </div>
-          )}
-
-          {latest.flexibleMatches.length > 0 && (
-            <div className="mt-4 space-y-2">
-              <p className="text-xs font-medium text-txt-muted">
-                Esnek alternatifler
-              </p>
-              <div className={`grid gap-2 ${isWidget ? "grid-cols-1" : "sm:grid-cols-2"}`}>
-                {latest.flexibleMatches.map((r) => (
-                  <FlexCard
-                    key={r.campaignId}
-                    row={r}
-                    onSelect={() => onFlexSelect(r)}
-                  />
+          <button
+            type="button"
+            onClick={() => setResultsOpen((v) => !v)}
+            className="flex w-full shrink-0 items-center justify-between gap-2 px-3 py-2.5 text-left sm:px-4"
+            aria-expanded={resultsOpen}
+          >
+            <span className="text-xs font-medium text-txt-muted">
+              {latest.exactMatches.length > 0
+                ? `${latest.summary.exactMatchBankCount} uygun seçenek`
+                : "Esnek alternatifler"}
+              {latest.flexibleMatches.length > 0 &&
+                latest.exactMatches.length > 0 &&
+                ` · ${latest.flexibleMatches.length} alternatif`}
+            </span>
+            {resultsOpen ? (
+              <ChevronDown className="h-4 w-4 shrink-0 text-txt-muted" />
+            ) : (
+              <ChevronUp className="h-4 w-4 shrink-0 text-txt-muted" />
+            )}
+          </button>
+          {resultsOpen && (
+            <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto overscroll-contain px-2 pb-3 sm:px-4">
+              {latest.exactMatches.length > 0 &&
+                latest.exactMatches.map((r, i) => (
+                  <MatchCard key={r.productId} row={r} rank={i + 1} />
                 ))}
-              </div>
+
+              {latest.flexibleMatches.length > 0 && (
+                <div className="space-y-2 pt-1">
+                  {latest.exactMatches.length > 0 && (
+                    <p className="text-xs font-medium text-txt-muted">
+                      Esnek alternatifler
+                    </p>
+                  )}
+                  <div
+                    className={`grid gap-2 ${isWidget ? "grid-cols-1" : "sm:grid-cols-2"}`}
+                  >
+                    {latest.flexibleMatches.map((r) => (
+                      <FlexCard
+                        key={r.campaignId}
+                        row={r}
+                        onSelect={() => onFlexSelect(r)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -679,7 +718,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
       {/* Kaynaklar ve uyarılar — kompakt şerit */}
       {latest &&
         (latest.warnings?.length > 0 || latest.citations?.length > 0) && (
-          <div className="border-t border-line bg-surface px-4 py-2.5">
+          <div className="shrink-0 border-t border-line bg-surface px-4 py-2.5">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-txt-muted">
               {latest.warnings.length > 0 && (
                 <span className="inline-flex items-center gap-1 text-warn-700 dark:text-warn-300">
@@ -705,7 +744,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
 
       {/* Hızlı yanıtlar */}
       {lastQuick && lastQuick.length > 0 && !loading && (
-        <div className="flex flex-wrap gap-1.5 border-t border-line bg-surface px-4 py-2.5">
+        <div className="flex shrink-0 flex-wrap gap-1.5 border-t border-line bg-surface px-4 py-2.5">
           {lastQuick.map((q) => (
             <button
               key={q.id}
@@ -729,7 +768,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
         turns[turns.length - 1]?.payload?.actions &&
         turns[turns.length - 1]!.payload!.actions!.length > 0 &&
         !loading && (
-          <div className="flex flex-wrap gap-2 border-t border-line bg-surface px-4 py-2.5">
+          <div className="flex shrink-0 flex-wrap gap-2 border-t border-line bg-surface px-4 py-2.5">
             {turns[turns.length - 1]!.payload!.actions!.map((a) => (
               <button
                 key={a.href + a.label}
@@ -752,7 +791,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
       )}
 
       {/* Giriş alanı */}
-      <div className="border-t border-line bg-surface px-3 py-3 sm:px-4">
+      <div className="shrink-0 border-t border-line bg-surface px-3 py-3 sm:px-4">
         <form
           className="flex items-end gap-2"
           onSubmit={(e) => {

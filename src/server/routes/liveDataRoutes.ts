@@ -77,6 +77,8 @@ export function createLiveDataRouter(): Router {
       .object({
         force: z.boolean().optional(),
         bankIds: z.array(z.string()).max(10).optional(),
+        campaignOnly: z.boolean().optional(),
+        maxDetails: z.number().int().min(1).max(80).optional(),
       })
       .safeParse(req.body || {});
     if (!body.success) {
@@ -85,6 +87,8 @@ export function createLiveDataRouter(): Router {
     const job = await runOfficialScrapeJob({
       force: body.data.force,
       bankIds: body.data.bankIds,
+      campaignOnly: body.data.campaignOnly,
+      maxDetails: body.data.maxDetails,
     });
     return res.status(202).json({ jobId: job.jobId, status: job.status });
   });

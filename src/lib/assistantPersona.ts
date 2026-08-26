@@ -27,9 +27,18 @@ export const SMALLTALK_MESSAGE = `İyiyim, teşekkürler — sen nasılsın?
 
 Ben finansman karşılaştırması ve katılım bankacılığı soruları için buradayım. Tutar ve amacı yazarsan hemen bakmaya başlarız; istersen “neler yapabilirsin” diye de sorabilirsin.`;
 
-export const THANKS_MESSAGE = `Rica ederim. Başka bir tutar, vade veya banka sorusu olursa yazman yeterli.`;
+export const THANKS_MESSAGE = `Rica ederim. Başka bir tutar, vade veya banka sorusu olursa yazman yeterli — örneğin “Ziraat’tan 200 bin TL ihtiyaç, 24 ay”.`;
+
+/** “İyiyim / ben de iyiyim” */
+export const WELLBEING_REPLY_MESSAGE = `Ne güzel, sevindim.
+
+Finansmana geçmek istersen tutar ve amacı yazman yeterli — örneğin “200 bin TL ihtiyaç, 24 ay”. İstersen “neler yapabilirsin” diye de sorabilirsin.`;
 
 export const FAREWELL_MESSAGE = `Görüşmek üzere. İhtiyacın olursa yine buradayım.`;
+
+export const OUT_OF_SCOPE_MESSAGE = `Bu konuda pek yardımcı olamam; asıl işim katılım bankalarının finansman seçeneklerini karşılaştırmak.
+
+Tutar, vade veya amacı yazman yeterli — örneğin “150 bin TL taşıt, 36 ay”. İstersen “neler yapabilirsin” diye de sorabilirsin.`;
 
 /**
  * RAG / EVREN için sistem prompt’u — kanıtlı cevap + doğal sohbet.

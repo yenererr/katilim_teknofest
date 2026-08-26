@@ -370,6 +370,26 @@ describe("konuşma servisi", () => {
     expect(r.query.requestedAmountTl).toBe(200000);
   });
 
+  it("banka + amaç belirtilince samimi onayla tutar/vade sorar", async () => {
+    const r = await runFinansmanAssistantChat({
+      message: "ziraat bankasından ihtiyaç kredisi almak istiyorum",
+    });
+    expect(r.status).toBe("needs_information");
+    expect(r.query.selectedBankIds).toContain("ziraat-katilim");
+    expect(r.query.financingType).toBe("consumer");
+    expect(r.assistantMessage).toMatch(/Anladım.*Ziraat Katılım/i);
+    expect(r.assistantMessage).toMatch(/Ne kadar tutar ve kaç ay vade/i);
+    expect(r.assistantMessage).not.toMatch(/Bu konuda yardımcı olamam/);
+  });
+
+  it("iyiyim teşekkür sohbetine nazik yanıt verir", async () => {
+    const r = await runFinansmanAssistantChat({
+      message: "ben de iyiyim teşkkür ederim",
+    });
+    expect(r.assistantMessage).toMatch(/sevindim|Rica ederim/i);
+    expect(r.assistantMessage).not.toMatch(/yardımcı olamam/);
+  });
+
   it("Senaryo 2: tam bilgiyle sonuç", async () => {
     const states = makeStates({
       "kuveyt-turk": [makeProduct()],

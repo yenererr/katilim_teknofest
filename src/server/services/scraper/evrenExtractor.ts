@@ -102,7 +102,7 @@ export function ruleBasedExtractRecords(opts: {
   const financeSignal =
     /finansman|kar\s*pay|kredi|vade|tahsis|konut|tasit|ihtiyac|kampanya/.test(
       t,
-    );
+    ) || /kampanya/i.test(opts.sourceUrl);
   if (!financeSignal) return [];
 
   const kural = kuralTabanliCikar(clipped);
@@ -114,18 +114,27 @@ export function ruleBasedExtractRecords(opts: {
     kural.tutar.min != null ||
     kural.tahsis_ucreti.deger != null;
 
-  if (!hasSignal) return [];
-
   const category = inferCategory(clipped, opts.categoryHint);
+  const isCampaignPage =
+    /kampanya/i.test(opts.sourceUrl) ||
+    opts.categoryHint === "financing_campaign" ||
+    opts.categoryHint === "card_campaign" ||
+    opts.categoryHint === "discount_campaign" ||
+    opts.categoryHint === "new_customer_financing";
+
   if (
     category === "irrelevant" ||
-    category === "card_campaign" ||
-    category === "discount_campaign" ||
-    category === "insurance" ||
-    category === "investment_product"
+    (!isCampaignPage &&
+      (category === "card_campaign" ||
+        category === "discount_campaign" ||
+        category === "insurance" ||
+        category === "investment_product"))
   ) {
     return [];
   }
+
+  // Kampanya sayfasında oran sinyali olmasa da başlık/tarih kaydı üret
+  if (!hasSignal && !isCampaignPage) return [];
 
   const evidence: ExtractedFinancialRecord["evidence"] = [];
   if (kural.kar_payi_orani.kanit) {
@@ -150,8 +159,24 @@ export function ruleBasedExtractRecords(opts: {
     });
   }
 
-  const productName =
-    category === "housing_finance"
+  const titleFromUrl = (() => {
+    try {
+      const path = new URL(opts.sourceUrl).pathname;
+      const last = path.split("/").filter(Boolean).pop() || "";
+      return decodeURIComponent(last)
+        .replace(/[-_]+/g, " ")
+        .replace(/\.html?$/i, "")
+        .trim();
+    } catch {
+      return "";
+    }
+  })();
+
+  const productName = isCampaignPage
+    ? titleFromUrl
+      ? titleFromUrl.replace(/\b\w/g, (c) => c.toLocaleUpperCase("tr-TR"))
+      : "Kampanya"
+    : category === "housing_finance"
       ? "Konut Finansmanı"
       : category === "vehicle_finance"
         ? "Taşıt Finansmanı"
@@ -168,14 +193,23 @@ export function ruleBasedExtractRecords(opts: {
         ? ("annual" as const)
         : ("unknown" as const);
 
+  const campaignCategory =
+    opts.categoryHint === "card_campaign"
+      ? "card_campaign"
+      : opts.categoryHint === "discount_campaign"
+        ? "discount_campaign"
+        : isCampaignPage
+          ? "financing_campaign"
+          : category;
+
   return [
     {
       bankId: opts.bankId,
       sourceUrl: opts.sourceUrl,
       sourceCheckedAt: new Date().toISOString(),
       title: productName,
-      recordType: "product",
-      category,
+      recordType: isCampaignPage ? "campaign" : "product",
+      category: campaignCategory,
       productName,
       productType: null,
       profitRate: kural.kar_payi_orani.deger,
@@ -285,6 +319,76 @@ function parseEvrenRecords(
   return out.filter((r) => r.category !== "irrelevant");
 }
 
+export function stubCampaignFromUrl(opts: {
+  bankId: string;
+  sourceUrl: string;
+  categoryHint?: ContentCategory;
+  title?: string | null;
+}): ExtractedFinancialRecord {
+  let title = opts.title?.trim() || "";
+  if (!title) {
+    try {
+      const last = new URL(opts.sourceUrl).pathname
+        .split("/")
+        .filter(Boolean)
+        .pop();
+      title = decodeURIComponent(last || "")
+        .replace(/[-_]+/g, " ")
+        .replace(/\.html?$/i, "")
+        .trim();
+    } catch {
+      title = "Kampanya";
+    }
+  }
+  if (!title) title = "Kampanya";
+
+  const category: ContentCategory =
+    opts.categoryHint === "card_campaign"
+      ? "card_campaign"
+      : opts.categoryHint === "discount_campaign"
+        ? "discount_campaign"
+        : /kart/i.test(opts.sourceUrl)
+          ? "card_campaign"
+          : "financing_campaign";
+
+  return {
+    bankId: opts.bankId,
+    sourceUrl: opts.sourceUrl,
+    sourceCheckedAt: new Date().toISOString(),
+    title,
+    recordType: "campaign",
+    category,
+    productName: title,
+    productType: null,
+    profitRate: null,
+    ratePeriod: null,
+    minAmountTl: null,
+    maxAmountTl: null,
+    minTermMonths: null,
+    maxTermMonths: null,
+    installmentCount: null,
+    allocationFeeValue: null,
+    allocationFeeType: null,
+    rewardAmountTl: null,
+    rewardType: null,
+    campaignStart: null,
+    campaignEnd: null,
+    targetSegments: [],
+    participationMethod: null,
+    conditions: [],
+    exclusions: [],
+    campaignStatus: "active",
+    evidence: [
+      {
+        field: "title",
+        text: `Resmî kampanya sayfası: ${opts.sourceUrl}`,
+        confidence: 0.7,
+      },
+    ],
+    manualReviewRequired: true,
+  };
+}
+
 export async function extractFinancialRecordsFromText(opts: {
   bankId: string;
   sourceUrl: string;
@@ -292,7 +396,12 @@ export async function extractFinancialRecordsFromText(opts: {
   categoryHint?: ContentCategory;
 }): Promise<ExtractedFinancialRecord[]> {
   const clipped = opts.text.slice(0, 8_000);
-  if (clipped.length < 80) return [];
+  if (clipped.length < 40) {
+    if (/kampanya/i.test(opts.sourceUrl) || opts.categoryHint?.includes("campaign")) {
+      return [stubCampaignFromUrl(opts)];
+    }
+    return [];
+  }
 
   const extractOpts = {
     bankId: opts.bankId,
@@ -301,13 +410,32 @@ export async function extractFinancialRecordsFromText(opts: {
     categoryHint: opts.categoryHint,
   };
 
+  const isCampaignContext =
+    /kampanya/i.test(opts.sourceUrl) ||
+    opts.categoryHint === "financing_campaign" ||
+    opts.categoryHint === "card_campaign" ||
+    opts.categoryHint === "discount_campaign" ||
+    opts.categoryHint === "new_customer_financing" ||
+    Boolean(opts.categoryHint?.includes("campaign"));
+
+  // Kampanya / kural-only: EVREN hiç çağrılmaz
+  if (
+    process.env.SCRAPER_RULES_ONLY === "1" ||
+    (isCampaignContext && process.env.SCRAPER_USE_EVREN !== "true")
+  ) {
+    const rules = ruleBasedExtractRecords(extractOpts);
+    if (rules.length > 0) return rules;
+    if (isCampaignContext) return [stubCampaignFromUrl(opts)];
+    return [];
+  }
+
   try {
     const evren = await callEvrenChat({
       systemPrompt: EXTRACT_SYSTEM,
       userPrompt: `Banka: ${opts.bankId}\nURL: ${opts.sourceUrl}\nKategori ipucu: ${opts.categoryHint || "unknown"}\n\nMETİN:\n${clipped}`,
       temperature: 0,
       jsonMode: true,
-      maxTokens: 2048,
+      maxTokens: 4096,
     });
 
     if (evren?.content) {
@@ -321,7 +449,10 @@ export async function extractFinancialRecordsFromText(opts: {
     );
   }
 
-  return ruleBasedExtractRecords(extractOpts);
+  const rules = ruleBasedExtractRecords(extractOpts);
+  if (rules.length > 0) return rules;
+  if (isCampaignContext) return [stubCampaignFromUrl(opts)];
+  return [];
 }
 
 export { isPrimaryFinanceCategory };

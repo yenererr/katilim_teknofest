@@ -9,5 +9,8 @@ coverage/
 .env*
 !.env.example
 
+# Scrape çıktıları (yerel)
+data/scraped-*.json
+
 # Claude Code yerel yapılandırması ve vendored skill dosyaları
 .claude/

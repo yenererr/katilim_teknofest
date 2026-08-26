@@ -59,7 +59,7 @@ export const BANK_SOURCE_CONFIGS: BankSourceConfig[] = [
         sourceType: "product_listing",
         parserMode: "static",
       },
-      { url: "https://www.adilkatilim.com.tr/kampanyalar", sourceType: "discovery_only", parserMode: "static" },
+      { url: "https://www.adilkatilim.com.tr/kampanyalar", sourceType: "campaign_listing", parserMode: "static" },
       { url: "https://www.adilkatilim.com.tr/finansman", sourceType: "discovery_only", parserMode: "static" },
       {
         url: "https://www.adilkatilim.com.tr/hesaplama-araclari",
@@ -167,6 +167,11 @@ export const BANK_SOURCE_CONFIGS: BankSourceConfig[] = [
         parserMode: "static",
       },
       {
+        url: "https://www.kuveytturk.com.tr/kampanyalar/kendim-icin/kart-kampanyalari",
+        sourceType: "campaign_listing",
+        parserMode: "static",
+      },
+      {
         url: "https://www.kuveytturk.com.tr/hesaplama-araclari/finansman-hesaplama",
         sourceType: "calculator",
         parserMode: "auto",
@@ -205,9 +210,16 @@ export const BANK_SOURCE_CONFIGS: BankSourceConfig[] = [
     bankId: "tom-katilim",
     bankName: "T.O.M. Katılım Bankası A.Ş.",
     enabled: true,
-    allowedDomains: ["tombank.com.tr", "www.tombank.com.tr"],
+    allowedDomains: ["tombank.com.tr", "www.tombank.com.tr", "tombankhadi.com", "www.tombankhadi.com"],
     seedUrls: [
       { url: "https://tombank.com.tr/", sourceType: "homepage", parserMode: "static" },
+      { url: "https://tombank.com.tr/kampanyalar.html", sourceType: "campaign_listing", parserMode: "static" },
+      { url: "https://tombankhadi.com/kampanyalar", sourceType: "campaign_listing", parserMode: "static" },
+      {
+        url: "https://tombankhadi.com/hadi-kazan/bayii-kampanyalari",
+        sourceType: "campaign_listing",
+        parserMode: "static",
+      },
       { url: "https://tombank.com.tr/urunlerimiz.html", sourceType: "product_listing", parserMode: "static" },
       {
         url: "https://tombank.com.tr/hesaplama-araclari.html",
@@ -222,8 +234,8 @@ export const BANK_SOURCE_CONFIGS: BankSourceConfig[] = [
       { url: "https://tombank.com.tr/taksitle.html", sourceType: "product_listing", parserMode: "static" },
       { url: "https://tombank.com.tr/hadi-kredi-karti.html", sourceType: "product_listing", parserMode: "static" },
     ],
-    allowedPathPrefixes: ["/", "/urun", "/hesaplama", "/magaza", "/taksit", "/hadi"],
-    detailLinkPatterns: [".html"],
+    allowedPathPrefixes: ["/", "/urun", "/hesaplama", "/magaza", "/taksit", "/hadi", "/kampanya", "/hadi-kazan"],
+    detailLinkPatterns: [".html", "/kampanyalar/", "/hadi-kazan/"],
     excludedPathPatterns: ["/giris", "/login", "/kvkk"],
   },
   {

@@ -41,7 +41,11 @@ export const kuveytTurkAdapter = withDetailFilter(
   createBaseAdapter("kuveyt-turk"),
   ["/kampanyalar/", "/kendim-icin/finansmanlar/"],
 );
-export const tomBankAdapter = createBaseAdapter("tom-katilim");
+export const tomBankAdapter = withDetailFilter(createBaseAdapter("tom-katilim"), [
+  "/kampanyalar",
+  "/hadi-kazan/",
+  ".html",
+]);
 export const emlakKatilimAdapter = withDetailFilter(
   createBaseAdapter("emlak-katilim"),
   ["/tr/bireysel/kampanyalar/kampanya/", "/tr/bireysel/finansmanlar/"],

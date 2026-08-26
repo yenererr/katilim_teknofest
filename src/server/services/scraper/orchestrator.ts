@@ -3,7 +3,7 @@ import { BANK_SOURCE_CONFIGS } from "./bankSourceConfig";
 import { getAdapter } from "./adapters";
 import { fetchOfficialPage } from "./pageFetcher";
 import { hashContent } from "./contentCleaner";
-import { extractFinancialRecordsFromText } from "./evrenExtractor";
+import { extractFinancialRecordsFromText, stubCampaignFromUrl } from "./evrenExtractor";
 import {
   getMemorySnapshot,
   setMemorySnapshot,
@@ -155,9 +155,10 @@ async function scrapeOneBankOfficial(
   bankId: string,
   force: boolean,
   sourceStatuses: Record<string, SourceStatus>,
-): Promise<void> {
+  opts?: { campaignOnly?: boolean; maxDetails?: number },
+): Promise<{ recordCount: number; campaignCount: number }> {
   const config = BANK_SOURCE_CONFIGS.find((b) => b.bankId === bankId);
-  if (!config || !config.enabled) return;
+  if (!config || !config.enabled) return { recordCount: 0, campaignCount: 0 };
   const adapter = getAdapter(bankId);
   const now = new Date().toISOString();
   const state = runtimeStates[bankId];
@@ -172,8 +173,16 @@ async function scrapeOneBankOfficial(
   const records: any[] = [];
   let anyChanged = false;
   let lastError: string | null = null;
+  const maxDetails = opts?.maxDetails ?? (opts?.campaignOnly ? 40 : 5);
+  const seeds = opts?.campaignOnly
+    ? config.seedUrls.filter(
+        (s) =>
+          s.sourceType === "campaign_listing" ||
+          /kampanya/i.test(s.url),
+      )
+    : config.seedUrls;
 
-  for (const seed of config.seedUrls) {
+  for (const seed of seeds) {
     const sourceKey = `${bankId}::${seed.url}`;
     sourceStatuses[sourceKey] = "fetching";
     try {
@@ -194,6 +203,23 @@ async function scrapeOneBankOfficial(
           text: doc.text,
           sourceType: seed.sourceType,
         });
+        // Kampanya listesinde detay linklerini yine de topla + stub yaz
+        if (opts?.campaignOnly || seed.sourceType === "campaign_listing") {
+          const details = await adapter.discoverDetailUrls(page);
+          for (const d of details.slice(0, maxDetails)) discovered.add(d);
+          const stubs = details.slice(0, maxDetails).map((url) =>
+            stubCampaignFromUrl({
+              bankId,
+              sourceUrl: url,
+              categoryHint:
+                /kart/i.test(url) ? "card_campaign" : "financing_campaign",
+            }),
+          );
+          if (stubs.length) {
+            records.push(...stubs);
+            await upsertExtractedRecords(stubs);
+          }
+        }
         continue;
       }
 
@@ -208,7 +234,25 @@ async function scrapeOneBankOfficial(
       });
 
       const details = await adapter.discoverDetailUrls(page);
-      for (const d of details.slice(0, 8)) discovered.add(d);
+      for (const d of details.slice(0, Math.max(8, maxDetails))) discovered.add(d);
+
+      // Liste sayfasındaki detay linklerinden hemen kampanya stub'ı yaz
+      if (opts?.campaignOnly || seed.sourceType === "campaign_listing") {
+        const stubs = [...discovered]
+          .slice(0, maxDetails)
+          .map((url) =>
+            stubCampaignFromUrl({
+              bankId,
+              sourceUrl: url,
+              categoryHint:
+                /kart/i.test(url) ? "card_campaign" : "financing_campaign",
+            }),
+          );
+        if (stubs.length) {
+          records.push(...stubs);
+          await upsertExtractedRecords(stubs);
+        }
+      }
 
       const category =
         adapter.classifyContent?.(doc, page.finalUrl) ||
@@ -225,7 +269,12 @@ async function scrapeOneBankOfficial(
         bankId,
         sourceUrl: page.finalUrl,
         text: doc.text,
-        categoryHint: category,
+        categoryHint:
+          opts?.campaignOnly || seed.sourceType === "campaign_listing"
+            ? /kart/i.test(page.finalUrl)
+              ? "card_campaign"
+              : "financing_campaign"
+            : category,
       });
       records.push(...extracted);
       await upsertExtractedRecords(extracted);
@@ -243,8 +292,8 @@ async function scrapeOneBankOfficial(
     }
   }
 
-  // Keşfedilen detaylar (sınırlı)
-  for (const detailUrl of [...discovered].slice(0, 5)) {
+  // Keşfedilen detaylar (kampanya taramasında daha geniş)
+  for (const detailUrl of [...discovered].slice(0, maxDetails)) {
     const sourceKey = `${bankId}::${detailUrl}`;
     if (sourceStatuses[sourceKey]) continue;
     try {
@@ -267,17 +316,20 @@ async function scrapeOneBankOfficial(
       });
       const category =
         adapter.classifyContent?.(doc, page.finalUrl) || "financing_campaign";
-      if (category === "irrelevant" || category === "card_campaign") {
-        // kart kampanyası ayrı tutulur; finansman karşılaştırmasına karışmaz
-        if (category === "card_campaign") {
-          const extracted = await extractFinancialRecordsFromText({
-            bankId,
-            sourceUrl: page.finalUrl,
-            text: doc.text,
-            categoryHint: category,
-          });
-          await upsertExtractedRecords(extracted);
-        }
+      if (category === "irrelevant") {
+        sourceStatuses[sourceKey] = "verified";
+        continue;
+      }
+      // Kart / indirim kampanyalarını da DB'ye yaz (ayrı kategori)
+      if (category === "card_campaign" || category === "discount_campaign") {
+        const extracted = await extractFinancialRecordsFromText({
+          bankId,
+          sourceUrl: page.finalUrl,
+          text: doc.text,
+          categoryHint: category,
+        });
+        await upsertExtractedRecords(extracted);
+        records.push(...extracted);
         sourceStatuses[sourceKey] = "verified";
         continue;
       }
@@ -302,7 +354,7 @@ async function scrapeOneBankOfficial(
     .filter((r) => r.category !== "card_campaign" && r.category !== "discount_campaign")
     .map(mapExtractedToKatilimProduct);
 
-  if (isQdrantConfigured() && anyChanged && combined.length > 80) {
+  if (isQdrantConfigured() && anyChanged && combined.length > 80 && process.env.SCRAPER_SKIP_INDEX !== "1") {
     try {
       const docs = buildIndexDocumentsFromScrape({
         bankId,
@@ -347,11 +399,19 @@ async function scrapeOneBankOfficial(
     urls: config.seedUrls.map((s) => s.url),
     bankName: config.bankName,
   };
+
+  return {
+    recordCount: records.length,
+    campaignCount: records.filter((r) => r.recordType === "campaign").length,
+  };
 }
 
 export async function runOfficialScrapeJob(opts: {
   bankIds?: string[];
   force?: boolean;
+  campaignOnly?: boolean;
+  maxDetails?: number;
+  wait?: boolean;
 }): Promise<ScrapeJob> {
   const jobId = `refresh_${crypto.randomBytes(6).toString("hex")}`;
   const job: ScrapeJob = {
@@ -365,23 +425,36 @@ export async function runOfficialScrapeJob(opts: {
   };
   jobs.set(jobId, job);
 
-  // async run
-  setTimeout(async () => {
+  const run = async () => {
     job.status = "running";
     const banks = (opts.bankIds?.length
       ? BANK_SOURCE_CONFIGS.filter((b) => opts.bankIds!.includes(b.bankId))
       : BANK_SOURCE_CONFIGS
     ).filter((b) => b.enabled);
 
-    // jitter: bankaları sırayla işle (eşzamanlı domain=1 zaten fetcher'da)
     let ok = 0;
     let fail = 0;
+    let records = 0;
+    let campaigns = 0;
     for (const bank of banks) {
-      const jitter = Math.floor(Math.random() * 1500);
+      const jitter = Math.floor(Math.random() * (opts.campaignOnly ? 400 : 1500));
       await new Promise((r) => setTimeout(r, jitter));
       try {
-        await scrapeOneBankOfficial(bank.bankId, Boolean(opts.force), job.sourceStatuses);
+        const result = await scrapeOneBankOfficial(
+          bank.bankId,
+          Boolean(opts.force),
+          job.sourceStatuses,
+          {
+            campaignOnly: opts.campaignOnly,
+            maxDetails: opts.maxDetails,
+          },
+        );
+        records += result.recordCount;
+        campaigns += result.campaignCount;
         ok += 1;
+        console.log(
+          `[OfficialScraper] ${bank.bankId}: ${result.campaignCount} kampanya / ${result.recordCount} kayıt`,
+        );
       } catch (err) {
         fail += 1;
         job.sourceStatuses[bank.bankId] = "failed";
@@ -392,10 +465,18 @@ export async function runOfficialScrapeJob(opts: {
         );
       }
     }
-    job.stats = { banksOk: ok, banksFail: fail };
+    job.stats = { banksOk: ok, banksFail: fail, records, campaigns };
     job.status = "completed";
     job.finishedAt = new Date().toISOString();
-  }, 10);
+  };
+
+  if (opts.wait) {
+    await run();
+  } else {
+    setTimeout(() => {
+      void run();
+    }, 10);
+  }
 
   return job;
 }

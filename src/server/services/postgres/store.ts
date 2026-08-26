@@ -35,7 +35,6 @@ export async function ensureSchema(): Promise<{ ok: boolean; message: string }> 
     };
   }
   try {
-    // Minimal bootstrap — tam şema migrations/001_katilim_finans.sql ile uygulanmalı
     await p.query(`
       CREATE TABLE IF NOT EXISTS banks (
         id TEXT PRIMARY KEY,
@@ -43,6 +42,45 @@ export async function ensureSchema(): Promise<{ ok: boolean; message: string }> 
         enabled BOOLEAN NOT NULL DEFAULT TRUE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+      CREATE TABLE IF NOT EXISTS campaigns (
+        id TEXT PRIMARY KEY,
+        bank_id TEXT NOT NULL REFERENCES banks(id),
+        source_id TEXT,
+        title TEXT,
+        category TEXT NOT NULL,
+        campaign_status TEXT NOT NULL DEFAULT 'unknown',
+        campaign_start DATE,
+        campaign_end DATE,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        version INT NOT NULL DEFAULT 1,
+        source_url TEXT NOT NULL,
+        source_checked_at TIMESTAMPTZ,
+        content_hash TEXT,
+        payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS products (
+        id TEXT PRIMARY KEY,
+        bank_id TEXT NOT NULL REFERENCES banks(id),
+        source_id TEXT,
+        product_name TEXT,
+        product_type TEXT,
+        category TEXT NOT NULL,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        version INT NOT NULL DEFAULT 1,
+        source_url TEXT NOT NULL,
+        source_checked_at TIMESTAMPTZ,
+        content_hash TEXT,
+        extraction_method TEXT,
+        model_alias TEXT,
+        manual_review_required BOOLEAN DEFAULT FALSE,
+        payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_campaigns_bank_status
+        ON campaigns(bank_id, campaign_status, is_active);
+      CREATE INDEX IF NOT EXISTS idx_products_bank_active
+        ON products(bank_id, is_active);
     `);
     for (const b of BANK_SOURCE_CONFIGS) {
       await p.query(
@@ -51,7 +89,7 @@ export async function ensureSchema(): Promise<{ ok: boolean; message: string }> 
         [b.bankId, b.bankName, b.enabled],
       );
     }
-    return { ok: true, message: "PostgreSQL bağlantısı ve banks tablosu hazır." };
+    return { ok: true, message: "PostgreSQL bağlantısı ve şema hazır." };
   } catch (err) {
     return {
       ok: false,
@@ -90,20 +128,32 @@ export async function upsertExtractedRecords(
     if (r.category === "irrelevant" || r.category === "general_announcement") {
       continue;
     }
+    const isCampaign =
+      r.recordType === "campaign" ||
+      /kampanya/i.test(r.sourceUrl) ||
+      [
+        "financing_campaign",
+        "card_campaign",
+        "discount_campaign",
+        "new_customer_financing",
+      ].includes(r.category);
+    const recordType = isCampaign ? "campaign" : r.recordType;
+
     const id = crypto
       .createHash("sha1")
-      .update(`${r.bankId}|${r.sourceUrl}|${r.productName || r.title || ""}|${r.recordType}`)
+      .update(`${r.bankId}|${r.sourceUrl}|${r.productName || r.title || ""}|${recordType}`)
       .digest("hex")
       .slice(0, 24);
 
     const row = {
       id,
       ...r,
+      recordType,
       isDemo: false,
       version: 1,
     };
 
-    if (r.recordType === "campaign") {
+    if (recordType === "campaign") {
       memoryCampaigns.set(id, row);
     } else {
       memoryProducts.set(id, row);
@@ -111,12 +161,14 @@ export async function upsertExtractedRecords(
 
     if (p) {
       try {
-        if (r.recordType === "campaign") {
+        if (recordType === "campaign") {
           await p.query(
             `INSERT INTO campaigns (id, bank_id, title, category, campaign_status, campaign_start, campaign_end, is_active, source_url, source_checked_at, content_hash, payload)
              VALUES ($1,$2,$3,$4,$5,$6,$7,TRUE,$8,$9,$10,$11)
              ON CONFLICT (id) DO UPDATE SET
                campaign_status = EXCLUDED.campaign_status,
+               title = EXCLUDED.title,
+               category = EXCLUDED.category,
                payload = EXCLUDED.payload,
                source_checked_at = EXCLUDED.source_checked_at,
                version = campaigns.version + 1`,
@@ -131,7 +183,7 @@ export async function upsertExtractedRecords(
               r.sourceUrl,
               r.sourceCheckedAt,
               null,
-              JSON.stringify(r),
+              JSON.stringify({ ...r, recordType }),
             ],
           );
         } else {
@@ -155,8 +207,13 @@ export async function upsertExtractedRecords(
             ],
           );
         }
-      } catch {
-        // Tablo yoksa bellek kaydı yeterli
+      } catch (err) {
+        console.warn(
+          "[postgres] upsert failed",
+          r.bankId,
+          recordType,
+          err instanceof Error ? err.message : err,
+        );
       }
     }
     count += 1;
@@ -196,4 +253,19 @@ export function listMemoryCampaigns(filter?: { bankId?: string; activeOnly?: boo
     rows = rows.filter((r) => r.campaignStatus === "active");
   }
   return rows;
+}
+
+export async function countCampaignsInDb(): Promise<
+  Array<{ bank_id: string; n: number }>
+> {
+  const p = getPool();
+  if (!p) return [];
+  try {
+    const r = await p.query<{ bank_id: string; n: string }>(
+      `SELECT bank_id, COUNT(*)::text AS n FROM campaigns GROUP BY bank_id ORDER BY bank_id`,
+    );
+    return r.rows.map((row) => ({ bank_id: row.bank_id, n: Number(row.n) }));
+  } catch {
+    return [];
+  }
 }

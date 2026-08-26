@@ -9,6 +9,7 @@ import {
   isSmallTalkRequest,
   isThanksRequest,
   isFarewellRequest,
+  isWellbeingReply,
 } from "./finansmanNlu";
 import { runFinancingMatchEngine } from "./finansmanMatcher";
 import { buildMatchesFromQdrantEvidence } from "./finansmanEvidence";
@@ -25,12 +26,15 @@ import { rehberNiyetiTespit, rehberYaniti, bekleyenTakibiCoz } from "./bankDirec
 import { sozluktenYanitla } from "./terimSozlugu";
 import { hesaplaOdemePlani } from "../../../lib/odemePlani";
 import { enrichWithLiveCalculators } from "./liveCalculatorEnrichment";
+import { BANKA_INDEKS } from "../../../data/piyasa";
 import {
   CAPABILITIES_MESSAGE,
   FAREWELL_MESSAGE,
+  OUT_OF_SCOPE_MESSAGE,
   SMALLTALK_MESSAGE,
   THANKS_MESSAGE,
   WELCOME_MESSAGE,
+  WELLBEING_REPLY_MESSAGE,
 } from "../../../lib/assistantPersona";
 
 const conversations = new Map<string, FinancingConversationState>();
@@ -102,6 +106,33 @@ function formatAmount(n: number): string {
   return n.toLocaleString("tr-TR");
 }
 
+/** Banka / amaç bilgisini samimi bir onay cümlesine çevirir */
+function buildContextAck(state: FinancingConversationState): string {
+  const bankNames = state.selectedBankIds
+    .map((id) => BANKA_INDEKS[id]?.ad)
+    .filter((n): n is string => Boolean(n));
+  const typeLabel = state.financingType
+    ? FINANCING_TYPE_LABEL[state.financingType]
+    : null;
+
+  if (bankNames.length === 1 && typeLabel) {
+    return `Anladım, ${bankNames[0]} özelinde ${typeLabel.toLocaleLowerCase("tr-TR")} için ilerleyeceğiz.`;
+  }
+  if (bankNames.length === 1) {
+    return `Anladım, ${bankNames[0]} özelinde ilerleyeceğiz.`;
+  }
+  if (bankNames.length > 1 && typeLabel) {
+    return `Anladım, ${bankNames.join(" ve ")} için ${typeLabel.toLocaleLowerCase("tr-TR")} bakacağız.`;
+  }
+  if (bankNames.length > 1) {
+    return `Anladım, ${bankNames.join(" ve ")} özelinde bakacağız.`;
+  }
+  if (typeLabel) {
+    return `Anladım, ${typeLabel.toLocaleLowerCase("tr-TR")} için bakacağız.`;
+  }
+  return "";
+}
+
 function buildNeedsInfoMessage(
   state: FinancingConversationState,
   missing: string[],
@@ -109,9 +140,12 @@ function buildNeedsInfoMessage(
   const parts: string[] = [];
   const quick: FinancingAssistantResponse["quickReplies"] = [];
 
-  if (state.requestedAmountTl != null) {
+  const ack = buildContextAck(state);
+  if (ack) {
+    parts.push(ack);
+  } else if (state.requestedAmountTl != null) {
     parts.push(
-      `${formatAmount(state.requestedAmountTl)} TL için seçenekleri karşılaştırabilirim.`,
+      `${formatAmount(state.requestedAmountTl)} TL için seçeneklere bakabilirim.`,
     );
   }
 
@@ -120,14 +154,10 @@ function buildNeedsInfoMessage(
   const askAmount = missing.includes("requestedAmountTl");
 
   if (askType && askTerm) {
-    parts.push(
-      "Ne için kullanacaksınız ve kaç ay vade düşünüyorsunuz?",
-    );
+    parts.push("Ne için kullanacaksınız ve kaç ay vade düşünüyorsunuz?");
     quick.push(...purposeQuickReplies(), ...termQuickReplies());
   } else if (askType && askAmount) {
-    parts.push(
-      "Ne için kullanacaksınız ve ne kadar tutar lazım?",
-    );
+    parts.push("Ne için kullanacaksınız ve ne kadar tutar lazım?");
     quick.push(...purposeQuickReplies());
   } else if (askTerm && askAmount) {
     parts.push("Ne kadar tutar ve kaç ay vade düşünüyorsunuz?");
@@ -139,10 +169,9 @@ function buildNeedsInfoMessage(
     parts.push("Kaç ay vade düşünüyorsunuz?");
     quick.push(...termQuickReplies());
   } else if (askAmount) {
-    parts.push("Ne kadar tutara ihtiyacınız var?");
+    parts.push("Ne kadar tutar düşünüyorsunuz?");
   }
 
-  // Max two question themes already handled; optionally customer as soft tip
   if (
     !askType &&
     !askTerm &&
@@ -439,6 +468,8 @@ export async function runFinansmanAssistantChat(
     let assistantMessage = WELCOME_MESSAGE;
     if (isCapabilitiesRequest(req.message)) {
       assistantMessage = CAPABILITIES_MESSAGE;
+    } else if (isWellbeingReply(req.message)) {
+      assistantMessage = WELLBEING_REPLY_MESSAGE;
     } else if (isThanksRequest(req.message)) {
       assistantMessage = THANKS_MESSAGE;
     } else if (isFarewellRequest(req.message)) {
@@ -616,12 +647,7 @@ export async function runFinansmanAssistantChat(
     conversations.set(conversationId, { ...state, pendingFollowUp: null });
     return {
       conversationId,
-      assistantMessage:
-        "Bu konuda yardımcı olamam. Ben katılım bankalarının finansman " +
-        "seçeneklerini karşılaştırmak ve katılım bankacılığıyla ilgili " +
-        "sorularınızı yanıtlamak için buradayım.\n\n" +
-        "Tutar, vade veya finansman amacınızı (ihtiyaç, taşıt, konut…) yazabilirsiniz.\n" +
-        "İstersen “neler yapabilirsin” diye de sorabilirsin.",
+      assistantMessage: OUT_OF_SCOPE_MESSAGE,
       status: "needs_information",
       missingFields: [],
       quickReplies: [
