@@ -273,6 +273,19 @@ export async function runRagChat(opts: {
     );
   }
 
+  // Ürün tablosu LLM'den değil, doğrulanmış backend kayıtlarından doldurulur.
+  // Böylece model bu veriyi yeniden üretmek zorunda kalmaz (gecikme) ve
+  // alanlar kaynakla birebir aynı kalır.
+  generated.answer.products = retrieved.products.map((p) => ({
+    productId: p.productId,
+    bankName: p.bankName,
+    productName: [p.product.product_name, p.product.urun_adi].find(
+      (v): v is string => typeof v === "string" && v.length > 0,
+    ),
+    verifiedFields: p.product,
+    freshnessStatus: p.freshness,
+  }));
+
   const validated = validateRagAnswer({
     answer: generated.answer,
     chunks: retrieved.chunks,

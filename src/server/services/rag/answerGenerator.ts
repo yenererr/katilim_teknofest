@@ -32,13 +32,14 @@ Yanıtını SADECE şu JSON şemasında ver:
 {
   "answer": "Türkçe cevap metni",
   "status": "answered|insufficient_data|stale_data|clarification_required|unsupported",
-  "products": [{"productId":"","bankName":"","productName":"","verifiedFields":{},"freshnessStatus":""}],
-  "citations": [{"id":1,"title":"","bankName":"","sourceUrl":"","sourceCheckedAt":"","evidenceText":""}],
   "warnings": [],
   "calculation": {"method":"","inputs":{},"result":{}}
 }
 calculation alanı yalnızca karşılaştırma aracı sonucu varsa doldurulur; yoksa null bırak.
-citations dizisine yalnızca bağlamda verilen kaynak numaralarını ekle.`;
+
+Kaynak listesini ve ürün tablosunu JSON'a YAZMA. Kaynak künyelerini sistem
+kendisi ekler; sen yalnızca cevap metninin içinde [KAYNAK n] biçiminde
+referans ver. Kaynak metnini olduğu gibi kopyalama, özetleyerek aktar.`;
 
 export const ragAnswerSchema = z.object({
   answer: z.string().min(1).max(8000),
@@ -49,6 +50,8 @@ export const ragAnswerSchema = z.object({
     "clarification_required",
     "unsupported",
   ]),
+  // products ve citations backend verisinden doldurulur (answerValidator).
+  // LLM göndermez; gönderirse yok sayılmadan önce şema geçerli kalsın diye opsiyoneldir.
   products: z
     .array(
       z.object({
