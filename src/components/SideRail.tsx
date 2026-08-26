@@ -3,13 +3,11 @@ import {
   Home,
   Tag,
   Receipt,
-  MessageSquare,
   MessagesSquare,
-  Search,
+  Calculator,
   type LucideIcon,
 } from 'lucide-react';
 import { ARAC_NAV, TabKey } from './nav';
-import { POPULER_ARAMALAR } from '../data/piyasa';
 import { BankMark } from './BankMark';
 
 export interface SonIslem {
@@ -35,6 +33,12 @@ const IHTIYACLAR: IhtiyacKarti[] = [
     aciklama: 'Konut, taşıt, ihtiyaç vb.',
     icon: Home,
   },
+  {
+    key: 'hesaplama',
+    baslik: 'Finansman Hesapla',
+    aciklama: 'Taksit ve ödeme planı',
+    icon: Calculator,
+  },
   { key: 'kampanyalar', baslik: 'Kampanya Bul', aciklama: 'İndirim, taksit, puan vb.', icon: Tag },
   {
     key: 'ucretler',
@@ -56,16 +60,14 @@ interface SideRailProps {
   setActiveTab: (tab: TabKey) => void;
   sonIslemler: SonIslem[];
   onSonIslemSec: (id: string) => void;
-  onArama: (sorgu: string) => void;
 }
 
-/** Sol panel: ihtiyaç seçimi, popüler aramalar ve son işlemler. */
+/** Sol panel: ihtiyaç seçimi ve son işlemler. */
 export const SideRail: React.FC<SideRailProps> = ({
   activeTab,
   setActiveTab,
   sonIslemler,
   onSonIslemSec,
-  onArama,
 }) => (
   <aside className="sticky top-[4.25rem] hidden h-[calc(100dvh-4.25rem)] w-70 shrink-0 flex-col gap-5 overflow-y-auto border-r border-line bg-surface px-4 py-5 lg:flex">
     <section>
@@ -101,26 +103,6 @@ export const SideRail: React.FC<SideRailProps> = ({
             </li>
           );
         })}
-      </ul>
-    </section>
-
-    <section className="border-t border-line pt-4">
-      <h2 className="px-1 pb-2 text-xs font-semibold tracking-wide text-txt-secondary uppercase">
-        Popüler Aramalar
-      </h2>
-      <ul>
-        {POPULER_ARAMALAR.map((sorgu) => (
-          <li key={sorgu}>
-            <button
-              type="button"
-              onClick={() => onArama(sorgu)}
-              className="flex w-full min-h-9 items-center gap-2 rounded-lg px-1.5 py-1.5 text-left text-sm text-txt-secondary transition-colors hover:bg-sunken hover:text-txt"
-            >
-              <Search className="h-3.5 w-3.5 shrink-0 text-txt-muted" aria-hidden="true" />
-              <span className="truncate">{sorgu}</span>
-            </button>
-          </li>
-        ))}
       </ul>
     </section>
 

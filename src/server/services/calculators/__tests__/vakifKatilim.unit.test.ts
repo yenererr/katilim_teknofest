@@ -95,11 +95,36 @@ describe("Vakıf Katılım hesaplama", () => {
     expect(calc.url).toContain("financingType=K");
     expect(calc.url).toContain("amount=500000");
     expect(calc.url).toContain("numberOfInstallments=36");
+    expect(calc.url).toContain("calculateType=1");
     expect(calc.url).toContain("langId=bf2689d9-071e-4a20-9450-b1dbdd39778f");
     expect(String(calc.init?.body)).toContain("TOKEN-123");
     expect(
       (calc.init?.headers as Record<string, string>).Cookie,
     ).toContain("ASP.NET_SessionId=abc");
+  });
+
+  it("özel kâr oranı ve taksitten hesap parametrelerini iletir", async () => {
+    const { impl, cagrilar } = makeFetch({
+      installmentAmount: "100.000,00 TL",
+      totalAmount: "120.000,00 TL",
+      profitRate: "2,50",
+    });
+
+    await hesaplaVakifKatilim(
+      {
+        financingType: "ihtiyac_finansmani",
+        amountTl: 5000,
+        termMonths: 12,
+        profitRatePercent: 2.5,
+        calculateType: "2",
+      },
+      impl,
+    );
+
+    const calc = cagrilar[1];
+    expect(calc.url).toContain("profitRate=2%2C5");
+    expect(calc.url).toContain("calculateType=2");
+    expect(calc.url).toContain("amount=5000");
   });
 
   it("banka hata döndürdüğünde istisna fırlatır", async () => {

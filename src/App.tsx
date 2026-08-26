@@ -13,6 +13,8 @@ import { JsonViewer } from './components/JsonViewer';
 import { CompareView } from './components/CompareView';
 import { TerminologyGuide } from './components/TerminologyGuide';
 import { FinansmanAsistaniView } from './components/FinansmanAsistaniView';
+import { ChatWidget } from './components/ChatWidget';
+import { VakifHesaplamaView } from './components/VakifHesaplamaView';
 import { ToastProvider, useToast } from './components/Toast';
 import { SAMPLE_BANK_TEXTS } from './data/samples';
 import { FINANSMAN_TURLERI, VERI_TARIHI } from './data/piyasa';
@@ -355,10 +357,6 @@ function AppInner() {
     }
   };
 
-  const handleArama = (sorgu: string) => {
-    handleAsistanaSor(sorgu);
-  };
-
   const productCount = latestResult?.urunler?.length ?? 0;
   const reviewCount = ogeler.filter((o) => o.product.manuel_dogrulama_gerekli).length;
   const { baslik, aciklama } = TAB_TITLES[activeTab];
@@ -388,12 +386,13 @@ function AppInner() {
           setActiveTab={setActiveTab}
           sonIslemler={sonIslemler}
           onSonIslemSec={handleSonIslemSec}
-          onArama={handleArama}
         />
 
         <div className="flex min-w-0 flex-1 flex-col">
           <main className="flex-1 px-4 pt-5 pb-10 sm:px-6">
-            {activeTab !== 'home' && activeTab !== 'finansman-asistani' && (
+            {activeTab !== 'home' &&
+              activeTab !== 'finansman-asistani' &&
+              activeTab !== 'hesaplama' && (
               <div className="mb-4">
                 <h1 className="text-lg font-semibold tracking-tight text-txt">{baslik}</h1>
                 <p className="mt-0.5 text-sm text-txt-secondary">{aciklama}</p>
@@ -477,6 +476,12 @@ function AppInner() {
               </div>
             )}
 
+            {activeTab === 'hesaplama' && (
+              <div {...panelProps('hesaplama')}>
+                <VakifHesaplamaView />
+              </div>
+            )}
+
             {activeTab === 'ucretler' && (
               <div {...panelProps('ucretler')}>
                 <FeesView />
@@ -505,7 +510,15 @@ function AppInner() {
 
             {activeTab === 'finansman-asistani' && (
               <div {...panelProps('finansman-asistani')}>
-                <FinansmanAsistaniView initialQuestion={asistanSorusu} />
+                <FinansmanAsistaniView
+                  initialQuestion={asistanSorusu}
+                  onNavigate={(href) => {
+                    const path = href.replace(/^#/, '');
+                    window.history.replaceState(null, '', `#${path}`);
+                    const tab = tabFromHash(`#${path}`);
+                    if (tab) setActiveTab(tab);
+                  }}
+                />
               </div>
             )}
 
@@ -531,6 +544,17 @@ function AppInner() {
           <TrustFooter lastUpdated={lastUpdated} liveProductCount={liveProductCount} />
         </div>
       </div>
+
+      <ChatWidget
+        hidden={activeTab === 'finansman-asistani'}
+        onExpand={() => setActiveTab('finansman-asistani')}
+        onNavigate={(href) => {
+          const path = href.replace(/^#/, '');
+          window.history.replaceState(null, '', `#${path}`);
+          const tab = tabFromHash(`#${path}`);
+          if (tab) setActiveTab(tab);
+        }}
+      />
     </div>
   );
 }

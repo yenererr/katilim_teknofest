@@ -33,6 +33,8 @@ export type FinancingConversationState = {
     | "lowest_fee"
     | "highest_reward"
     | null;
+  /** Kullanıcının belirlediği aylık kâr oranı (yüzde, 3.99 = %3,99) */
+  customProfitRatePercent: number | null;
   askedFields: string[];
   lastResultIds: string[];
 };
@@ -126,6 +128,12 @@ export type FinancingAssistantResponse = {
     sourceUrl: string;
     sourceCheckedAt: string;
     evidenceText: string;
+  }>;
+  /** İstemci yönlendirmesi (ör. ödeme planı → Hesaplama) */
+  actions?: Array<{
+    type: "navigate";
+    href: string;
+    label: string;
   }>;
 };
 

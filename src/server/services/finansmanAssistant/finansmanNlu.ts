@@ -59,6 +59,42 @@ export function parseTermMonths(text: string): number | null {
   return null;
 }
 
+/**
+ * Aylık kâr oranı yüzdesi: "%3,99", "oranı 3 yap", "kar payi 2.5", "3.99 oran".
+ * Tutarı (bin/TL) ile karışmasın diye bağlam aranır.
+ */
+export function parseProfitRatePercent(text: string): number | null {
+  const raw = text.trim();
+  const t = asciiKatla(raw);
+
+  const patterns = [
+    /%\s*(\d+([.,]\d+)?)/,
+    /(?:kar\s*(?:payi|orani)|kar\s*orani|oran(?:i|ı)?|aylik\s*oran)\s*(?:kendin\s*belirle|olarak|ile|a|e|yi|yı)?\s*[:=]?\s*%?\s*(\d+([.,]\d+)?)/,
+    /(?:oran(?:i|ı)?|kar\s*(?:payi|orani))\s*(?:yap|olsun|degistir|değiştir|ayarla|kullan)\s*%?\s*(\d+([.,]\d+)?)/,
+    /(?:yap|olsun|degistir|ayarla)\s*(?:oran(?:i|ı)?|kar)?\s*%?\s*(\d+([.,]\d+)?)\s*(?:oran|kar)?/,
+    /(\d+([.,]\d+)?)\s*(?:oran|kar\s*payi|aylik)/,
+  ];
+
+  for (const re of patterns) {
+    const m = t.match(re) || raw.match(re);
+    if (!m) continue;
+    const g = m[1] || m[2];
+    if (!g) continue;
+    const n = Number(String(g).replace(",", "."));
+    // Aylık oran makul aralığı (yüzde)
+    if (Number.isFinite(n) && n > 0 && n <= 25) return Math.round(n * 10000) / 10000;
+  }
+  return null;
+}
+
+/** "ödeme planı", "odeme planini goster" */
+export function isPaymentPlanRequest(text: string): boolean {
+  const t = asciiKatla(text);
+  return /odeme\s*plan|taksit\s*tablosu|amortisman|taksit\s*dokumu|plan[iı]\s*(goster|ac|ver|getir)/.test(
+    t,
+  );
+}
+
 export function parseFinancingType(text: string): FinancingType | null {
   const t = asciiKatla(text);
   // "ev alcam", "ev alacağım", "ev bakıyorum"
@@ -184,10 +220,9 @@ export type TurnKind =
   | "greeting"
   | "meta_question"
   | "bank_focus"
-  // Finansman formuyla karşılanamayan bilgi sorusu (ör. "murabaha nedir?")
-  // — kanıtlı RAG katmanına devredilir.
   | "general_question"
-  | "sort_only";
+  | "sort_only"
+  | "payment_plan";
 
 /** Selam / genel yardım — finansman parametresi yok */
 export function isGreetingOrHelpRequest(text: string): boolean {
@@ -198,6 +233,8 @@ export function isGreetingOrHelpRequest(text: string): boolean {
     parseTurkishAmount(t) != null ||
     (parseTermMonths(t) != null && !/yardim/.test(t)) ||
     parseFinancingType(t) != null ||
+    parseProfitRatePercent(t) != null ||
+    isPaymentPlanRequest(t) ||
     /finansman|kredi|faiz|kar pay|vade\b|kampanya|konut|tasit|araba|arac|otomobil|banka|kat[iı]l[iı]m|tahsis|masraf|\btl\b|\bbin\b|milyon/.test(
       t,
     );
@@ -231,6 +268,10 @@ export function classifyTurn(
 
   if (isGreetingOrHelpRequest(t)) {
     return "greeting";
+  }
+
+  if (isPaymentPlanRequest(t)) {
+    return "payment_plan";
   }
 
   if (isMetaResultQuestion(t)) {
@@ -302,6 +343,7 @@ export function classifyTurn(
     parseTermMonths(t) != null ||
     parseTurkishAmount(t) != null ||
     parseFinancingType(t) != null ||
+    parseProfitRatePercent(t) != null ||
     detectFollowUpFlags(t).amountCapStrict ||
     detectFollowUpFlags(t).hideUnknownFees ||
     detectFollowUpFlags(t).onlyNewCustomer
@@ -327,6 +369,7 @@ export function createEmptyState(conversationId: string): FinancingConversationS
     excludedBankIds: [],
     hideUnknownFees: false,
     sortPreference: "lowest_profit_rate",
+    customProfitRatePercent: null,
     askedFields: [],
     lastResultIds: [],
   };
@@ -366,6 +409,9 @@ export function mergeMessageIntoState(
   }
 
   if (termCandidate != null) next.preferredTermMonths = termCandidate;
+
+  const ratePct = parseProfitRatePercent(text);
+  if (ratePct != null) next.customProfitRatePercent = ratePct;
 
   const prevType = next.financingType;
   const fType = parseFinancingType(text);
@@ -422,6 +468,7 @@ export function mergeMessageIntoState(
   if (turn === "bank_focus") next.intent = "follow_up";
   else if (turn === "campaign_search") next.intent = "campaign_search";
   else if (turn === "comparison") next.intent = "comparison";
+  else if (turn === "payment_plan") next.intent = "follow_up";
   else if (turn === "param_update" || turn === "sort_only") next.intent = "follow_up";
   else next.intent = "finance_search";
 
@@ -443,6 +490,7 @@ export function stateFingerprint(state: FinancingConversationState): string {
     state.financingType,
     state.requestedAmountTl,
     state.preferredTermMonths,
+    state.customProfitRatePercent,
     state.customerStatus,
     state.sortPreference,
     state.amountCapStrict,
@@ -451,4 +499,25 @@ export function stateFingerprint(state: FinancingConversationState): string {
     state.excludedBankIds.join(","),
     state.intent,
   ].join("|");
+}
+
+/** Hesaplama sayfası deep-link hash'i */
+export function buildHesaplamaHref(state: FinancingConversationState): string {
+  const tur =
+    state.financingType === "housing"
+      ? "konut_finansmani"
+      : state.financingType === "vehicle"
+        ? "tasit_finansmani"
+        : "ihtiyac_finansmani";
+  const q = new URLSearchParams();
+  q.set("tur", tur);
+  if (state.requestedAmountTl != null) q.set("tutar", String(state.requestedAmountTl));
+  if (state.preferredTermMonths != null) {
+    q.set("vade", String(state.preferredTermMonths));
+  }
+  if (state.customProfitRatePercent != null) {
+    q.set("oran", String(state.customProfitRatePercent).replace(".", ","));
+  }
+  q.set("plan", "1");
+  return `#/hesaplama?${q.toString()}`;
 }

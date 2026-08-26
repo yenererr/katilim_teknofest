@@ -1,10 +1,11 @@
 /**
  * Vakıf Katılım resmî finansman hesaplama servisi.
  *
- * Bankanın kendi sitesindeki hesaplama aracı (vakifkatilim.com.tr ana sayfa)
- * `/plugins/FinancingComputationExecute` ucunu çağırıyor. Uç, antiforgery
- * token'ı ve oturum çerezi istediği için önce ana sayfa çekilip oturum
- * kuruluyor; token/çerez ikilisi bir süre önbellekte tutuluyor.
+ * Bankanın kendi sitesindeki hesaplama aracı (vakifkatilim.com.tr)
+ * `/plugins/FinancingComputationExecute` ve `/plugins/InstallmentPayBack`
+ * uçlarını çağırıyor. Uç, antiforgery token'ı ve oturum çerezi istediği için
+ * önce ana sayfa çekilip oturum kuruluyor; token/çerez ikilisi bir süre
+ * önbellekte tutuluyor.
  *
  * Dönen değerler bankanın ilan ettiği güncel oranlardır; burada kendi
  * hesaplamamızı yapmıyoruz.
@@ -14,6 +15,7 @@ const BASE_URL = "https://www.vakifkatilim.com.tr";
 const HOME_PATH = "/tr";
 const CALC_PATH = "/plugins/FinancingComputationExecute";
 const INSTALLMENTS_PATH = "/plugins/FinancingInstallment";
+const PAYMENT_PLAN_PATH = "/plugins/InstallmentPayBack";
 
 const USER_AGENT =
   process.env.SCRAPER_USER_AGENT?.trim() ||
@@ -36,11 +38,24 @@ export const VAKIF_FINANSMAN_KODLARI = {
 
 export type VakifFinansmanTuru = keyof typeof VAKIF_FINANSMAN_KODLARI;
 
+/** 1 = finansman tutarından, 2 = taksit tutarından */
+export type VakifCalculateType = "1" | "2";
+
+export type VakifHesaplamaOpts = {
+  financingType: VakifFinansmanTuru;
+  amountTl: number;
+  termMonths: number;
+  /** Boş/undefined = bankanın güncel oranı; dolu = kullanıcı oranı (yüzde, 3.99) */
+  profitRatePercent?: number | null;
+  calculateType?: VakifCalculateType;
+};
+
 export type VakifHesaplamaSonucu = {
   bankId: "vakif-katilim";
   financingType: VakifFinansmanTuru;
   amountTl: number;
   termMonths: number;
+  calculateType: VakifCalculateType;
   /** Aylık kâr payı oranı, yüzde olarak (3.99 = %3,99) */
   profitRatePercent: number | null;
   monthlyInstallmentTl: number | null;
@@ -50,6 +65,35 @@ export type VakifHesaplamaSonucu = {
   installmentLabel: string | null;
   sourceUrl: string;
   calculatedAt: string;
+};
+
+export type VakifOdemePlaniSatir = {
+  taksitNo: string;
+  taksitTutari: string;
+  anaPara: string;
+  karTutari: string;
+  kkdfTutari: string;
+  bsmvTutari: string;
+  kalanAnaPara: string;
+};
+
+export type VakifOdemePlani = {
+  ozet: {
+    finansmanTutari: string | null;
+    odenecekToplamTutar: string | null;
+    taksitTutari: string | null;
+    karOrani: string | null;
+    basliklar: {
+      finansmanTutari: string;
+      odenecekToplamTutar: string;
+      taksitTutari: string;
+      karOrani: string;
+    };
+  };
+  tableHeading: string | null;
+  tableHead: string[];
+  rows: VakifOdemePlaniSatir[];
+  sourceUrl: string;
 };
 
 /** Bankanın kendi kurallarından gelen kısıt (limit, vade vb.) — arıza değil. */
@@ -68,6 +112,12 @@ export function parseTrNumber(raw: unknown): number | null {
   if (!temiz) return null;
   const n = Number(temiz.replace(/\./g, "").replace(",", "."));
   return Number.isFinite(n) ? n : null;
+}
+
+/** API query için yüzde: 3.99 -> "3,99" (banka virgül bekliyor) */
+function formatProfitRateParam(rate: number | null | undefined): string {
+  if (rate == null || !Number.isFinite(rate)) return "";
+  return String(rate).replace(".", ",");
 }
 
 function cookieHeaderFrom(res: Response): string {
@@ -182,6 +232,17 @@ async function postPlugin(
   return (await res.json()) as Record<string, unknown>;
 }
 
+function calcParams(opts: VakifHesaplamaOpts): Record<string, string> {
+  const calculateType = opts.calculateType ?? "1";
+  return {
+    financingType: VAKIF_FINANSMAN_KODLARI[opts.financingType],
+    amount: String(Math.round(opts.amountTl)),
+    numberOfInstallments: String(opts.termMonths),
+    profitRate: formatProfitRateParam(opts.profitRatePercent),
+    calculateType,
+  };
+}
+
 /** Bir finansman türü için bankanın sunduğu vade seçenekleri (ay). */
 export async function getVakifVadeSecenekleri(
   financingType: VakifFinansmanTuru,
@@ -200,27 +261,14 @@ export async function getVakifVadeSecenekleri(
 
 /**
  * Bankanın kendi hesaplama aracıyla aynı sonucu döndürür.
- * Oran alanı boş bırakılır; banka güncel ilan ettiği oranı uygular.
+ * Oran boş bırakılırsa banka güncel ilan ettiği oranı uygular.
  */
 export async function hesaplaVakifKatilim(
-  opts: {
-    financingType: VakifFinansmanTuru;
-    amountTl: number;
-    termMonths: number;
-  },
+  opts: VakifHesaplamaOpts,
   fetchImpl: typeof fetch = fetch,
 ): Promise<VakifHesaplamaSonucu> {
-  const json = await postPlugin(
-    CALC_PATH,
-    {
-      financingType: VAKIF_FINANSMAN_KODLARI[opts.financingType],
-      amount: String(Math.round(opts.amountTl)),
-      numberOfInstallments: String(opts.termMonths),
-      profitRate: "",
-      calculateType: "1",
-    },
-    fetchImpl,
-  );
+  const calculateType = opts.calculateType ?? "1";
+  const json = await postPlugin(CALC_PATH, calcParams(opts), fetchImpl);
 
   if (json.isErrorFriendly === true || json.errorMessage) {
     // Banka tarafından gelen açıklayıcı kısıt mesajı (ör. tutar üst sınırı).
@@ -249,6 +297,7 @@ export async function hesaplaVakifKatilim(
     financingType: opts.financingType,
     amountTl: opts.amountTl,
     termMonths: opts.termMonths,
+    calculateType,
     profitRatePercent: oran,
     monthlyInstallmentTl: taksit,
     totalPaymentTl: parseTrNumber(json.totalAmount),
@@ -260,6 +309,63 @@ export async function hesaplaVakifKatilim(
         : null,
     sourceUrl: `${BASE_URL}${HOME_PATH}`,
     calculatedAt: new Date().toISOString(),
+  };
+}
+
+/** Bankanın örnek ödeme planı tablosu (InstallmentPayBack). */
+export async function getVakifOdemePlani(
+  opts: VakifHesaplamaOpts,
+  fetchImpl: typeof fetch = fetch,
+): Promise<VakifOdemePlani> {
+  const json = await postPlugin(PAYMENT_PLAN_PATH, calcParams(opts), fetchImpl);
+
+  if (json.isErrorFriendly === true || json.errorMessage) {
+    throw new VakifKisitHatasi(
+      String(json.errorMessage || "Ödeme planı oluşturulamadı.").trim(),
+    );
+  }
+
+  const ozet = (json.ornekOdemeBilgisi || {}) as Record<string, string>;
+  const baslik = (json.ornekOdemeBilgisiBaslik || {}) as Record<string, string>;
+  const body = (Array.isArray(json.tableBody) ? json.tableBody : []) as Array<
+    Record<string, string>
+  >;
+
+  return {
+    ozet: {
+      finansmanTutari: ozet.finansmanTutari ?? null,
+      odenecekToplamTutar: ozet.odenecekToplamTutar ?? null,
+      taksitTutari: ozet.taksitTutari ?? null,
+      karOrani: ozet.karOrani ?? null,
+      basliklar: {
+        finansmanTutari: baslik.finansmanTutari || "Finansman Tutarı",
+        odenecekToplamTutar: baslik.odenecekToplamTutar || "Ödenecek Toplam Tutar",
+        taksitTutari: baslik.taksitTutari || "Taksit Tutarı",
+        karOrani: baslik.karOrani || "Kâr Oranı",
+      },
+    },
+    tableHeading: typeof json.tableHeading === "string" ? json.tableHeading : null,
+    tableHead: Array.isArray(json.tableHead)
+      ? json.tableHead.map(String)
+      : [
+          "Taksit",
+          "Taksit Tutarı",
+          "Ana Para",
+          "Kâr",
+          "KKDF",
+          "BSMV",
+          "Kalan Ana Para",
+        ],
+    rows: body.map((r) => ({
+      taksitNo: String(r.taksitSayisi ?? ""),
+      taksitTutari: String(r.taksitTutari ?? ""),
+      anaPara: String(r.anaPara ?? ""),
+      karTutari: String(r.karTutari ?? ""),
+      kkdfTutari: String(r.kkdfTutari ?? ""),
+      bsmvTutari: String(r.bsmfTutari ?? r.bsmvTutari ?? ""),
+      kalanAnaPara: String(r.kalanAnaParaTutari ?? ""),
+    })),
+    sourceUrl: `${BASE_URL}/tr/yardimci-sayfalar/hesaplama-araclari/finansman-hesaplama`,
   };
 }
 

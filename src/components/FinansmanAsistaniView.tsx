@@ -84,6 +84,11 @@ export type FinansmanChatResponse = {
     sourceCheckedAt: string;
     evidenceText: string;
   }>;
+  actions?: Array<{
+    type: "navigate";
+    href: string;
+    label: string;
+  }>;
 };
 
 type Turn = {
@@ -410,11 +415,18 @@ const FlexCard: React.FC<{
 
 type FinansmanAsistaniViewProps = {
   initialQuestion?: string;
+  /** Sayfa veya sağ alt köşe sohbet paneli. */
+  variant?: "page" | "widget";
+  /** Ödeme planı / Hesaplama yönlendirmesi */
+  onNavigate?: (href: string) => void;
 };
 
 export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
   initialQuestion,
+  variant = "page",
+  onNavigate,
 }) => {
+  const isWidget = variant === "widget";
   const [input, setInput] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [loading, setLoading] = useState(false);
@@ -441,7 +453,25 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuestion]);
 
+  const navigateFromAssistant = (href: string) => {
+    if (onNavigate) {
+      onNavigate(href);
+      return;
+    }
+    if (href.startsWith("#")) {
+      window.location.hash = href.slice(1);
+    } else {
+      window.location.assign(href);
+    }
+  };
+
   const send = async (message: string, selectedQuickReply?: string) => {
+    const navValue = (selectedQuickReply || message).trim();
+    if (navValue.startsWith("__navigate__:")) {
+      navigateFromAssistant(navValue.slice("__navigate__:".length));
+      return;
+    }
+
     const text = (selectedQuickReply || message).trim();
     if (!text || loading) return;
 
@@ -528,32 +558,46 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
     (latest.exactMatches.length > 0 || latest.flexibleMatches.length > 0);
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-4rem)] max-w-4xl flex-col">
+    <div
+      className={
+        isWidget
+          ? "flex h-full min-h-0 flex-col"
+          : "mx-auto flex h-[calc(100dvh-4rem)] max-w-4xl flex-col"
+      }
+    >
       {/* Chat Area */}
       <div
         ref={listRef}
-        className="flex-1 overflow-y-auto px-2 py-4 sm:px-4"
+        className={`min-h-0 flex-1 overflow-y-auto ${isWidget ? "px-2 py-3" : "px-2 py-4 sm:px-4"}`}
       >
         {/* Boş durum — hoş geldin */}
         {turns.length === 0 && (
-          <div className="flex h-full flex-col items-center justify-center gap-6 px-4">
-            <div className="flex flex-col items-center gap-3">
-              <img
-                src={AGENT_LOGO}
-                alt="Katılım Bankası Agent"
-                className="h-16 w-16 rounded-2xl object-contain shadow-raised"
-              />
+          <div
+            className={`flex h-full flex-col items-center justify-center px-3 ${isWidget ? "gap-4" : "gap-6 px-4"}`}
+          >
+            <div className="flex flex-col items-center gap-2.5">
+              {!isWidget && (
+                <img
+                  src={AGENT_LOGO}
+                  alt="Katılım Bankası Agent"
+                  className="h-16 w-16 rounded-2xl object-contain shadow-raised"
+                />
+              )}
               <div className="text-center">
-                <h1 className="text-xl font-semibold tracking-tight text-txt">
-                  KatılımFinans Asistanı
+                <h1
+                  className={`font-semibold tracking-tight text-txt ${isWidget ? "text-base" : "text-xl"}`}
+                >
+                  {isWidget ? "Size nasıl yardımcı olabilirim?" : "KatılımFinans Asistanı"}
                 </h1>
-                <p className="mt-1 text-sm text-txt-secondary">
+                <p className={`mt-1 text-txt-secondary ${isWidget ? "text-xs" : "text-sm"}`}>
                   Katılım bankacılığı hakkında her şeyi sorabilirsiniz
                 </p>
               </div>
             </div>
 
-            <div className="grid w-full max-w-lg grid-cols-2 gap-2.5">
+            <div
+              className={`grid w-full grid-cols-2 ${isWidget ? "gap-2" : "max-w-lg gap-2.5"}`}
+            >
               {STARTERS.map((s) => {
                 const Icon = s.icon;
                 return (
@@ -561,10 +605,10 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
                     key={s.label}
                     type="button"
                     onClick={() => void send(s.value)}
-                    className="flex items-start gap-2.5 rounded-xl border border-line bg-surface p-3 text-left transition-all hover:border-brand-300 hover:shadow-raised"
+                    className={`flex items-start gap-2 rounded-xl border border-line bg-surface text-left transition-all hover:border-brand-300 hover:shadow-raised ${isWidget ? "p-2.5" : "gap-2.5 p-3"}`}
                   >
-                    <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${s.color}`} />
-                    <span className="text-sm font-medium text-txt">
+                    <Icon className={`mt-0.5 shrink-0 ${s.color} ${isWidget ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
+                    <span className={`font-medium text-txt ${isWidget ? "text-xs" : "text-sm"}`}>
                       {s.label}
                     </span>
                   </button>
@@ -617,7 +661,9 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
 
       {/* Sonuç kartları — chat alanının altında */}
       {hasResults && (
-        <div className="border-t border-line bg-sunken/30 px-2 py-4 sm:px-4">
+        <div
+          className={`shrink-0 overflow-y-auto border-t border-line bg-sunken/30 px-2 py-3 sm:px-4 ${isWidget ? "max-h-40" : "py-4"}`}
+        >
           {latest.exactMatches.length > 0 && (
             <div className="space-y-2.5">
               <p className="text-xs font-medium text-txt-muted">
@@ -634,7 +680,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
               <p className="text-xs font-medium text-txt-muted">
                 Esnek alternatifler
               </p>
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className={`grid gap-2 ${isWidget ? "grid-cols-1" : "sm:grid-cols-2"}`}>
                 {latest.flexibleMatches.map((r) => (
                   <FlexCard
                     key={r.campaignId}
@@ -683,13 +729,38 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
               key={q.id}
               type="button"
               onClick={() => void send(q.value, q.value)}
-              className="rounded-full border border-line bg-sunken px-3 py-1 text-xs font-medium text-txt transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950"
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                q.value.startsWith("__navigate__:")
+                  ? "border-brand-400 bg-brand-50 text-brand-800 hover:bg-brand-100 dark:border-brand-700 dark:bg-brand-950 dark:text-brand-200"
+                  : "border-line bg-sunken text-txt hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950"
+              }`}
             >
               {q.label}
             </button>
           ))}
         </div>
       )}
+
+      {/* Yönlendirme aksiyonları (ödeme planı → Hesaplama) */}
+      {turns.length > 0 &&
+        turns[turns.length - 1]?.role === "assistant" &&
+        turns[turns.length - 1]?.payload?.actions &&
+        turns[turns.length - 1]!.payload!.actions!.length > 0 &&
+        !loading && (
+          <div className="flex flex-wrap gap-2 border-t border-line bg-surface px-4 py-2.5">
+            {turns[turns.length - 1]!.payload!.actions!.map((a) => (
+              <button
+                key={a.href + a.label}
+                type="button"
+                onClick={() => navigateFromAssistant(a.href)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-medium text-white transition-colors hover:bg-brand-700"
+              >
+                {a.label}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            ))}
+          </div>
+        )}
 
       {/* Hata */}
       {error && (

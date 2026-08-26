@@ -27,6 +27,7 @@ import {
 } from '../data/piyasa';
 import { aylikTaksit, oranBicim, sayiBicim, teklifleriHesapla, tlBicim } from '../lib/finansman';
 import { KarsilastirmaOgesi } from '../lib/compare';
+import { FINANSMAN_NOTLARI_BY_KEY } from '../data/finansmanNotlari';
 import { BankMark } from './BankMark';
 import { TabKey } from './nav';
 
@@ -91,6 +92,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [tutarMetni, setTutarMetni] = useState<string>(sayiBicim(talep.tutar));
   const [vadeAy, setVadeAy] = useState<number>(talep.vadeAy);
   const [soru, setSoru] = useState('');
+  /** Özel kâr oranı — işaretlenince kullanıcı oranı kullanılır. */
+  const [oranOzel, setOranOzel] = useState(false);
+  const [oranMetni, setOranMetni] = useState('3,99');
+  /** 1 = finansman tutarından, 2 = taksit tutarından */
+  const [hesapTipi, setHesapTipi] = useState<'1' | '2'>('1');
   // Vakıf Katılım'ın kendi hesaplama servisinden gelen canlı sonuç.
   const [vakifCanli, setVakifCanli] = useState<VakifCanliSonuc | null>(null);
   const [vakifNotu, setVakifNotu] = useState<string | null>(null);
@@ -101,6 +107,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
     return rakamlar ? Number(rakamlar) : 0;
   }, [tutarMetni]);
 
+  const ozelOranYuzde = useMemo(() => {
+    if (!oranOzel) return null;
+    const n = Number(oranMetni.replace(',', '.').replace(/[^\d.]/g, ''));
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }, [oranOzel, oranMetni]);
+
+  const turNotu = secenek ? FINANSMAN_NOTLARI_BY_KEY[secenek] : null;
   const satirlar = useMemo(
     () => teklifleriHesapla(talep.tur, talep.tutar, talep.vadeAy),
     [talep],
@@ -164,6 +177,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
           financingType: aktifSecenek || talep.tur,
           amountTl: talep.tutar,
           termMonths: talep.vadeAy,
+          calculateType: hesapTipi,
+          ...(ozelOranYuzde != null ? { profitRatePercent: ozelOranYuzde } : {}),
         }),
       })
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error('yanıt yok'))))
@@ -177,6 +192,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
           }
           setVakifCanli(d);
           setVakifNotu(null);
+          if (d.profitRatePercent != null && !oranOzel) {
+            setOranMetni(
+              d.profitRatePercent.toLocaleString('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }),
+            );
+          }
         })
         .catch(() => {
           // Banka servisi ulaşılamazsa tablo mevcut verisiyle çalışmaya devam eder.
@@ -193,7 +216,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       iptal = true;
       clearTimeout(zamanlayici);
     };
-  }, [aktifSecenek, talep.tur, talep.tutar, talep.vadeAy]);
+  }, [aktifSecenek, talep.tur, talep.tutar, talep.vadeAy, hesapTipi, ozelOranYuzde, oranOzel]);
 
   const canliVeriAktif = canliSatirlar.length > 0;
   const temelSatirlar = canliVeriAktif ? canliSatirlar : satirlar;
@@ -303,65 +326,125 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
           <form
             onSubmit={karsilastirGonder}
-            className="mx-auto mt-3 grid max-w-3xl grid-cols-1 gap-3 rounded-xl border border-line bg-surface p-3 text-left shadow-raised sm:grid-cols-2 lg:grid-cols-[1.1fr_1fr_0.9fr_auto]"
+            className="mx-auto mt-3 max-w-3xl space-y-3 rounded-xl border border-line bg-surface p-3 text-left shadow-raised"
           >
-            <label className="block">
-              <span className="mb-1 block text-xs text-txt-secondary">Finansman Türü</span>
-              <select
-                value={secenek}
-                onChange={(e) => secenekDegistir(e.target.value)}
-                className={`h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm ${
-                  secenek ? 'text-txt' : 'text-txt-muted'
-                }`}
-              >
-                <option value="">Finansman türü seçin</option>
-                {FINANSMAN_SECENEKLERI.map((f) => (
-                  <option key={f.key} value={f.key}>
-                    {f.etiket}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.1fr_1fr_0.9fr_auto]">
+              <label className="block">
+                <span className="mb-1 block text-xs text-txt-secondary">Finansman Türü</span>
+                <select
+                  value={secenek}
+                  onChange={(e) => secenekDegistir(e.target.value)}
+                  className={`h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm ${
+                    secenek ? 'text-txt' : 'text-txt-muted'
+                  }`}
+                >
+                  <option value="">Finansman türü seçin</option>
+                  {FINANSMAN_SECENEKLERI.map((f) => (
+                    <option key={f.key} value={f.key}>
+                      {f.etiket}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="block">
-              <span className="mb-1 block text-xs text-txt-secondary">Tutar</span>
-              <span className="relative block">
-                <input
-                  inputMode="numeric"
-                  value={tutarMetni}
-                  onChange={(e) => setTutarMetni(e.target.value)}
-                  onBlur={() => setTutarMetni(tutar ? sayiBicim(tutar) : '')}
-                  className="tnum h-11 w-full rounded-lg border border-line bg-surface px-3 pr-10 font-mono text-sm text-txt"
-                />
-                <span className="absolute inset-y-0 right-3 grid place-items-center text-xs text-txt-muted">
-                  TL
+              <label className="block">
+                <span className="mb-1 block text-xs text-txt-secondary">
+                  {hesapTipi === '2' ? 'Taksit Tutarı' : 'Tutar'}
                 </span>
-              </span>
-            </label>
+                <span className="relative block">
+                  <input
+                    inputMode="numeric"
+                    value={tutarMetni}
+                    onChange={(e) => setTutarMetni(e.target.value)}
+                    onBlur={() => setTutarMetni(tutar ? sayiBicim(tutar) : '')}
+                    className="tnum h-11 w-full rounded-lg border border-line bg-surface px-3 pr-10 font-mono text-sm text-txt"
+                  />
+                  <span className="absolute inset-y-0 right-3 grid place-items-center text-xs text-txt-muted">
+                    TL
+                  </span>
+                </span>
+              </label>
 
-            <label className="block">
-              <span className="mb-1 block text-xs text-txt-secondary">Vade</span>
-              <select
-                value={vadeAy}
-                onChange={(e) => setVadeAy(Number(e.target.value))}
-                className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-txt"
+              <label className="block">
+                <span className="mb-1 block text-xs text-txt-secondary">Vade</span>
+                <select
+                  value={vadeAy}
+                  onChange={(e) => setVadeAy(Number(e.target.value))}
+                  className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-txt"
+                >
+                  {VADELER[tur].map((v) => (
+                    <option key={v} value={v}>
+                      {v} Ay
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <button
+                type="submit"
+                disabled={!secilen || tutar <= 0}
+                className="mt-auto inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-6 text-sm font-medium text-white shadow-raised transition-colors hover:bg-brand-700 disabled:opacity-50"
               >
-                {VADELER[tur].map((v) => (
-                  <option key={v} value={v}>
-                    {v} Ay
-                  </option>
-                ))}
-              </select>
-            </label>
+                Karşılaştır
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
 
-            <button
-              type="submit"
-              disabled={!secilen || tutar <= 0}
-              className="mt-auto inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-6 text-sm font-medium text-white shadow-raised transition-colors hover:bg-brand-700 disabled:opacity-50"
-            >
-              Karşılaştır
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </button>
+            <div className="grid grid-cols-1 gap-3 border-t border-line pt-3 sm:grid-cols-2">
+              <div className="block">
+                <span className="mb-1 block text-xs text-txt-secondary">
+                  Kâr Oranı Kendin Belirle
+                </span>
+                <div className="flex h-11 items-center gap-2 rounded-lg border border-line bg-surface px-3">
+                  <input
+                    id="home-oran-ozel"
+                    type="checkbox"
+                    checked={oranOzel}
+                    onChange={(e) => setOranOzel(e.target.checked)}
+                    className="h-4 w-4 rounded border-line text-brand-600 focus:ring-brand-400"
+                  />
+                  <label htmlFor="home-oran-ozel" className="sr-only">
+                    Özel kâr oranı kullan
+                  </label>
+                  <input
+                    inputMode="decimal"
+                    disabled={!oranOzel}
+                    value={oranMetni}
+                    onChange={(e) => setOranMetni(e.target.value)}
+                    aria-label="Aylık kâr oranı yüzdesi"
+                    className="tnum h-full min-w-0 flex-1 bg-transparent font-mono text-sm text-txt outline-none disabled:text-txt-muted"
+                  />
+                </div>
+              </div>
+
+              <fieldset className="flex flex-wrap items-end gap-x-5 gap-y-2 pb-1">
+                <legend className="sr-only">Hesaplama biçimi</legend>
+                <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-txt">
+                  <input
+                    type="radio"
+                    name="home-hesap-tipi"
+                    checked={hesapTipi === '1'}
+                    onChange={() => setHesapTipi('1')}
+                    className="h-4 w-4 border-line text-brand-600 focus:ring-brand-400"
+                  />
+                  Finansman Tutarından Hesapla
+                </label>
+                <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-txt">
+                  <input
+                    type="radio"
+                    name="home-hesap-tipi"
+                    checked={hesapTipi === '2'}
+                    onChange={() => setHesapTipi('2')}
+                    className="h-4 w-4 border-line text-brand-600 focus:ring-brand-400"
+                  />
+                  Taksit Tutarından Hesapla
+                </label>
+              </fieldset>
+            </div>
+
+            {turNotu && (
+              <p className="text-[11px] leading-relaxed text-txt-muted">{turNotu.metin}</p>
+            )}
           </form>
         </div>
       </section>

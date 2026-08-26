@@ -4,18 +4,22 @@ import {
   mergeMessageIntoState,
   missingRequiredFields,
   classifyTurn,
+  buildHesaplamaHref,
 } from "./finansmanNlu";
 import { runFinancingMatchEngine } from "./finansmanMatcher";
 import { buildMatchesFromQdrantEvidence } from "./finansmanEvidence";
 import {
   FINANCING_TYPE_LABEL,
+  PRODUCT_TYPE_MAP,
   type FinancingAssistantResponse,
   type FinancingConversationState,
+  type FinancingMatch,
 } from "./finansmanTypes";
 import { asciiKatla } from "../../../nlp/normalize";
 import { runRagChat } from "../rag/ragService";
 import { rehberNiyetiTespit, rehberYaniti } from "./bankDirectory";
 import { sozluktenYanitla } from "./terimSozlugu";
+import { hesaplaOdemePlani } from "../../../lib/odemePlani";
 
 const conversations = new Map<string, FinancingConversationState>();
 
@@ -272,14 +276,52 @@ function buildResultMessage(
     `${amount} TL ${typeLabel.toLowerCase()} ve ${term} ay vade için doğrulanmış ` +
     `seçenekleri karşılaştırdım.\n\n` +
     `${totalBanks} katılım bankası içinde koşullarınıza uyan ${exactCount} seçenek buldum. ` +
-    `Aşağıdaki tabloyu ilan edilen kâr payı oranına göre sıraladım.` +
+    (state.customProfitRatePercent != null
+      ? `Taksitleri sizin belirlediğiniz aylık %${state.customProfitRatePercent.toLocaleString("tr-TR", { maximumFractionDigits: 4 })} kâr oranına göre hesapladım.`
+      : `Aşağıdaki tabloyu ilan edilen kâr payı oranına göre sıraladım.`) +
     (flexCount > 0
       ? `\n\nAyrıca tutar veya vadede küçük bir değişiklik yapmanız hâlinde ` +
         `yararlanabileceğiniz ${flexCount} aktif kampanyayı ikinci tabloda gösterdim.`
       : "") +
-    `\n\nİsterseniz sonuçları toplam tahmini ödemeye veya vadeye göre yeniden ` +
-    `sıralayabilirim. Hangisini tercih edersiniz?`
+    `\n\nKâr oranını değiştirmek için “oranı %3 yap” yazabilirsiniz. ` +
+    `Ödeme planı için “ödeme planı” demeniz yeterli.`
   );
+}
+
+/** Kullanıcı oranı ile satırları yeniden hesapla (hesaplama motoru ile aynı formül). */
+function applyCustomProfitRate(
+  matches: FinancingMatch[],
+  state: FinancingConversationState,
+): FinancingMatch[] {
+  const rate = state.customProfitRatePercent;
+  const amount = state.requestedAmountTl;
+  const term = state.preferredTermMonths;
+  if (rate == null || amount == null || term == null || !state.financingType) {
+    return matches;
+  }
+  const financingTypeKey =
+    PRODUCT_TYPE_MAP[state.financingType]?.[0] || "ihtiyac_finansmani";
+  try {
+    const plan = hesaplaOdemePlani({
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: rate,
+      financingType: financingTypeKey,
+    });
+    return matches.map((m) => ({
+      ...m,
+      profitRate: rate / 100,
+      ratePeriod: "monthly" as const,
+      estimatedMonthlyPaymentTl: plan.taksitTutari,
+      estimatedTotalPaymentTl: plan.odenecekToplamTutar,
+      allocationFeeTl: plan.finansmanTahsisUcreti,
+      calculationAvailable: true,
+      calculationWarning:
+        "Kullanıcının belirlediği kâr oranı ile hesaplandı (KKDF/BSMV dâhil).",
+    }));
+  } catch {
+    return matches;
+  }
 }
 
 function applyFlexibleClick(
@@ -414,6 +456,75 @@ export async function runFinansmanAssistantChat(
   }
 
   const turn = classifyTurn(req.message, req.selectedQuickReply);
+
+  // Ödeme planı → Hesaplama sayfasına yönlendir
+  if (turn === "payment_plan") {
+    conversations.set(conversationId, state);
+    const href = buildHesaplamaHref(state);
+    const eksik = missingRequiredFields(state);
+    if (eksik.length > 0) {
+      return {
+        conversationId,
+        assistantMessage:
+          "Ödeme planı için tutar, vade ve finansman türü gerekli. " +
+          "Örneğin: “200 bin TL ihtiyaç, 24 ay, oranı %3” yazıp ardından “ödeme planı” deyin.\n\n" +
+          "Hazır olduğunuzda Hesaplama sayfasını da açabilirsiniz.",
+        status: "needs_information",
+        missingFields: eksik,
+        quickReplies: [
+          {
+            id: "nav-hesaplama",
+            label: "Hesaplama sayfasını aç",
+            value: `__navigate__:${href}`,
+          },
+          ...purposeQuickReplies().slice(0, 3),
+        ],
+        query: state,
+        exactMatches: [],
+        flexibleMatches: [],
+        summary: emptySummary(),
+        warnings: [],
+        citations: [],
+        actions: [{ type: "navigate", href, label: "Hesaplama sayfasını aç" }],
+      };
+    }
+    const oranNotu =
+      state.customProfitRatePercent != null
+        ? ` Aylık kâr oranı %${state.customProfitRatePercent.toLocaleString("tr-TR", { maximumFractionDigits: 4 })} olarak ayarlandı.`
+        : " İsterseniz önce “oranı %3 yap” diyerek kâr oranını belirleyebilirsiniz.";
+    return {
+      conversationId,
+      assistantMessage:
+        `Ödeme planınızı Hesaplama sayfasında detaylı (taksit, ana para, KKDF, BSMV) görebilirsiniz.${oranNotu}\n\n` +
+        `Aşağıdaki bağlantıya tıklayın:`,
+      status: "general_answer",
+      missingFields: [],
+      quickReplies: [
+        {
+          id: "nav-odeme",
+          label: "Ödeme Planını Aç",
+          value: `__navigate__:${href}`,
+        },
+        {
+          id: "rate-3",
+          label: "Oranı %3 yap",
+          value: "Oranı %3 yap",
+        },
+        {
+          id: "rate-399",
+          label: "Oranı %3,99 yap",
+          value: "Oranı %3,99 yap",
+        },
+      ],
+      query: state,
+      exactMatches: [],
+      flexibleMatches: [],
+      summary: emptySummary(),
+      warnings: [],
+      citations: [],
+      actions: [{ type: "navigate", href, label: "Ödeme Planını Aç" }],
+    };
+  }
 
   // Konu tamamen dışarıdaysa (yemek tarifi, hava durumu…) kapsam dışı
   // yanıtı korunur; RAG katmanına yalnızca katılım bankacılığına dair
@@ -676,7 +787,17 @@ export async function runFinansmanAssistantChat(
   state.lastResultIds = match.exactMatches.map((m) => m.productId);
   conversations.set(conversationId, state);
 
+  let exactMatches = match.exactMatches;
+  if (state.customProfitRatePercent != null) {
+    exactMatches = applyCustomProfitRate(exactMatches, state);
+  }
+
   const warnings: string[] = [...evidenceWarnings];
+  if (state.customProfitRatePercent != null) {
+    warnings.push(
+      `Taksitler kullanıcı kâr oranı (%${state.customProfitRatePercent}) ile hesaplandı.`,
+    );
+  }
   if (match.failedBanks.length) {
     warnings.push(
       "Bazı banka kaynakları şu anda doğrulanamadığı için karşılaştırma yalnızca erişilebilen güncel kaynaklarla hazırlandı.",
@@ -684,7 +805,7 @@ export async function runFinansmanAssistantChat(
     warnings.push(`Kontrol edilemeyen: ${match.failedBanks.join(", ")}`);
   }
 
-  const citations = match.exactMatches.slice(0, 8).map((m, i) => ({
+  const citations = exactMatches.slice(0, 8).map((m, i) => ({
     id: i + 1,
     bankName: m.bankName,
     sourceUrl: m.sourceUrl,
@@ -693,25 +814,27 @@ export async function runFinansmanAssistantChat(
   }));
 
   const status =
-    match.exactMatches.length > 0
+    exactMatches.length > 0
       ? ("results_ready" as const)
       : ("no_exact_match" as const);
 
   const assistantMessage =
     turn === "bank_focus"
-      ? buildBankFocusMessage(state, match.exactMatches)
+      ? buildBankFocusMessage(state, exactMatches)
       : state.intent === "campaign_search"
         ? buildCampaignMessage(
             state,
             match.flexibleMatches.length,
-            match.exactMatches.length,
+            exactMatches.length,
           )
         : buildResultMessage(
             state,
-            match.exactMatches.length,
+            exactMatches.length,
             match.flexibleMatches.length,
             10,
           );
+
+  const href = buildHesaplamaHref(state);
 
   return {
     conversationId,
@@ -733,20 +856,33 @@ export async function runFinansmanAssistantChat(
               },
               ...sortFollowUpReplies(),
             ]
-          : sortFollowUpReplies(),
+          : [
+              ...sortFollowUpReplies(),
+              {
+                id: "nav-odeme",
+                label: "Ödeme planı",
+                value: `__navigate__:${href}`,
+              },
+              {
+                id: "rate-3",
+                label: "Oranı %3 yap",
+                value: "Oranı %3 yap",
+              },
+            ],
     query: state,
-    exactMatches: match.exactMatches,
+    exactMatches,
     flexibleMatches: match.flexibleMatches,
     summary: {
       totalParticipationBanks: 10,
       checkedBanks: match.checkedBanks || 10,
-      exactMatchBankCount: match.exactMatches.length,
+      exactMatchBankCount: exactMatches.length,
       flexibleMatchCount: match.flexibleMatches.length,
       dataAsOf: match.dataAsOf,
       freshnessLabel: match.overallFreshnessLabel,
     },
     warnings,
     citations,
+    actions: [{ type: "navigate", href, label: "Ödeme Planını Aç" }],
   };
 }
 
