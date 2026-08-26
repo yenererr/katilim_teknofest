@@ -24,7 +24,7 @@ export async function getEvidenceChunks(
 
   const documentTypes = INTENT_DOC_TYPES[plan.intent];
   const search = getVectorSearchService();
-  const results = await search.searchSimilarDocuments({
+  const results = await search.searchHybrid({
     query,
     limit: topK,
     bankIds: plan.bankIds,

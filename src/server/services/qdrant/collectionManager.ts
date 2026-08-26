@@ -11,10 +11,33 @@ import {
   type QdrantHealthStatus,
 } from "./qdrantTypes";
 
+/**
+ * chunk_text için tam metin indeksi, hibrit aramanın anahtar kelime
+ * ayağını mümkün kılar. Vektör araması tek başına "azami vade kaç ay"
+ * gibi sorularda tanıtım paragraflarını öne çıkarıyor, sayıyı içeren
+ * parça alt sıralarda kalıyordu.
+ */
+type TextIndexSchema = {
+  type: "text";
+  tokenizer: "multilingual" | "word" | "whitespace" | "prefix";
+  lowercase: boolean;
+  min_token_len: number;
+  max_token_len: number;
+};
+
+const CHUNK_TEXT_INDEX: TextIndexSchema = {
+  type: "text",
+  tokenizer: "multilingual",
+  lowercase: true,
+  min_token_len: 2,
+  max_token_len: 24,
+};
+
 const PAYLOAD_INDEXES: Array<{
   field: string;
-  schema: "keyword" | "datetime";
+  schema: "keyword" | "datetime" | TextIndexSchema;
 }> = [
+  { field: "chunk_text", schema: CHUNK_TEXT_INDEX },
   { field: "bank_id", schema: "keyword" },
   { field: "bank_name", schema: "keyword" },
   { field: "source_id", schema: "keyword" },
@@ -35,7 +58,7 @@ async function ensurePayloadIndexes(
     try {
       await client.createPayloadIndex(collection, {
         field_name: field,
-        field_schema: schema,
+        field_schema: schema as never,
         wait: true,
       });
     } catch (err) {

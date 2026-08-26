@@ -12,6 +12,7 @@ import type {
   VectorSearchParams,
   VectorSearchResult,
 } from "./qdrantTypes";
+import { keywordSearch, rrfBirlestir } from "./hybridSearch";
 
 const DEFAULT_LIMIT = 8;
 const DEFAULT_SCORE_THRESHOLD = 0.35;
@@ -177,6 +178,54 @@ export class VectorSearchService {
     }
 
     return dedupeSearchResults(mapped).slice(0, limit);
+  }
+
+  /**
+   * Hibrit arama: vektör + anahtar kelime, RRF ile birleştirilir.
+   * Anahtar kelime ayağı başarısız olursa (ör. tam metin indeksi henüz
+   * oluşmamışsa) sessizce yalnızca vektör sonucuna düşülür.
+   */
+  async searchHybrid(
+    params: VectorSearchParams,
+  ): Promise<VectorSearchResult[]> {
+    const limit = Math.min(Math.max(params.limit ?? DEFAULT_LIMIT, 1), 50);
+
+    const vektorel = await this.searchSimilarDocuments({
+      ...params,
+      limit: Math.min(limit * 2, 50),
+    });
+
+    let anahtarKelime: VectorSearchResult[] = [];
+    try {
+      const { client, collection } = await this.resolveClient();
+      const filter = buildFilter(params);
+      const payloads = await keywordSearch(params.query, filter, {
+        scroll: async (f, l) => {
+          const res = await client.scroll(collection, {
+            filter: f as never,
+            limit: l,
+            with_payload: true,
+          });
+          return res.points ?? [];
+        },
+      });
+      // Anahtar kelime eşleşmesinin vektör skoru yok; sıralama RRF ile
+      // yapıldığı için skor alanı 0 bırakılır.
+      anahtarKelime = payloads
+        .filter((p) => p.chunk_text)
+        .map((p) => toResult(0, p));
+    } catch (err) {
+      console.warn(
+        "[Qdrant] anahtar kelime araması atlandı:",
+        err instanceof Error ? err.message.slice(0, 160) : err,
+      );
+    }
+
+    if (!anahtarKelime.length) return vektorel.slice(0, limit);
+
+    return dedupeSearchResults(
+      rrfBirlestir(vektorel, anahtarKelime, limit * 2),
+    ).slice(0, limit);
   }
 }
 

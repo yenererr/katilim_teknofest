@@ -226,6 +226,7 @@ export async function runRagChat(opts: {
   }
 
   const { contextText } = buildRagContext({
+    query: opts.message,
     chunks: retrieved.chunks,
     products: retrieved.products,
     comparison,

@@ -102,11 +102,29 @@ export async function callEvrenChat(
 
       const json = (await res.json()) as {
         model?: string;
-        choices?: Array<{ message?: { content?: string } }>;
+        choices?: Array<{
+          message?: { content?: string };
+          finish_reason?: string;
+        }>;
       };
-      const content = json.choices?.[0]?.message?.content?.trim();
+      const choice = json.choices?.[0];
+      const content = choice?.message?.content?.trim();
       if (!content) {
-        throw new Error("EVREN API boş yanıt döndürdü.");
+        // Model cevaptan önce uzun muhakeme üretiyor; bütçe orada
+        // tükenince içerik boş geliyor (finish_reason=length). Bu geçici
+        // bir durum, kalıcı hata değil — yeniden denemeye değer.
+        const sebep = choice?.finish_reason || "bilinmiyor";
+        if (attempt < MAX_ATTEMPTS) {
+          console.warn(
+            `[EVREN] boş yanıt (finish_reason=${sebep}), yeniden deneniyor ` +
+              `(${attempt}/${MAX_ATTEMPTS}).`,
+          );
+          await sleep(500 * attempt);
+          continue;
+        }
+        throw new Error(
+          `EVREN API boş yanıt döndürdü (finish_reason=${sebep}).`,
+        );
       }
 
       const usedModel = json.model ?? null;
