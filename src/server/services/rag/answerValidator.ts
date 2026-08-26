@@ -1,4 +1,4 @@
-import { extractCitationRefs } from "./citationService";
+import { citationTitle, extractCitationRefs } from "./citationService";
 import type {
   ComparisonToolResult,
   RagAnswer,
@@ -152,7 +152,7 @@ export function validateRagAnswer(opts: {
         citations: opts.chunks.length
           ? opts.chunks.slice(0, 3).map((c) => ({
               id: c.citationId,
-              title: c.productName,
+              title: citationTitle(c.documentType, c.productName),
               bankName: c.bankName,
               sourceUrl: c.sourceUrl,
               sourceCheckedAt: c.sourceCheckedAt,
@@ -168,7 +168,7 @@ export function validateRagAnswer(opts: {
   // Citations'ı backend chunks ile hizala (LLM URL uydurmasın)
   const syncedCitations = opts.chunks.map((c) => ({
     id: c.citationId,
-    title: c.productName || `${c.bankName} — ${c.documentType}`,
+    title: citationTitle(c.documentType, c.productName),
     bankName: c.bankName,
     sourceUrl: c.sourceUrl,
     sourceCheckedAt: c.sourceCheckedAt,

@@ -18,6 +18,73 @@ export type AssistantCitation = {
   evidenceText: string;
 };
 
+type GroupedCitation = {
+  key: string;
+  ids: number[];
+  title: string;
+  bankName: string;
+  sourceUrl: string;
+  hostLabel: string;
+  checkedLabel: string;
+  evidenceText: string;
+};
+
+/** Kaynak URL'sinden okunabilir alan adı üretir (www. ve yol atılır). */
+function hostLabel(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "Resmî kaynak";
+  }
+}
+
+function checkedLabel(iso: string): string {
+  if (!iso) return "bilinmiyor";
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) return "bilinmiyor";
+  return new Date(t).toLocaleString("tr-TR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/**
+ * Aynı sayfadan gelen parçalar tek kart altında toplanır; aksi halde
+ * aynı banka için birebir aynı görünen 3-4 kart yan yana çıkıyordu.
+ */
+function groupCitations(citations: AssistantCitation[]): GroupedCitation[] {
+  const map = new Map<string, GroupedCitation>();
+  for (const c of citations) {
+    const key = `${c.bankName}|${c.sourceUrl}|${c.title ?? ""}`;
+    const mevcut = map.get(key);
+    if (mevcut) {
+      mevcut.ids.push(c.id);
+      // Farklı parçaların kanıt metinleri birleştirilir
+      if (c.evidenceText && !mevcut.evidenceText.includes(c.evidenceText)) {
+        mevcut.evidenceText += `\n\n${c.evidenceText}`;
+      }
+      continue;
+    }
+    map.set(key, {
+      key,
+      ids: [c.id],
+      title: c.title?.trim() || "Kaynak sayfa alıntısı",
+      bankName: c.bankName,
+      sourceUrl: c.sourceUrl,
+      hostLabel: hostLabel(c.sourceUrl),
+      checkedLabel: checkedLabel(c.sourceCheckedAt),
+      evidenceText: c.evidenceText,
+    });
+  }
+  return [...map.values()].map((g) => ({
+    ...g,
+    ids: [...g.ids].sort((a, b) => a - b),
+  }));
+}
+
 export type AssistantChatResponse = {
   answer: string;
   status: string;
@@ -78,7 +145,7 @@ export const AssistantChat: React.FC<Props> = ({ initialQuestion }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [conversationId] = useState(() => crypto.randomUUID());
-  const [expandedCitation, setExpandedCitation] = useState<number | null>(null);
+  const [expandedCitation, setExpandedCitation] = useState<string | null>(null);
   const [forceRefresh, setForceRefresh] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const inputId = useId();
@@ -247,44 +314,48 @@ export const AssistantChat: React.FC<Props> = ({ initialQuestion }) => {
 
                 {turn.payload.citations?.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-txt-muted">Kaynaklar</p>
+                    <p className="text-xs font-medium text-txt-muted">
+                      Kaynaklar ({groupCitations(turn.payload.citations).length})
+                    </p>
                     <ul className="grid gap-2 sm:grid-cols-2">
-                      {turn.payload.citations.map((c) => (
-                        <li key={c.id}>
+                      {groupCitations(turn.payload.citations).map((c) => (
+                        <li key={c.key}>
                           <button
                             type="button"
                             onClick={() =>
                               setExpandedCitation((id) =>
-                                id === c.id ? null : c.id,
+                                id === c.key ? null : c.key,
                               )
                             }
-                            className="w-full rounded-lg border border-line bg-surface p-3 text-left transition hover:border-brand-300"
+                            className="flex w-full flex-col gap-1 rounded-lg border border-line bg-surface p-3 text-left transition hover:border-brand-300"
                           >
-                            <p className="text-xs font-medium text-txt">
-                              [KAYNAK {c.id}] {c.bankName}
-                            </p>
-                            <p className="mt-0.5 truncate text-xs text-txt-secondary">
-                              {c.title}
-                            </p>
-                            <p className="mt-1 text-[11px] text-txt-muted">
-                              Son kontrol:{" "}
-                              {c.sourceCheckedAt
-                                ? new Date(c.sourceCheckedAt).toLocaleString("tr-TR")
-                                : "bilinmiyor"}
-                            </p>
-                            <a
-                              href={c.sourceUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="mt-1 inline-flex items-center gap-1 text-[11px] text-brand-700 hover:underline dark:text-brand-300"
-                            >
-                              Resmî kaynak <ExternalLink className="h-3 w-3" />
-                            </a>
-                            {expandedCitation === c.id && (
-                              <p className="mt-2 border-t border-line pt-2 text-xs leading-relaxed text-txt-secondary">
+                            <span className="flex items-start justify-between gap-2">
+                              <span className="text-xs font-medium leading-snug text-txt">
+                                {c.title}
+                              </span>
+                              <span className="shrink-0 rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-txt-muted">
+                                {c.ids.map((id) => `#${id}`).join(" ")}
+                              </span>
+                            </span>
+                            <span className="truncate text-[11px] text-txt-secondary">
+                              {c.bankName}
+                            </span>
+                            <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-txt-muted">
+                              <span>Son kontrol: {c.checkedLabel}</span>
+                              <a
+                                href={c.sourceUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-brand-700 hover:underline dark:text-brand-300"
+                              >
+                                {c.hostLabel} <ExternalLink className="h-3 w-3" />
+                              </a>
+                            </span>
+                            {expandedCitation === c.key && (
+                              <span className="mt-1 border-t border-line pt-2 text-xs leading-relaxed text-txt-secondary">
                                 {c.evidenceText}
-                              </p>
+                              </span>
                             )}
                           </button>
                         </li>
