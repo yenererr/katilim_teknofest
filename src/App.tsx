@@ -17,7 +17,7 @@ import { ChatWidget } from './components/ChatWidget';
 import { VakifHesaplamaView } from './components/VakifHesaplamaView';
 import { ToastProvider, useToast } from './components/Toast';
 import { SAMPLE_BANK_TEXTS } from './data/samples';
-import { FINANSMAN_TURLERI, VERI_TARIHI } from './data/piyasa';
+import { FINANSMAN_TURLERI } from './data/piyasa';
 import { sayiBicim } from './lib/finansman';
 import { ExtractionResponse, KatilimUrunu, LiveProductsResponse } from './types';
 import { KarsilastirmaOgesi } from './lib/compare';
@@ -225,7 +225,7 @@ function AppInner() {
           if (latest) setLastUpdated(latest);
         }
       } catch {
-        // Canlı veri yoksa uygulama statik örnek veriyle çalışmaya devam eder.
+        // Canlı scrape yoksa boş kalır; uydurma ürün eklenmez.
       }
     };
 
@@ -591,7 +591,7 @@ const TrustFooter: React.FC<{ lastUpdated: string | null; liveProductCount: numb
           aciklama:
             liveProductCount > 0
               ? `${liveProductCount} ürün banka sitelerinden izlendi.`
-              : `Örnek veri ${VERI_TARIHI} itibarıyla derlendi.`,
+              : 'Canlı ürün bekleniyor; örnek oran gösterilmez.',
         },
         {
           icon: Zap,

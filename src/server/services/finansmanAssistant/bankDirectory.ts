@@ -236,6 +236,16 @@ export function ucretKalemiBul(normalMetin: string) {
 }
 
 function ucretYaniti(mesaj: string): RehberSonucu {
+  if (UCRETLER.length === 0) {
+    return {
+      message:
+        "Ücret karşılaştırması için doğrulanmış canlı tarife kaynağı henüz yok. " +
+        "Yanlış rakam vermemek için örnek liste sunmuyorum. FAST, EFT, kart aidatı " +
+        "veya hesap işletim ücreti için ilgili bankanın resmî ücret sayfasını kontrol edin.",
+      citations: [],
+    };
+  }
+
   const kalem = ucretKalemiBul(asciiKatla(mesaj));
   if (!kalem) {
     return {

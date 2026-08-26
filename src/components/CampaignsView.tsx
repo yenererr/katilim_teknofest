@@ -1,40 +1,114 @@
-import React, { useState } from 'react';
-import { CalendarDays } from 'lucide-react';
-import { BANKA_INDEKS, KAMPANYALAR, Kampanya } from '../data/piyasa';
+import React, { useEffect, useMemo, useState } from 'react';
+import { CalendarDays, ExternalLink, Loader2 } from 'lucide-react';
+import { BANKA_INDEKS } from '../data/piyasa';
 import { BankMark } from './BankMark';
 
-const KATEGORILER: { key: Kampanya['kategori'] | 'hepsi'; etiket: string }[] = [
-  { key: 'hepsi', etiket: 'Tümü' },
-  { key: 'genel', etiket: 'Genel' },
-  { key: 'market', etiket: 'Market' },
-  { key: 'egitim', etiket: 'Eğitim' },
-  { key: 'akaryakit', etiket: 'Akaryakıt' },
-  { key: 'saglik', etiket: 'Sağlık' },
-];
-
-const ETIKET_TONU: Record<string, string> = {
-  'TAKSİT': 'bg-info-50 text-info-700 dark:bg-info-950 dark:text-info-300',
-  'İNDİRİM': 'bg-warn-50 text-warn-800 dark:bg-warn-950 dark:text-warn-300',
-  'YENİ MÜŞTERİ': 'bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300',
-  'PUAN': 'bg-info-50 text-info-700 dark:bg-info-950 dark:text-info-300',
-  'NAKİT İADE': 'bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300',
+type LiveCampaign = {
+  id?: string;
+  bankId: string;
+  title?: string | null;
+  productName?: string | null;
+  sourceUrl?: string | null;
+  campaignEnd?: string | null;
+  campaignTheme?: string | null;
+  category?: string | null;
 };
 
-/** Piyasadaki güncel kampanyalar; kategoriye göre süzülür. */
+type ThemeKey =
+  | 'hepsi'
+  | 'education'
+  | 'card'
+  | 'housing'
+  | 'vehicle'
+  | 'new_customer'
+  | 'general';
+
+const TEMALAR: { key: ThemeKey; etiket: string }[] = [
+  { key: 'hepsi', etiket: 'Tümü' },
+  { key: 'education', etiket: 'Eğitim' },
+  { key: 'card', etiket: 'Kart' },
+  { key: 'housing', etiket: 'Konut' },
+  { key: 'vehicle', etiket: 'Taşıt' },
+  { key: 'new_customer', etiket: 'Yeni müşteri' },
+  { key: 'general', etiket: 'Genel' },
+];
+
+const TEMA_ETIKET: Record<string, string> = {
+  education: 'EĞİTİM',
+  card: 'KART',
+  housing: 'KONUT',
+  vehicle: 'TAŞIT',
+  new_customer: 'YENİ MÜŞTERİ',
+  general: 'GENEL',
+};
+
+/** Scrape / DB’den gelen canlı kampanyalar — statik mock yok. */
 export const CampaignsView: React.FC = () => {
-  const [kategori, setKategori] = useState<Kampanya['kategori'] | 'hepsi'>('hepsi');
-  const liste = KAMPANYALAR.filter((k) => kategori === 'hepsi' || k.kategori === kategori);
+  const [tema, setTema] = useState<ThemeKey>('hepsi');
+  const [liste, setListe] = useState<LiveCampaign[]>([]);
+  const [yukleniyor, setYukleniyor] = useState(true);
+  const [hata, setHata] = useState<string | null>(null);
+
+  useEffect(() => {
+    let iptal = false;
+    setYukleniyor(true);
+    fetch('/api/live/campaigns')
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('yanıt yok'))))
+      .then(
+        (d: {
+          financingCampaigns?: LiveCampaign[];
+          cardAndDiscountCampaigns?: LiveCampaign[];
+        }) => {
+          if (iptal) return;
+          const hepsi = [
+            ...(d.financingCampaigns || []),
+            ...(d.cardAndDiscountCampaigns || []),
+          ];
+          const uniq = new Map<string, LiveCampaign>();
+          for (const c of hepsi) {
+            const key = `${c.bankId}|${c.sourceUrl || c.id || c.title}`;
+            if (!uniq.has(key)) uniq.set(key, c);
+          }
+          setListe([...uniq.values()]);
+          setHata(null);
+        },
+      )
+      .catch(() => {
+        if (!iptal) {
+          setListe([]);
+          setHata('Kampanyalar yüklenemedi. Scraper veya veritabanı bağlantısını kontrol edin.');
+        }
+      })
+      .finally(() => {
+        if (!iptal) setYukleniyor(false);
+      });
+    return () => {
+      iptal = true;
+    };
+  }, []);
+
+  const filtrelenen = useMemo(
+    () =>
+      tema === 'hepsi'
+        ? liste
+        : liste.filter((c) => (c.campaignTheme || 'general') === tema),
+    [liste, tema],
+  );
 
   return (
     <section className="space-y-4">
+      <p className="text-xs text-txt-secondary">
+        Yalnızca banka sitelerinden scrape edilen aktif kampanyalar gösterilir; örnek veri yoktur.
+      </p>
+
       <div className="flex flex-wrap gap-1.5">
-        {KATEGORILER.map((k) => {
-          const isActive = kategori === k.key;
+        {TEMALAR.map((k) => {
+          const isActive = tema === k.key;
           return (
             <button
               key={k.key}
               type="button"
-              onClick={() => setKategori(k.key)}
+              onClick={() => setTema(k.key)}
               aria-pressed={isActive}
               className={`min-h-11 rounded-lg border px-3.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                 isActive
@@ -48,35 +122,71 @@ export const CampaignsView: React.FC = () => {
         })}
       </div>
 
+      {yukleniyor && (
+        <p className="inline-flex items-center gap-2 text-sm text-txt-muted">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Kampanyalar yükleniyor…
+        </p>
+      )}
+
+      {!yukleniyor && hata && (
+        <p className="rounded-lg border border-warn-200 bg-warn-50 px-3 py-2 text-sm text-warn-800 dark:border-warn-800 dark:bg-warn-950 dark:text-warn-200">
+          {hata}
+        </p>
+      )}
+
+      {!yukleniyor && !hata && filtrelenen.length === 0 && (
+        <p className="rounded-xl border border-line bg-surface px-4 py-8 text-center text-sm text-txt-secondary">
+          Bu filtrede kayıtlı canlı kampanya yok. Asistandan banka adı yazarak da
+          sorabilirsiniz.
+        </p>
+      )}
+
       <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {liste.map((k) => (
-          <li
-            key={k.id}
-            className="flex flex-col rounded-xl border border-line bg-surface p-4"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <span className="flex min-w-0 items-center gap-2">
-                <BankMark bankaId={k.bankaId} size="sm" />
-                <span className="truncate text-xs text-txt-secondary">
-                  {BANKA_INDEKS[k.bankaId]?.ad}
+        {filtrelenen.map((k) => {
+          const baslik = String(k.title || k.productName || 'Kampanya');
+          const temaKey = k.campaignTheme || 'general';
+          const bitis = k.campaignEnd
+            ? String(k.campaignEnd).slice(0, 10)
+            : null;
+          const rowKey = `${k.bankId}-${k.sourceUrl || k.id || baslik}`;
+          return (
+            <li
+              key={rowKey}
+              className="flex flex-col rounded-xl border border-line bg-surface p-4"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <span className="flex min-w-0 items-center gap-2">
+                  <BankMark bankaId={k.bankId} size="sm" />
+                  <span className="truncate text-xs text-txt-secondary">
+                    {BANKA_INDEKS[k.bankId]?.ad || k.bankId}
+                  </span>
                 </span>
-              </span>
-              <span
-                className={`shrink-0 rounded-full px-2 py-0.5 text-[0.625rem] font-medium tracking-wide ${
-                  ETIKET_TONU[k.etiket] ?? 'bg-sunken text-txt-secondary'
-                }`}
-              >
-                {k.etiket}
-              </span>
-            </div>
-            <h3 className="mt-3 text-sm font-medium text-txt">{k.baslik}</h3>
-            <p className="mt-1 flex-1 text-xs leading-relaxed text-txt-secondary">{k.aciklama}</p>
-            <p className="mt-3 flex items-center gap-1.5 border-t border-line pt-2.5 text-xs text-txt-muted">
-              <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-              Bitiş: {k.bitis}
-            </p>
-          </li>
-        ))}
+                <span className="shrink-0 rounded-full bg-sunken px-2 py-0.5 text-[0.625rem] font-medium tracking-wide text-txt-secondary">
+                  {TEMA_ETIKET[temaKey] || 'GENEL'}
+                </span>
+              </div>
+              <h3 className="mt-3 text-sm font-medium text-txt">{baslik}</h3>
+              {k.sourceUrl ? (
+                <a
+                  href={k.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-700 hover:text-brand-800 dark:text-brand-300"
+                >
+                  Resmî sayfa
+                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                </a>
+              ) : (
+                <p className="mt-2 text-xs text-txt-muted">Kaynak URL yok</p>
+              )}
+              <p className="mt-3 flex items-center gap-1.5 border-t border-line pt-2.5 text-xs text-txt-muted">
+                <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+                {bitis ? `Bitiş: ${bitis}` : 'Bitiş tarihi belirtilmemiş'}
+              </p>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

@@ -19,17 +19,24 @@ import {
   FINANSMAN_SECENEKLERI,
   FINANSMAN_TURLERI,
   FinansmanTuru,
-  KAMPANYALAR,
-  UCRETLER,
   VADELER,
   VARSAYILAN_TUTAR,
-  VERI_TARIHI,
 } from '../data/piyasa';
-import { aylikTaksit, oranBicim, sayiBicim, teklifleriHesapla, tlBicim } from '../lib/finansman';
+import { aylikTaksit, oranBicim, sayiBicim, tlBicim } from '../lib/finansman';
 import { KarsilastirmaOgesi } from '../lib/compare';
 import { FINANSMAN_NOTLARI_BY_KEY } from '../data/finansmanNotlari';
 import { BankMark } from './BankMark';
 import { TabKey } from './nav';
+
+type LiveCampaignOzet = {
+  id?: string;
+  bankId: string;
+  title?: string | null;
+  productName?: string | null;
+  sourceUrl?: string | null;
+  campaignEnd?: string | null;
+  campaignTheme?: string | null;
+};
 
 export interface KarsilastirmaTalebi {
   tur: FinansmanTuru;
@@ -54,12 +61,13 @@ const HERO_SEKMELERI: { key: 'finansman' | 'kampanya' | 'ucret' | 'asistan'; eti
   { key: 'asistan', etiket: 'Asistana Sor', icon: MessageSquare },
 ];
 
-const ETIKET_TONU: Record<string, string> = {
-  'TAKSİT': 'bg-info-50 text-info-700 dark:bg-info-950 dark:text-info-300',
-  'İNDİRİM': 'bg-warn-50 text-warn-800 dark:bg-warn-950 dark:text-warn-300',
-  'YENİ MÜŞTERİ': 'bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300',
-  'PUAN': 'bg-info-50 text-info-700 dark:bg-info-950 dark:text-info-300',
-  'NAKİT İADE': 'bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300',
+const TEMA_ETIKET: Record<string, string> = {
+  education: 'EĞİTİM',
+  card: 'KART',
+  housing: 'KONUT',
+  vehicle: 'TAŞIT',
+  new_customer: 'YENİ MÜŞTERİ',
+  general: 'GENEL',
 };
 
 /** /api/calculators/vakif-katilim yanıtı */
@@ -114,10 +122,38 @@ export const HomeView: React.FC<HomeViewProps> = ({
   }, [oranOzel, oranMetni]);
 
   const turNotu = secenek ? FINANSMAN_NOTLARI_BY_KEY[secenek] : null;
-  const satirlar = useMemo(
-    () => teklifleriHesapla(talep.tur, talep.tutar, talep.vadeAy),
-    [talep],
-  );
+  const [canliKampanyalar, setCanliKampanyalar] = useState<LiveCampaignOzet[]>([]);
+
+  useEffect(() => {
+    let iptal = false;
+    fetch('/api/live/campaigns')
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('yanıt yok'))))
+      .then(
+        (d: {
+          financingCampaigns?: LiveCampaignOzet[];
+          cardAndDiscountCampaigns?: LiveCampaignOzet[];
+        }) => {
+          if (iptal) return;
+          const hepsi = [
+            ...(d.financingCampaigns || []),
+            ...(d.cardAndDiscountCampaigns || []),
+          ];
+          const uniq = new Map<string, LiveCampaignOzet>();
+          for (const c of hepsi) {
+            const key = `${c.bankId}|${c.sourceUrl || c.id || c.title}`;
+            if (!uniq.has(key)) uniq.set(key, c);
+          }
+          setCanliKampanyalar([...uniq.values()]);
+        },
+      )
+      .catch(() => {
+        if (!iptal) setCanliKampanyalar([]);
+      });
+    return () => {
+      iptal = true;
+    };
+  }, []);
+
   const canliSatirlar = useMemo(
     () =>
       ogeler
@@ -219,7 +255,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   }, [aktifSecenek, talep.tur, talep.tutar, talep.vadeAy, hesapTipi, ozelOranYuzde, oranOzel]);
 
   const canliVeriAktif = canliSatirlar.length > 0;
-  const temelSatirlar = canliVeriAktif ? canliSatirlar : satirlar;
+  const temelSatirlar = canliSatirlar;
 
   // Vakıf Katılım satırı, bankanın ilan ettiği güncel rakamlarla değiştirilir.
   const tabloSatirlari = useMemo(() => {
@@ -250,7 +286,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   }, [temelSatirlar, vakifCanli]);
 
   const gecerliSatirlar = tabloSatirlari.filter((s) => s.uygunMu);
-  const fastUcretleri = UCRETLER.find((u) => u.key === 'fast')!;
+  const oneCikanKampanyalar = canliKampanyalar.slice(0, 3);
 
   const secenekDegistir = (yeniKey: string) => {
     setSecenek(yeniKey);
@@ -456,9 +492,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
       {/* ---------- Güven şeridi ---------- */}
       <section className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line lg:grid-cols-4">
         {[
-          { icon: CalendarDays, ust: 'Güncel veriler', alt: VERI_TARIHI },
+          { icon: CalendarDays, ust: 'Canlı kaynak', alt: 'Banka siteleri' },
           { icon: Users, ust: `${BANKALAR.length} Katılım Bankası`, alt: 'Kapsamda' },
-          { icon: Tag, ust: '1000+ Kampanya', alt: 'Aktif fırsat' },
+          {
+            icon: Tag,
+            ust:
+              canliKampanyalar.length > 0
+                ? `${canliKampanyalar.length} Kampanya`
+                : 'Kampanyalar',
+            alt: canliKampanyalar.length > 0 ? 'Scrape edildi' : 'Veri bekleniyor',
+          },
           { icon: ShieldCheck, ust: 'Şeffaf Karşılaştırma', alt: 'Aynı koşullarda' },
         ].map((k) => {
           const Icon = k.icon;
@@ -603,8 +646,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   {gecerliSatirlar.length === 0 && (
                     <tr className="border-t border-line">
                       <td colSpan={7} className="px-3 py-8 text-center text-sm text-txt-secondary">
-                        Seçilen vade, bu üründeki bankaların azami vadesini aşıyor. Daha kısa bir
-                        vade deneyin.
+                        {canliVeriAktif || vakifCanli
+                          ? 'Seçilen vade, bu üründeki bankaların azami vadesini aşıyor. Daha kısa bir vade deneyin.'
+                          : 'Bu koşullarda gösterilecek canlı oran yok. Karşılaştır’a basarak banka hesaplama servislerinden sonuç alın veya scrape ürünleri bekleyin — uydurma oran gösterilmez.'}
                       </td>
                     </tr>
                   )}
@@ -624,45 +668,26 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
           </section>
 
-          {/* Ücret kartları */}
+          {/* Ücret — statik tarife yok */}
           <section className="rounded-xl border border-line bg-surface p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
               <h2 className="text-base font-semibold tracking-tight text-txt">
-                Ücret Karşılaştırması — {fastUcretleri.etiket} (TL)
+                Ücret Karşılaştırması
               </h2>
               <button
                 type="button"
                 onClick={() => setActiveTab('ucretler')}
                 className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-xs text-brand-700 transition-colors hover:text-brand-800 dark:text-brand-400"
               >
-                Tüm Ücretleri Gör
+                Ücretler sekmesi
                 <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
-            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
-              {BANKALAR.map((b) => {
-                const ucret = fastUcretleri.degerler[b.id] ?? 0;
-                return (
-                  <li
-                    key={b.id}
-                    className="flex flex-col items-center gap-1.5 rounded-lg border border-line px-2 py-3 text-center"
-                  >
-                    <BankMark bankaId={b.id} size="sm" />
-                    <span className="truncate text-xs text-txt-secondary">{b.ad}</span>
-                    <span className="tnum font-mono text-base text-txt">
-                      {ucret.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
-                    </span>
-                    <span
-                      className={`text-xs ${
-                        ucret === 0 ? 'text-brand-600 dark:text-brand-400' : 'text-txt-muted'
-                      }`}
-                    >
-                      {ucret === 0 ? 'Ücretsiz' : 'İşlem başı'}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+            <p className="text-sm leading-relaxed text-txt-secondary">
+              FAST, EFT ve aidat gibi ücretler için doğrulanmış canlı tarife kaynağı henüz yok.
+              Yanlış bilgi vermemek için örnek rakam gösterilmiyor; bankanın kendi ücret sayfasını
+              kontrol edin.
+            </p>
           </section>
         </div>
 
@@ -684,41 +709,61 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
 
             <ul className="space-y-2 p-3">
-              {KAMPANYALAR.slice(0, 3).map((k) => (
-                <li
-                  key={k.id}
-                  className="rounded-xl border border-line p-3 transition-colors hover:bg-sunken"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <BankMark bankaId={k.bankaId} size="sm" />
-                      <span className="truncate text-xs text-txt-secondary">
-                        {BANKA_INDEKS[k.bankaId]?.ad}
+              {oneCikanKampanyalar.map((k) => {
+                const baslik = k.title || k.productName || 'Kampanya';
+                const tema = k.campaignTheme || 'general';
+                const bitis = k.campaignEnd ? String(k.campaignEnd).slice(0, 10) : null;
+                return (
+                  <li
+                    key={`${k.bankId}|${k.sourceUrl || k.id || baslik}`}
+                    className="rounded-xl border border-line p-3 transition-colors hover:bg-sunken"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <BankMark bankaId={k.bankId} size="sm" />
+                        <span className="truncate text-xs text-txt-secondary">
+                          {BANKA_INDEKS[k.bankId]?.ad || k.bankId}
+                        </span>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-[0.625rem] font-medium tracking-wide text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+                        {TEMA_ETIKET[tema] || 'GENEL'}
                       </span>
                     </div>
-                    <span
-                      className={`shrink-0 rounded-full px-2 py-0.5 text-[0.625rem] font-medium tracking-wide ${
-                        ETIKET_TONU[k.etiket] ?? 'bg-sunken text-txt-secondary'
-                      }`}
-                    >
-                      {k.etiket}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm font-medium text-txt">{k.baslik}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-txt-secondary">{k.aciklama}</p>
-                  <div className="mt-2.5 flex items-center justify-between gap-2">
-                    <span className="text-xs text-txt-muted">Bitiş: {k.bitis}</span>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('kampanyalar')}
-                      className="inline-flex min-h-9 items-center gap-1 rounded-lg px-1.5 text-xs text-brand-700 transition-colors hover:text-brand-800 dark:text-brand-400"
-                    >
-                      Detayları Gör
-                      <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-                    </button>
-                  </div>
+                    <p className="mt-2 text-sm font-medium text-txt">{baslik}</p>
+                    <div className="mt-2.5 flex items-center justify-between gap-2">
+                      <span className="text-xs text-txt-muted">
+                        {bitis ? `Bitiş: ${bitis}` : 'Bitiş tarihi belirtilmemiş'}
+                      </span>
+                      {k.sourceUrl ? (
+                        <a
+                          href={k.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex min-h-9 items-center gap-1 rounded-lg px-1.5 text-xs text-brand-700 transition-colors hover:text-brand-800 dark:text-brand-400"
+                        >
+                          Kaynağa git
+                          <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('kampanyalar')}
+                          className="inline-flex min-h-9 items-center gap-1 rounded-lg px-1.5 text-xs text-brand-700 transition-colors hover:text-brand-800 dark:text-brand-400"
+                        >
+                          Detayları Gör
+                          <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+              {oneCikanKampanyalar.length === 0 && (
+                <li className="rounded-xl border border-dashed border-line px-3 py-6 text-center text-sm text-txt-secondary">
+                  Canlı kampanya henüz yok. Scraper veya veritabanı bağlantısı sonrası burada
+                  görünecek.
                 </li>
-              ))}
+              )}
             </ul>
 
             <div className="border-t border-line p-2">
