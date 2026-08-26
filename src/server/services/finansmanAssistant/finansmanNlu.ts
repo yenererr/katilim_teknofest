@@ -245,6 +245,22 @@ export function classifyTurn(
     return "ambiguous_purpose";
   }
 
+  // Yeni müşteri avantajı / kampanya sorusu — rehber katmanında yakalanacak
+  if (
+    /yeni musteri/.test(t) &&
+    /(avantaj|kampanya|firsat|ozel|mantikli|hangisi|karsilastir|en iyi)/.test(t)
+  ) {
+    return "general_question";
+  }
+
+  // "Üye olmak/hesap açmak istiyorum, hangisi daha iyi" soruları
+  if (
+    /(uye olmak|hesap acmak|hesap actirmak|muster[iı] olmak)/.test(t) &&
+    /(hangisi|hangi|en iyi|avantaj|mantikli|onerirsin|tavsiye)/.test(t)
+  ) {
+    return "general_question";
+  }
+
   if (/kampanya/.test(t)) return "campaign_search";
   if (/kar[sş]ila[sş]tir/.test(t)) return "comparison";
   if (parseSortPreference(t)) return "sort_only";
@@ -272,7 +288,7 @@ export function classifyTurn(
   }
 
   const hasFinanceSignal =
-    /finansman|kredi|faiz|kar pay|vade|tutar|\btl\b|\bbin\b|milyon|banka|kat[iı]l[iı]m|ihtiyac finansman|ihtiyac kredi|\bihtiyac\b(?!\s*im)|konut|tasit|araba|arac|otomobil|\bev\s+alc|alcam|alacag|alaca[gğ]|karsilastir|sirala|masraf|tahsis|musteri|pardon/.test(
+    /finansman|kredi|faiz|kar pay|vade|tutar|\btl\b|\bbin\b|milyon|banka|kat[iı]l[iı]m|ihtiyac finansman|ihtiyac kredi|\bihtiyac\b(?!\s*im)|konut|tasit|araba|arac|otomobil|\bev\s+alc|alcam|alacag|alaca[gğ]|karsilastir|sirala|masraf|tahsis|musteri|pardon|uye olmak|hesap ac|muster[iı] olmak|kampanya|avantaj|ucret|aidat|komisyon|murabaha|tekaf[uü]l|icara|selem|mudarebe|musareke|katilma hesab|faizsiz/.test(
       t,
     ) ||
     parseTurkishAmount(t) != null ||

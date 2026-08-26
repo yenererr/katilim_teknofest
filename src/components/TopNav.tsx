@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { Bell, Bookmark, ChevronDown, Landmark, Moon, Sun, Download } from 'lucide-react';
+import { Bell, Bookmark, ChevronDown, Moon, Sun, Download } from 'lucide-react';
 import { ANA_NAV, TabKey } from './nav';
 
 interface TopNavProps {
@@ -53,9 +53,11 @@ export const TopNav: React.FC<TopNavProps> = ({
           onClick={() => setActiveTab('home')}
           className="flex shrink-0 items-center gap-2.5 rounded-lg pr-2 text-left"
         >
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-600 text-white shadow-raised">
-            <Landmark className="h-5 w-5" aria-hidden="true" />
-          </span>
+          <img
+            src="/logos/katilim-agent.png"
+            alt="Katılım Bankası Agent"
+            className="h-10 w-10 rounded-xl object-contain shadow-raised"
+          />
           <span className="hidden min-w-0 sm:block">
             <span className="block text-base leading-tight font-semibold tracking-tight text-txt">
               Katılım<span className="text-brand-600 dark:text-brand-400">Finans</span>

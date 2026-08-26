@@ -103,6 +103,8 @@ export type RehberNiyeti =
   | "banka_sitesi"
   | "banka_kampanyalari"
   | "ucret_karsilastir"
+  | "yeni_musteri_avantaj"
+  | "genel_kampanyalar"
   | null;
 
 /** Rehber sorusu mu? Değilse null döner ve normal akış sürer. */
@@ -112,7 +114,33 @@ export function rehberNiyetiTespit(mesaj: string): RehberNiyeti {
 
   if (/(kac|kac tane|sayisi|adedi)/.test(t) && bankaSozu) return "banka_sayisi";
 
+  // Yeni müşteri avantajları / kampanyaları — tüm bankalar arası
+  if (
+    /yeni musteri/.test(t) &&
+    /(avantaj|kampanya|firsat|ozel|mantikli|hangisi|karsilastir|en iyi)/.test(t)
+  ) {
+    return "yeni_musteri_avantaj";
+  }
+
+  // Tüm bankaların kampanyalarını listeleme (belirli banka belirtilmeden)
+  if (
+    /kampanya/.test(t) &&
+    !bankaBul(mesaj) &&
+    /(hangi|listele|neler|goster|tumu|hepsi|aktif|guncel|karsilastir)/.test(t)
+  ) {
+    return "genel_kampanyalar";
+  }
+
   if (/kampanya/.test(t) && bankaBul(mesaj)) return "banka_kampanyalari";
+
+  // "Üye olmak istiyorum" / "hesap açmak istiyorum" — yeni müşteri avantajlarıyla eşle
+  if (
+    /(uye olmak|hesap acmak|hesap actirmak|muster[iı] olmak|basvur)/.test(t) &&
+    bankaSozu &&
+    /(hangisi|hangi|en iyi|avantaj|mantikli|onerirsin|tavsiye)/.test(t)
+  ) {
+    return "yeni_musteri_avantaj";
+  }
 
   // Ücret soruları: "EFT ücreti ne kadar", "kart aidatı var mı"
   if (ucretKalemiBul(t)) return "ucret_karsilastir";
@@ -127,7 +155,7 @@ export function rehberNiyetiTespit(mesaj: string): RehberNiyeti {
 
   if (
     bankaSozu &&
-    /(hangileri|neler|listele|liste|say|sirala|tumu|hepsi|isimleri|adlari)/.test(
+    /(hangileri|\bhangi\b|neler|listele|liste|say\b|sirala|tumu|hepsi|isimleri|adlari|\bvar\b|kimler|sayabilir)/.test(
       t,
     )
   ) {
@@ -192,6 +220,146 @@ function kampanyaSatiri(c: Record<string, unknown>): string {
   return bitis ? `• ${baslik} (bitiş: ${bitis})` : `• ${baslik}`;
 }
 
+function yeniMusteriKampanyaYaniti(): RehberSonucu {
+  const aktifler = BANK_SOURCE_CONFIGS.filter((b) => b.enabled);
+  const tumKampanyalar = listMemoryCampaigns({ activeOnly: true });
+
+  const yeniMusteriKampanyalari = tumKampanyalar.filter(
+    (c: Record<string, unknown>) => {
+      const baslik = asciiKatla(String(c.title || ""));
+      const kategori = String(c.category || "");
+      return (
+        /yeni musteri|hosgeldin|ilk kez|yeni uyelik|yeni hesap/.test(baslik) ||
+        kategori === "new_customer_financing"
+      );
+    },
+  );
+
+  if (!yeniMusteriKampanyalari.length) {
+    const genelKampanyalar = tumKampanyalar.slice(0, 12);
+    if (!genelKampanyalar.length) {
+      return {
+        message:
+          `Şu anda kayıtlı aktif kampanya bulunamadı. Banka sayfaları henüz taranmamış olabilir.\n\n` +
+          `${aktifler.length} katılım bankasının resmî sitelerinden güncel kampanyaları kontrol edebilirsiniz.`,
+        citations: [],
+      };
+    }
+    const bankaGrup = new Map<string, Array<Record<string, unknown>>>();
+    for (const c of genelKampanyalar) {
+      const bid = String(c.bankId || "");
+      if (!bankaGrup.has(bid)) bankaGrup.set(bid, []);
+      bankaGrup.get(bid)!.push(c);
+    }
+    const satirlar: string[] = [];
+    for (const [bankId, kampanyalar] of bankaGrup) {
+      const cfg = BANK_SOURCE_CONFIGS.find((b) => b.bankId === bankId);
+      const ad = cfg?.bankName.replace(/ Katılım Bankası A\.Ş\./, "") || bankId;
+      satirlar.push(`**${ad}**`);
+      for (const c of kampanyalar.slice(0, 3)) {
+        satirlar.push(kampanyaSatiri(c));
+      }
+      satirlar.push("");
+    }
+    return {
+      message:
+        `Yeni müşteriye özel olarak etiketlenmiş kampanya bulamadım ama ` +
+        `şu anda aktif ${genelKampanyalar.length} kampanya var:\n\n` +
+        satirlar.join("\n").trim() +
+        `\n\nBelirli bir bankanın detaylarını sorabilirsiniz.`,
+      citations: genelKampanyalar.slice(0, 8).map((c: Record<string, unknown>, i: number) => ({
+        id: i + 1,
+        bankName: String(c.bankName || c.bankId || ""),
+        sourceUrl: String(c.sourceUrl || ""),
+        sourceCheckedAt: String(c.sourceCheckedAt || ""),
+        evidenceText: String(c.title || "Kampanya"),
+      })),
+    };
+  }
+
+  const bankaGrup = new Map<string, Array<Record<string, unknown>>>();
+  for (const c of yeniMusteriKampanyalari) {
+    const bid = String(c.bankId || "");
+    if (!bankaGrup.has(bid)) bankaGrup.set(bid, []);
+    bankaGrup.get(bid)!.push(c);
+  }
+
+  const satirlar: string[] = [];
+  for (const [bankId, kampanyalar] of bankaGrup) {
+    const cfg = BANK_SOURCE_CONFIGS.find((b) => b.bankId === bankId);
+    const ad = cfg?.bankName.replace(/ Katılım Bankası A\.Ş\./, "") || bankId;
+    satirlar.push(`**${ad}**`);
+    for (const c of kampanyalar.slice(0, 4)) {
+      satirlar.push(kampanyaSatiri(c));
+    }
+    satirlar.push("");
+  }
+
+  return {
+    message:
+      `${bankaGrup.size} katılım bankasında toplam ${yeniMusteriKampanyalari.length} ` +
+      `yeni müşteriye özel kampanya/avantaj buldum:\n\n` +
+      satirlar.join("\n").trim() +
+      `\n\nHerhangi birinin detayını sorabilir veya finansman tutarı belirtirseniz ` +
+      `kâr payı karşılaştırması da yapabilirim.`,
+    citations: yeniMusteriKampanyalari.slice(0, 8).map((c: Record<string, unknown>, i: number) => ({
+      id: i + 1,
+      bankName: String(c.bankName || c.bankId || ""),
+      sourceUrl: String(c.sourceUrl || ""),
+      sourceCheckedAt: String(c.sourceCheckedAt || ""),
+      evidenceText: String(c.title || "Yeni müşteri kampanyası"),
+    })),
+  };
+}
+
+function genelKampanyaYaniti(): RehberSonucu {
+  const tumKampanyalar = listMemoryCampaigns({ activeOnly: true });
+
+  if (!tumKampanyalar.length) {
+    return {
+      message:
+        "Şu anda kayıtlı aktif kampanya bulunamadı. Banka sayfaları henüz taranmamış olabilir.\n\n" +
+        "Belirli bir bankanın kampanyalarını sorabilirsiniz; yenileme tetiklenir.",
+      citations: [],
+    };
+  }
+
+  const bankaGrup = new Map<string, Array<Record<string, unknown>>>();
+  for (const c of tumKampanyalar) {
+    const bid = String(c.bankId || "");
+    if (!bankaGrup.has(bid)) bankaGrup.set(bid, []);
+    bankaGrup.get(bid)!.push(c);
+  }
+
+  const satirlar: string[] = [];
+  for (const [bankId, kampanyalar] of bankaGrup) {
+    const cfg = BANK_SOURCE_CONFIGS.find((b) => b.bankId === bankId);
+    const ad = cfg?.bankName.replace(/ Katılım Bankası A\.Ş\./, "") || bankId;
+    satirlar.push(`**${ad}** (${kampanyalar.length} kampanya)`);
+    for (const c of kampanyalar.slice(0, 3)) {
+      satirlar.push(kampanyaSatiri(c));
+    }
+    if (kampanyalar.length > 3) {
+      satirlar.push(`  … ve ${kampanyalar.length - 3} kampanya daha`);
+    }
+    satirlar.push("");
+  }
+
+  return {
+    message:
+      `${bankaGrup.size} katılım bankasında toplam ${tumKampanyalar.length} aktif kampanya var:\n\n` +
+      satirlar.join("\n").trim() +
+      `\n\nBelirli bir bankanın kampanyalarını detaylı görmek isterseniz banka adını yazın.`,
+    citations: tumKampanyalar.slice(0, 8).map((c: Record<string, unknown>, i: number) => ({
+      id: i + 1,
+      bankName: String(c.bankName || c.bankId || ""),
+      sourceUrl: String(c.sourceUrl || ""),
+      sourceCheckedAt: String(c.sourceCheckedAt || ""),
+      evidenceText: String(c.title || "Kampanya"),
+    })),
+  };
+}
+
 /** Rehber sorusuna doğrulanmış veriyle yanıt üretir. */
 export function rehberYaniti(
   niyet: Exclude<RehberNiyeti, null>,
@@ -199,6 +367,8 @@ export function rehberYaniti(
 ): RehberSonucu {
   const aktifler = BANK_SOURCE_CONFIGS.filter((b) => b.enabled);
 
+  if (niyet === "yeni_musteri_avantaj") return yeniMusteriKampanyaYaniti();
+  if (niyet === "genel_kampanyalar") return genelKampanyaYaniti();
   if (niyet === "ucret_karsilastir") return ucretYaniti(mesaj);
 
   if (niyet === "banka_sayisi") {
