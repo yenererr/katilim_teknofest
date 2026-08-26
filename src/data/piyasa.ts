@@ -11,22 +11,24 @@ export const VERI_TARIHI = '26 Mayıs 2026';
 export interface Banka {
   id: string;
   ad: string;
-  /** Logo yerine kullanılan monogram ve marka rengi */
+  /** Resmî logo yoksa kullanılan monogram ve marka rengi */
   kisa: string;
   renk: string;
+  /** public/logos altındaki resmî logo dosyasının yolu (yoksa monograma düşülür) */
+  logo?: string;
 }
 
 export const BANKALAR: Banka[] = [
-  { id: 'adil-katilim', ad: 'Adil Katılım', kisa: 'AK', renk: '#047857' },
-  { id: 'albaraka', ad: 'Albaraka Türk', kisa: 'AT', renk: '#ea7317' },
-  { id: 'dunya-katilim', ad: 'Dünya Katılım', kisa: 'DK', renk: '#7c3aed' },
-  { id: 'hayat-finans', ad: 'Hayat Finans', kisa: 'HF', renk: '#068c5e' },
-  { id: 'kuveyt-turk', ad: 'Kuveyt Türk', kisa: 'KT', renk: '#0a7d55' },
-  { id: 'tom-katilim', ad: 'T.O.M. Katılım', kisa: 'TM', renk: '#dc2626' },
-  { id: 'emlak-katilim', ad: 'Emlak Katılım', kisa: 'EK', renk: '#2563a5' },
-  { id: 'turkiye-finans', ad: 'Türkiye Finans', kisa: 'TF', renk: '#0ea5a0' },
-  { id: 'vakif-katilim', ad: 'Vakıf Katılım', kisa: 'VK', renk: '#1d4ed8' },
-  { id: 'ziraat-katilim', ad: 'Ziraat Katılım', kisa: 'ZK', renk: '#b91c3c' },
+  { id: 'adil-katilim', ad: 'Adil Katılım', kisa: 'AK', renk: '#047857', logo: '/logos/adil-katilim.png' },
+  { id: 'albaraka', ad: 'Albaraka Türk', kisa: 'AT', renk: '#ea7317', logo: '/logos/albaraka.png' },
+  { id: 'dunya-katilim', ad: 'Dünya Katılım', kisa: 'DK', renk: '#7c3aed', logo: '/logos/dunya-katilim.svg' },
+  { id: 'hayat-finans', ad: 'Hayat Finans', kisa: 'HF', renk: '#068c5e', logo: '/logos/hayat-finans.png' },
+  { id: 'kuveyt-turk', ad: 'Kuveyt Türk', kisa: 'KT', renk: '#0a7d55', logo: '/logos/kuveyt-turk.png' },
+  { id: 'tom-katilim', ad: 'T.O.M. Katılım', kisa: 'TM', renk: '#763ac7', logo: '/logos/tom-katilim.svg' },
+  { id: 'emlak-katilim', ad: 'Emlak Katılım', kisa: 'EK', renk: '#2563a5', logo: '/logos/emlak-katilim.png' },
+  { id: 'turkiye-finans', ad: 'Türkiye Finans', kisa: 'TF', renk: '#0ea5a0', logo: '/logos/turkiye-finans.png' },
+  { id: 'vakif-katilim', ad: 'Vakıf Katılım', kisa: 'VK', renk: '#1d4ed8', logo: '/logos/vakif-katilim.png' },
+  { id: 'ziraat-katilim', ad: 'Ziraat Katılım', kisa: 'ZK', renk: '#b91c3c', logo: '/logos/ziraat-katilim.svg' },
 ];
 
 export const BANKA_INDEKS: Record<string, Banka> = Object.fromEntries(

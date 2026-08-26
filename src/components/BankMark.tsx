@@ -16,18 +16,47 @@ const monogram = (ad: string) =>
     .join('')
     .toLocaleUpperCase('tr-TR');
 
-/** Banka logosu yerine geçen, marka renginde monogram rozeti. */
+/**
+ * Banka markası. Bankanın resmî logosu `public/logos/` altında varsa onu,
+ * yoksa marka renginde monogram rozetini gösterir.
+ */
 export const BankMark: React.FC<BankMarkProps> = ({ bankaId, ad, size = 'md' }) => {
   const banka = bankaId ? BANKA_INDEKS[bankaId] : undefined;
   const isim = banka?.ad ?? ad ?? 'Banka';
   const kisa = banka?.kisa ?? monogram(isim);
   const renk = banka?.renk ?? '#068c5e';
-  const boyut = size === 'sm' ? 'h-7 w-7 text-[0.625rem]' : 'h-9 w-9 text-xs';
+  const boyut = size === 'sm' ? 'h-7 w-7' : 'h-9 w-9';
+  const yazi = size === 'sm' ? 'text-[0.625rem]' : 'text-xs';
+
+  // Logo dosyası eksik veya bozuksa monograma düşülür.
+  const [logoHatasi, setLogoHatasi] = React.useState(false);
+  const logo = banka?.logo;
+
+  React.useEffect(() => {
+    setLogoHatasi(false);
+  }, [logo]);
+
+  if (logo && !logoHatasi) {
+    return (
+      <span
+        className={`grid ${boyut} aspect-square shrink-0 self-center place-items-center overflow-hidden rounded-lg border border-line bg-white`}
+      >
+        <img
+          src={logo}
+          alt={`${isim} logosu`}
+          loading="lazy"
+          decoding="async"
+          className="block h-full w-full object-contain p-0.5"
+          onError={() => setLogoHatasi(true)}
+        />
+      </span>
+    );
+  }
 
   return (
     <span
       aria-hidden="true"
-      className={`grid ${boyut} shrink-0 place-items-center rounded-lg font-semibold tracking-tight text-white`}
+      className={`grid ${boyut} ${yazi} shrink-0 place-items-center rounded-lg font-semibold tracking-tight text-white`}
       style={{ backgroundColor: renk }}
     >
       {kisa}
