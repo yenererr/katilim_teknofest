@@ -75,7 +75,9 @@ describe("banka rehberi yanıtı", () => {
 
   it("tanınmayan bankada uydurmaz, seçenekleri listeler", () => {
     const r = rehberYaniti("banka_sitesi", "Falanca Bankası web sitesi");
-    expect(r.message).toContain("anlayamadım");
+    // Uydurma bir banka/URL üretmemeli, bunun yerine seçenekleri saymalı.
+    expect(r.message).not.toMatch(/https?:\/\//);
+    expect(r.message).toContain("Kuveyt Türk");
     expect(r.citations).toEqual([]);
   });
 });

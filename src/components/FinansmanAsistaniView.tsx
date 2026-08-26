@@ -96,7 +96,7 @@ const STARTER_CHIPS = [
 ];
 
 const WELCOME =
-  "Merhaba! Katılım bankalarının doğrulanmış finansman seçeneklerini karşılaştırmanıza yardımcı olabilirim.\n\nİhtiyacınız olan tutarı ve finansman amacınızı yazmanız yeterli.";
+  "Merhaba! Katılım bankalarının finansman seçeneklerini birlikte karşılaştıralım.\n\nNe kadar tutara ihtiyacınız var ve ne için kullanacaksınız? Bu ikisi yeter.";
 
 function formatTl(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n)) return "Belirtilmemiş";
@@ -617,7 +617,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
 
   const exactSummary =
     latest && latest.exactMatches.length > 0
-      ? `${latest.summary.totalParticipationBanks} katılım bankası içinde koşullarınıza uyan ${latest.summary.exactMatchBankCount} doğrulanmış seçenek bulundu.`
+      ? `${latest.summary.totalParticipationBanks} katılım bankası içinde koşullarınıza uyan ${latest.summary.exactMatchBankCount} seçenek çıktı.`
       : "";
 
   const lastQuick =
@@ -633,8 +633,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
             Finansman Asistanı
           </h1>
           <p className="mt-0.5 max-w-xl text-sm text-txt-secondary">
-            İhtiyacınızı anlatın; güncel katılım finansmanı seçeneklerini
-            karşılaştıralım.
+            Ne aradığınızı yazın, uygun seçenekleri birlikte bulalım.
           </p>
         </div>
         <div className="text-right">

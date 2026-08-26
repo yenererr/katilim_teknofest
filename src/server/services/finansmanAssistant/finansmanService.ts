@@ -105,25 +105,25 @@ function buildNeedsInfoMessage(
 
   if (askType && askTerm) {
     parts.push(
-      "Bu finansmanı hangi amaçla kullanacaksınız ve kaç ay vade düşünüyorsunuz?",
+      "Ne için kullanacaksınız ve kaç ay vade düşünüyorsunuz?",
     );
     quick.push(...purposeQuickReplies(), ...termQuickReplies());
   } else if (askType && askAmount) {
     parts.push(
-      "Finansmanı hangi amaçla kullanacaksınız ve ne kadar tutara ihtiyacınız var?",
+      "Ne için kullanacaksınız ve ne kadar tutar lazım?",
     );
     quick.push(...purposeQuickReplies());
   } else if (askTerm && askAmount) {
-    parts.push("İstediğiniz tutarı ve vadeyi (ay) yazar mısınız?");
+    parts.push("Ne kadar tutar ve kaç ay vade düşünüyorsunuz?");
     quick.push(...termQuickReplies());
   } else if (askType) {
-    parts.push("Bu finansmanı hangi amaçla kullanacaksınız?");
+    parts.push("Ne için kullanacaksınız?");
     quick.push(...purposeQuickReplies());
   } else if (askTerm) {
     parts.push("Kaç ay vade düşünüyorsunuz?");
     quick.push(...termQuickReplies());
   } else if (askAmount) {
-    parts.push("İhtiyacınız olan tutarı yazar mısınız?");
+    parts.push("Ne kadar tutara ihtiyacınız var?");
   }
 
   // Max two question themes already handled; optionally customer as soft tip
@@ -141,7 +141,7 @@ function buildNeedsInfoMessage(
   return {
     message:
       parts.join("\n\n") ||
-      "Size uygun finansman seçeneklerini karşılaştırabilmem için kısa bilgilere ihtiyacım var.",
+      "Karşılaştırma yapabilmem için birkaç bilgi lazım.",
     quickReplies: quick.slice(0, 12),
   };
 }
@@ -157,9 +157,9 @@ function buildCampaignMessage(
   const amount = formatAmount(state.requestedAmountTl!);
   if (flexCount === 0 && exactCount === 0) {
     return (
-      `${amount} TL ${typeLabel.toLowerCase()} için doğrulanmış aktif kampanya aradım.\n\n` +
-      `Şu anda koşullarınıza uyan doğrulanmış bir kampanya kaydı bulunamadı. ` +
-      `İsterseniz tutarı veya vadeyi değiştirerek yeniden bakabilirim.`
+      `${amount} TL ${typeLabel.toLowerCase()} için kampanyalara baktım.\n\n` +
+      `Koşullarınıza uyan bir kampanya çıkmadı. ` +
+      `Tutarı ya da vadeyi değiştirirsek yeniden bakabilirim.`
     );
   }
   return (
@@ -373,7 +373,7 @@ export async function runFinansmanAssistantChat(
       conversationId,
       assistantMessage:
         sozluk.message +
-        "\n\nBir bankanın bu ürüne ait güncel koşullarını da sorabilirsiniz.",
+        "\n\nBelirli bir bankanın koşullarını da sorabilirsiniz.",
       status: "general_answer",
       missingFields: [],
       quickReplies: [
@@ -423,8 +423,8 @@ export async function runFinansmanAssistantChat(
     return {
       conversationId,
       assistantMessage:
-        "Bu konuda yardımcı olamam. Ben katılım bankalarının doğrulanmış " +
-        "finansman seçeneklerini karşılaştırmak ve katılım bankacılığı " +
+        "Bu konuda yardımcı olamam. Ben katılım bankalarının finansman " +
+        "seçeneklerini karşılaştırmak ve katılım bankacılığıyla ilgili " +
         "sorularınızı yanıtlamak için buradayım.\n\n" +
         "Tutar, vade veya finansman amacınızı (ihtiyaç, taşıt, konut…) yazabilirsiniz.",
       status: "needs_information",
@@ -489,8 +489,8 @@ export async function runFinansmanAssistantChat(
     return {
       conversationId,
       assistantMessage: hasContext
-        ? "Merhaba! Mevcut talebinizi koruyorum. İsterseniz tutarı, vadeyi veya finansman amacını güncelleyin; ya da kampanya sorabilirsiniz."
-        : "Merhaba! Katılım bankalarının doğrulanmış finansman seçeneklerini karşılaştırmanıza yardımcı olabilirim.\n\nİhtiyacınız olan tutarı ve finansman amacınızı yazmanız yeterli.",
+        ? "Kaldığımız yerden devam ediyoruz. Tutarı, vadeyi ya da amacı değiştirebilir, kampanyaları da sorabilirsiniz."
+        : "Merhaba! Katılım bankalarının finansman seçeneklerini birlikte karşılaştıralım.\n\nNe kadar tutara ihtiyacınız var ve ne için kullanacaksınız? Bu ikisi yeter.",
       status: "needs_information",
       missingFields: missingRequiredFields(state),
       quickReplies: [

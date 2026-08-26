@@ -85,7 +85,7 @@ export function createAssistantRouter(): Router {
       );
       console.error("[Assistant]", message);
       return res.status(500).json({
-        error: "Bu bilgi mevcut kaynaklarla güvenilir şekilde doğrulanamadı.",
+        error: "Şu an cevap veremedim. Biraz sonra tekrar dener misiniz?",
         detail: message,
       });
     }

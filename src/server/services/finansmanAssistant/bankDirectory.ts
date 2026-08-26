@@ -158,7 +158,7 @@ function ucretYaniti(mesaj: string): RehberSonucu {
   if (!kalem) {
     return {
       message:
-        "Hangi ücret kalemini sorduğunuzu anlayamadım. FAST, EFT, kart " +
+        "Hangi ücreti sorduğunuzu çıkaramadım. FAST, EFT, kart " +
         "aidatı, hesap işletim veya ATM nakit çekim ücretlerini " +
         "karşılaştırabilirim.",
       citations: [],
@@ -180,8 +180,8 @@ function ucretYaniti(mesaj: string): RehberSonucu {
     message:
       `**${kalem.etiket}** — ${kalem.aciklama}\n\n` +
       satirlar.join("\n") +
-      `\n\nVeri tarihi: ${VERI_TARIHI}. Ücretler bankaların ilan ettiği ` +
-      `tarifelerden derlenmiştir; güncel tutarı bankadan teyit edin.`,
+      `\n\nVeri tarihi: ${VERI_TARIHI}. Bankaların ilan ettiği tarifelerden derlendi; ` +
+      `işlem öncesi bankadan teyit etmekte fayda var.`,
     citations: [],
   };
 }
@@ -204,9 +204,9 @@ export function rehberYaniti(
   if (niyet === "banka_sayisi") {
     return {
       message:
-        `Karşılaştırmaya dahil ettiğim ${aktifler.length} katılım bankası var. ` +
-        `Hepsinin resmî sayfalarını düzenli olarak kontrol ediyorum.\n\n` +
-        `Listeyi görmek için "katılım bankalarını listele" yazabilirsiniz.`,
+        `Türkiye'de ${aktifler.length} katılım bankası var, hepsini takip ediyorum. ` +
+        `Sayfalarını düzenli olarak kontrol ediyorum.\n\n` +
+        `İsimlerini görmek isterseniz "listele" yazmanız yeterli.`,
       citations: [],
     };
   }
@@ -215,9 +215,9 @@ export function rehberYaniti(
     const satirlar = aktifler.map((b, i) => `${i + 1}. ${b.bankName}`);
     return {
       message:
-        `Karşılaştırmaya dahil ettiğim ${aktifler.length} katılım bankası:\n\n` +
+        `Takip ettiğim ${aktifler.length} katılım bankası şunlar:\n\n` +
         satirlar.join("\n") +
-        `\n\nBir bankanın resmî sitesini, kampanyalarını veya finansman ` +
+        `\n\nHerhangi birinin sitesini, kampanyalarını ya da finansman ` +
         `koşullarını sorabilirsiniz.`,
       citations: aktifler.slice(0, 10).map((b, i) => ({
         id: i + 1,
@@ -237,8 +237,8 @@ export function rehberYaniti(
   if (!cfg) {
     return {
       message:
-        `Hangi bankayı sorduğunuzu anlayamadım. ` +
-        `Şu bankalar için bilgi verebilirim: ` +
+        `Hangi bankayı kastettiğinizi çıkaramadım. ` +
+        `Şunlardan biri mi: ` +
         aktifler.map((b) => b.bankName.replace(/ Katılım Bankası A\.Ş\./, "")).join(", ") +
         ".",
       citations: [],
@@ -270,8 +270,8 @@ export function rehberYaniti(
   if (!kampanyalar.length) {
     return {
       message:
-        `${cfg.bankName} için şu anda doğrulanmış aktif kampanya kaydım yok. ` +
-        `Kampanya sayfası henüz taranmamış veya yayında aktif kampanya bulunmuyor olabilir.\n\n` +
+        `${cfg.bankName} için kayıtlı aktif kampanya görünmüyor. ` +
+        `Sayfası henüz taranmamış ya da gerçekten aktif kampanyası olmayabilir.\n\n` +
         `Resmî kampanya sayfası: ${anaSayfa(cfg.bankId)}`,
       citations: [],
     };
@@ -280,7 +280,7 @@ export function rehberYaniti(
   const gosterilecek = kampanyalar.slice(0, 8);
   return {
     message:
-      `${cfg.bankName} için doğrulanmış ${kampanyalar.length} aktif kampanya kaydım var:\n\n` +
+      `${cfg.bankName} için ${kampanyalar.length} aktif kampanya görünüyor:\n\n` +
       gosterilecek.map(kampanyaSatiri).join("\n") +
       (kampanyalar.length > gosterilecek.length
         ? `\n\n(İlk ${gosterilecek.length} tanesi gösterildi.)`

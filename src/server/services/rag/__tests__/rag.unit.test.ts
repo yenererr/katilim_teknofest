@@ -209,7 +209,9 @@ describe("answerValidator", () => {
       comparison: null,
     });
     expect(result.ok).toBe(false);
-    expect(result.answer.answer).toMatch(/doğrulanamadı/i);
+    // Uydurulan oran cevaptan tamamen çıkarılmalı ve durum düşürülmeli.
+    expect(result.answer.status).toBe("insufficient_data");
+    expect(result.answer.answer).not.toContain("%9,99");
   });
 
   it("kaynakta olmayan değerin cevapta kullanılmamasını sağlar", () => {
@@ -367,7 +369,9 @@ describe("EVREN fallback & secret safety", () => {
       }) as unknown as typeof fetch,
     });
     expect(out.fallbackUsed).toBe(true);
-    expect(out.answer.answer).toMatch(/doğrulanamadı/i);
+    // Ağ hatasında uydurma cevap değil, güvenli bir bilgilendirme dönmeli.
+    expect(out.answer.status).toBe("insufficient_data");
+    expect(out.answer.answer.length).toBeGreaterThan(0);
   });
 
   it("API anahtarı log/frontend cevabına çıkmaz", async () => {

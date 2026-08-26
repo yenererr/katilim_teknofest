@@ -146,7 +146,7 @@ export function validateRagAnswer(opts: {
       reasons,
       answer: {
         answer:
-          "Bu bilgi mevcut kaynaklarla güvenilir şekilde doğrulanamadı.",
+          "Bu bilgiyi elimdeki kaynaklarla teyit edemedim, o yüzden tahmin yürütmüyorum.",
         status: "insufficient_data",
         products: [],
         citations: opts.chunks.length

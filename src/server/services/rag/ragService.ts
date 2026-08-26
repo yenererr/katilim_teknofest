@@ -213,7 +213,7 @@ export async function runRagChat(opts: {
   if (!retrieved.chunks.length && !retrieved.products.length) {
     const empty = safeFallback(
       "insufficient_data",
-      "Resmî kaynakta doğrulanamadı. Canlı ürün veya vektör kaydı bulunamadı; veri henüz indekslenmemiş veya filtrelerle eşleşmedi.",
+      "Bu konuda elimde kayıtlı bir bilgi yok. Bankanın resmî sayfasından bakabilir ya da soruyu biraz daha belirginleştirebilirsiniz.",
       dataAsOf,
       [
         ...refresh.warnings,
@@ -304,7 +304,7 @@ export async function runRagChat(opts: {
   ) {
     finalAnswer = {
       answer:
-        "Resmî kaynaklarda ilgili içerikleri buldum ancak bu soruya net sayısal cevap üretecek düzeyde doğrulanmış yapılandırılmış veri henüz tamamlanmamış görünüyor. Aşağıdaki kaynakları inceleyebilir veya soruyu tutar/vade/banka belirterek daraltabilirsiniz.",
+        "İlgili sayfaları buldum ama net bir rakam vermeye yetecek kadar bilgi yok. Aşağıdaki kaynaklara göz atabilirsiniz. Tutar ve vade yazarsanız karşılaştırma tablosunu da çıkarabilirim.",
       status: "answered",
       products: retrieved.products.slice(0, 5).map((p) => ({
         productId: p.productId,
