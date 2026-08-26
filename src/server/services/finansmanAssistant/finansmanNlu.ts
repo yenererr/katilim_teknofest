@@ -254,16 +254,16 @@ export function classifyTurn(
     return "param_update";
   }
 
-  const somutTalep =
-    parseTurkishAmount(t) != null ||
-    parseTermMonths(t) != null ||
-    parseFinancingType(t) != null;
+  // Somut talep = karşılaştırma yapılabilecek bir tutar var demektir.
+  // Ürün türü tek başına yeterli değil: "araç finansmanı vade üst sınırı
+  // nedir" bir bilgi sorusudur, teklif talebi değil.
+  const somutTalep = parseTurkishAmount(t) != null;
 
   // "murabaha nedir", "kar payı nasıl hesaplanır", "faizsiz mi" gibi
   // bilgi soruları eşleştirme motoruyla cevaplanamaz; slot doldurmaya
   // sokmak yerine kanıtlı RAG katmanına devredilir.
   const bilgiSorusuKalibi =
-    /(nedir|ne demek|ne anlama|neye gore|nasil (calis|hesaplan|isle|belirlen)|farki nedir|ne fark|avantaj|dezavantaj|helal mi|caiz mi|faizsiz mi|sart(lar)?i ne|hangi durumlarda|ne ise yarar|kimler (alabilir|basvurabilir))/.test(
+    /(nedir|ne demek|ne anlama|neye gore|nasil (calis|hesaplan|isle|belirlen|basvur|kullan)|farki nedir|ne fark|avantaj|dezavantaj|helal mi|caiz mi|faizsiz mi|hangi durumlarda|ne ise yarar|kimler|kim yararlan|ust sinir|azami|asgari|sart|kosul|belge|gerekli evrak|basvuru icin|ne kadar sure|uygun mu|yararlanabilir)/.test(
       t,
     );
 

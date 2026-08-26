@@ -10,6 +10,7 @@ import { BANK_SOURCE_CONFIGS } from "../scraper/bankSourceConfig";
 import { listMemoryCampaigns } from "../postgres/store";
 import { getLiveBankStates } from "../liveData/liveDataBridge";
 import { asciiKatla } from "../../../nlp/normalize";
+import { BANKA_INDEKS, UCRETLER, VERI_TARIHI } from "../../../data/piyasa";
 
 export type RehberSonucu = {
   message: string;
@@ -101,6 +102,7 @@ export type RehberNiyeti =
   | "banka_sayisi"
   | "banka_sitesi"
   | "banka_kampanyalari"
+  | "ucret_karsilastir"
   | null;
 
 /** Rehber sorusu mu? Değilse null döner ve normal akış sürer. */
@@ -111,6 +113,9 @@ export function rehberNiyetiTespit(mesaj: string): RehberNiyeti {
   if (/(kac|kac tane|sayisi|adedi)/.test(t) && bankaSozu) return "banka_sayisi";
 
   if (/kampanya/.test(t) && bankaBul(mesaj)) return "banka_kampanyalari";
+
+  // Ücret soruları: "EFT ücreti ne kadar", "kart aidatı var mı"
+  if (ucretKalemiBul(t)) return "ucret_karsilastir";
 
   if (
     /(resmi site|web sitesi|internet sitesi|site adresi|sitesi ne|adresi ne|linki)/.test(
@@ -132,6 +137,55 @@ export function rehberNiyetiTespit(mesaj: string): RehberNiyeti {
   return null;
 }
 
+/** Mesajda geçen ücret kalemini bulur (FAST, EFT, kart aidatı…). */
+export function ucretKalemiBul(normalMetin: string) {
+  const eslesmeler: Record<string, string[]> = {
+    fast: ["fast"],
+    eft: ["eft", "havale"],
+    kart_aidat: ["kart aidat", "aidat", "kart ucreti"],
+    hesap_isletim: ["hesap isletim", "isletim ucreti"],
+    atm_nakit: ["atm", "nakit cekim"],
+  };
+  for (const kalem of UCRETLER) {
+    const anahtarlar = eslesmeler[kalem.key] || [kalem.key];
+    if (anahtarlar.some((a) => normalMetin.includes(a))) return kalem;
+  }
+  return null;
+}
+
+function ucretYaniti(mesaj: string): RehberSonucu {
+  const kalem = ucretKalemiBul(asciiKatla(mesaj));
+  if (!kalem) {
+    return {
+      message:
+        "Hangi ücret kalemini sorduğunuzu anlayamadım. FAST, EFT, kart " +
+        "aidatı, hesap işletim veya ATM nakit çekim ücretlerini " +
+        "karşılaştırabilirim.",
+      citations: [],
+    };
+  }
+
+  const satirlar = Object.entries(kalem.degerler)
+    .map(([bankaId, tutar]) => ({
+      ad: BANKA_INDEKS[bankaId]?.ad || bankaId,
+      tutar,
+    }))
+    .sort((a, b) => a.tutar - b.tutar)
+    .map(
+      (s) =>
+        `• ${s.ad}: ${s.tutar === 0 ? "ücretsiz" : `${s.tutar.toLocaleString("tr-TR")} TL`}`,
+    );
+
+  return {
+    message:
+      `**${kalem.etiket}** — ${kalem.aciklama}\n\n` +
+      satirlar.join("\n") +
+      `\n\nVeri tarihi: ${VERI_TARIHI}. Ücretler bankaların ilan ettiği ` +
+      `tarifelerden derlenmiştir; güncel tutarı bankadan teyit edin.`,
+    citations: [],
+  };
+}
+
 function kampanyaSatiri(c: Record<string, unknown>): string {
   const baslik = String(c.title || "Kampanya").trim();
   const bitis = c.campaignEnd ? String(c.campaignEnd).slice(0, 10) : null;
@@ -144,6 +198,8 @@ export function rehberYaniti(
   mesaj: string,
 ): RehberSonucu {
   const aktifler = BANK_SOURCE_CONFIGS.filter((b) => b.enabled);
+
+  if (niyet === "ucret_karsilastir") return ucretYaniti(mesaj);
 
   if (niyet === "banka_sayisi") {
     return {

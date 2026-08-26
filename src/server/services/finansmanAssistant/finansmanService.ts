@@ -15,6 +15,7 @@ import {
 import { asciiKatla } from "../../../nlp/normalize";
 import { runRagChat } from "../rag/ragService";
 import { rehberNiyetiTespit, rehberYaniti } from "./bankDirectory";
+import { sozluktenYanitla } from "./terimSozlugu";
 
 const conversations = new Map<string, FinancingConversationState>();
 
@@ -363,6 +364,30 @@ export async function runFinansmanAssistantChat(
   state = mergeMessageIntoState(state, req.message, req.selectedQuickReply);
   state = applyFlexibleClick(state, req.selectedQuickReply);
   state.conversationId = conversationId;
+
+  // Terminoloji soruları doğrulanmış sözlükten anında yanıtlanır.
+  const sozluk = sozluktenYanitla(req.message);
+  if (sozluk) {
+    conversations.set(conversationId, state);
+    return {
+      conversationId,
+      assistantMessage:
+        sozluk.message +
+        "\n\nBir bankanın bu ürüne ait güncel koşullarını da sorabilirsiniz.",
+      status: "general_answer",
+      missingFields: [],
+      quickReplies: [
+        ...purposeQuickReplies().slice(0, 3),
+        ...termQuickReplies().slice(0, 2),
+      ],
+      query: state,
+      exactMatches: [],
+      flexibleMatches: [],
+      summary: emptySummary(),
+      warnings: [],
+      citations: [],
+    };
+  }
 
   // Banka rehberi soruları (liste, sayı, resmî site, kampanya listesi)
   // doğrulanmış yapılandırmadan anında yanıtlanır; LLM beklenmez.
