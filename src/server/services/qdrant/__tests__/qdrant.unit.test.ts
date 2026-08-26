@@ -301,9 +301,21 @@ describe("vectorSearch metadata & dedupe", () => {
     expect(arg.filter.must).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ key: "bank_id" }),
-        expect.objectContaining({ key: "product_type" }),
         expect.objectContaining({ key: "document_type" }),
         expect.objectContaining({ key: "campaign_status" }),
+      ]),
+    );
+
+    // product_type zorunlu eşleşme değil: ürün türü tutan VEYA ürün türü
+    // tanımsız olan (kanıt metinleri) kayıtlar da dönmelidir.
+    expect(arg.filter.must).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          should: expect.arrayContaining([
+            expect.objectContaining({ key: "product_type" }),
+            expect.objectContaining({ is_empty: { key: "product_type" } }),
+          ]),
+        }),
       ]),
     );
     expect(results[0].bankName).toBe("Albaraka Türk");

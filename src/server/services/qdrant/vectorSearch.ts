@@ -36,9 +36,15 @@ function buildFilter(params: VectorSearchParams) {
   }
 
   if (params.productTypes?.length) {
+    // product_type yalnızca "product" tipi kayıtlarda dolu; kanıt (evidence)
+    // parçalarında boştur. Zorunlu eşleşme istendiğinde bir bankanın tüm
+    // kanıt metinleri elenir ve soru cevapsız kalır. Bu yüzden koşul
+    // "ürün türü eşleşsin VEYA ürün türü tanımsız olsun" biçiminde kurulur.
     must.push({
-      key: "product_type",
-      match: { any: params.productTypes },
+      should: [
+        { key: "product_type", match: { any: params.productTypes } },
+        { is_empty: { key: "product_type" } },
+      ],
     });
   }
 
