@@ -11,6 +11,7 @@ import { listMemoryCampaigns } from "../postgres/store";
 import { getLiveBankStates } from "../liveData/liveDataBridge";
 import { asciiKatla } from "../../../nlp/normalize";
 import { BANKA_INDEKS, UCRETLER, VERI_TARIHI } from "../../../data/piyasa";
+import { prettifyCampaignTitle } from "../scraper/campaignNormalize";
 
 export type RehberSonucu = {
   message: string;
@@ -260,9 +261,13 @@ function ucretYaniti(mesaj: string): RehberSonucu {
 }
 
 function kampanyaSatiri(c: Record<string, unknown>): string {
-  const baslik = String(c.title || "Kampanya").trim();
+  const baslik = prettifyCampaignTitle(
+    String(c.title || c.productName || "Kampanya"),
+  );
+  const url = String(c.sourceUrl || "").trim();
   const bitis = c.campaignEnd ? String(c.campaignEnd).slice(0, 10) : null;
-  return bitis ? `• ${baslik} (bitiş: ${bitis})` : `• ${baslik}`;
+  const metin = url ? `[${baslik}](${url})` : baslik;
+  return bitis ? `• ${metin} (bitiş: ${bitis})` : `• ${metin}`;
 }
 
 function yeniMusteriKampanyaYaniti(): RehberSonucu {
@@ -312,13 +317,13 @@ function yeniMusteriKampanyaYaniti(): RehberSonucu {
         `şu anda aktif ${genelKampanyalar.length} kampanya var:\n\n` +
         satirlar.join("\n").trim() +
         `\n\nBelirli bir bankanın detaylarını sorabilirsiniz.`,
-      citations: genelKampanyalar.slice(0, 8).map((c: Record<string, unknown>, i: number) => ({
-        id: i + 1,
-        bankName: String(c.bankName || c.bankId || ""),
-        sourceUrl: String(c.sourceUrl || ""),
-        sourceCheckedAt: String(c.sourceCheckedAt || ""),
-        evidenceText: String(c.title || "Kampanya"),
-      })),
+    citations: genelKampanyalar.slice(0, 8).map((c: Record<string, unknown>, i: number) => ({
+      id: i + 1,
+      bankName: prettifyCampaignTitle(String(c.title || c.productName || c.bankName || "")),
+      sourceUrl: String(c.sourceUrl || ""),
+      sourceCheckedAt: String(c.sourceCheckedAt || ""),
+      evidenceText: String(c.title || "Kampanya"),
+    })),
     };
   }
 
@@ -349,7 +354,7 @@ function yeniMusteriKampanyaYaniti(): RehberSonucu {
       `kâr payı karşılaştırması da yapabilirim.`,
     citations: yeniMusteriKampanyalari.slice(0, 8).map((c: Record<string, unknown>, i: number) => ({
       id: i + 1,
-      bankName: String(c.bankName || c.bankId || ""),
+      bankName: prettifyCampaignTitle(String(c.title || c.productName || c.bankName || "")),
       sourceUrl: String(c.sourceUrl || ""),
       sourceCheckedAt: String(c.sourceCheckedAt || ""),
       evidenceText: String(c.title || "Yeni müşteri kampanyası"),
@@ -397,7 +402,7 @@ function genelKampanyaYaniti(): RehberSonucu {
       `\n\nBelirli bir bankanın kampanyalarını detaylı görmek isterseniz banka adını yazın.`,
     citations: tumKampanyalar.slice(0, 8).map((c: Record<string, unknown>, i: number) => ({
       id: i + 1,
-      bankName: String(c.bankName || c.bankId || ""),
+      bankName: prettifyCampaignTitle(String(c.title || c.productName || c.bankName || "")),
       sourceUrl: String(c.sourceUrl || ""),
       sourceCheckedAt: String(c.sourceCheckedAt || ""),
       evidenceText: String(c.title || "Kampanya"),
@@ -527,7 +532,9 @@ export function rehberYaniti(
         : ""),
     citations: gosterilecek.map((c: Record<string, unknown>, i: number) => ({
       id: i + 1,
-      bankName: cfg.bankName,
+      bankName: prettifyCampaignTitle(
+        String(c.title || c.productName || cfg.bankName),
+      ),
       sourceUrl: String(c.sourceUrl || anaSayfa(cfg.bankId)),
       sourceCheckedAt: String(c.sourceCheckedAt || sonKontrol(cfg.bankId)),
       evidenceText: String(c.title || "Kampanya"),

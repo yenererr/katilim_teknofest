@@ -319,12 +319,21 @@ function parseEvrenRecords(
   return out.filter((r) => r.category !== "irrelevant");
 }
 
+import {
+  isCampaignListingUrl,
+  isJunkCampaignTitle,
+  normalizeCampaignUrl,
+  prettifyCampaignTitle,
+} from "./campaignNormalize";
+
 export function stubCampaignFromUrl(opts: {
   bankId: string;
   sourceUrl: string;
   categoryHint?: ContentCategory;
   title?: string | null;
-}): ExtractedFinancialRecord {
+}): ExtractedFinancialRecord | null {
+  if (isCampaignListingUrl(opts.sourceUrl)) return null;
+
   let title = opts.title?.trim() || "";
   if (!title) {
     try {
@@ -337,10 +346,11 @@ export function stubCampaignFromUrl(opts: {
         .replace(/\.html?$/i, "")
         .trim();
     } catch {
-      title = "Kampanya";
+      title = "";
     }
   }
-  if (!title) title = "Kampanya";
+  title = prettifyCampaignTitle(title);
+  if (isJunkCampaignTitle(title)) return null;
 
   const category: ContentCategory =
     opts.categoryHint === "card_campaign"
@@ -398,7 +408,8 @@ export async function extractFinancialRecordsFromText(opts: {
   const clipped = opts.text.slice(0, 8_000);
   if (clipped.length < 40) {
     if (/kampanya/i.test(opts.sourceUrl) || opts.categoryHint?.includes("campaign")) {
-      return [stubCampaignFromUrl(opts)];
+      const stub = stubCampaignFromUrl(opts);
+      return stub ? [stub] : [];
     }
     return [];
   }
@@ -425,7 +436,10 @@ export async function extractFinancialRecordsFromText(opts: {
   ) {
     const rules = ruleBasedExtractRecords(extractOpts);
     if (rules.length > 0) return rules;
-    if (isCampaignContext) return [stubCampaignFromUrl(opts)];
+    if (isCampaignContext) {
+      const stub = stubCampaignFromUrl(opts);
+      return stub ? [stub] : [];
+    }
     return [];
   }
 
@@ -451,7 +465,10 @@ export async function extractFinancialRecordsFromText(opts: {
 
   const rules = ruleBasedExtractRecords(extractOpts);
   if (rules.length > 0) return rules;
-  if (isCampaignContext) return [stubCampaignFromUrl(opts)];
+  if (isCampaignContext) {
+    const stub = stubCampaignFromUrl(opts);
+    return stub ? [stub] : [];
+  }
   return [];
 }
 

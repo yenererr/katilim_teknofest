@@ -199,13 +199,27 @@ function groupCitations(
 function renderMarkdown(text: string): React.ReactNode {
   const lines = text.split("\n");
   return lines.map((line, i) => {
-    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+    const parts = line.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g);
     const rendered = parts.map((part, j) => {
       if (part.startsWith("**") && part.endsWith("**")) {
         return (
           <strong key={j} className="font-semibold text-txt">
             {part.slice(2, -2)}
           </strong>
+        );
+      }
+      const link = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(part);
+      if (link) {
+        return (
+          <a
+            key={j}
+            href={link[2]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-brand-700 underline underline-offset-2 hover:text-brand-800 dark:text-brand-300"
+          >
+            {link[1]}
+          </a>
         );
       }
       return part;

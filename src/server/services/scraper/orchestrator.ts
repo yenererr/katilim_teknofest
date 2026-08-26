@@ -207,14 +207,17 @@ async function scrapeOneBankOfficial(
         if (opts?.campaignOnly || seed.sourceType === "campaign_listing") {
           const details = await adapter.discoverDetailUrls(page);
           for (const d of details.slice(0, maxDetails)) discovered.add(d);
-          const stubs = details.slice(0, maxDetails).map((url) =>
-            stubCampaignFromUrl({
-              bankId,
-              sourceUrl: url,
-              categoryHint:
-                /kart/i.test(url) ? "card_campaign" : "financing_campaign",
-            }),
-          );
+          const stubs = details
+            .slice(0, maxDetails)
+            .map((url) =>
+              stubCampaignFromUrl({
+                bankId,
+                sourceUrl: url,
+                categoryHint:
+                  /kart/i.test(url) ? "card_campaign" : "financing_campaign",
+              }),
+            )
+            .filter((s): s is NonNullable<typeof s> => Boolean(s));
           if (stubs.length) {
             records.push(...stubs);
             await upsertExtractedRecords(stubs);
@@ -247,7 +250,8 @@ async function scrapeOneBankOfficial(
               categoryHint:
                 /kart/i.test(url) ? "card_campaign" : "financing_campaign",
             }),
-          );
+          )
+          .filter((s): s is NonNullable<typeof s> => Boolean(s));
         if (stubs.length) {
           records.push(...stubs);
           await upsertExtractedRecords(stubs);

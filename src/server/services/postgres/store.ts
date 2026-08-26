@@ -1,6 +1,13 @@
 import pg from "pg";
 import { BANK_SOURCE_CONFIGS } from "../scraper/bankSourceConfig";
 import type { ExtractedFinancialRecord } from "../scraper/scraperTypes";
+import {
+  dedupeCampaignRecords,
+  isCampaignListingUrl,
+  isJunkCampaignTitle,
+  normalizeCampaignUrl,
+  prettifyCampaignTitle,
+} from "../scraper/campaignNormalize";
 import crypto from "crypto";
 
 const { Pool } = pg;
@@ -124,10 +131,11 @@ export async function upsertExtractedRecords(
 ): Promise<number> {
   const p = getPool();
   let count = 0;
-  for (const r of records) {
-    if (r.category === "irrelevant" || r.category === "general_announcement") {
+  for (const raw of records) {
+    if (raw.category === "irrelevant" || raw.category === "general_announcement") {
       continue;
     }
+    let r: ExtractedFinancialRecord = raw;
     const isCampaign =
       r.recordType === "campaign" ||
       /kampanya/i.test(r.sourceUrl) ||
@@ -139,9 +147,22 @@ export async function upsertExtractedRecords(
       ].includes(r.category);
     const recordType = isCampaign ? "campaign" : r.recordType;
 
+    if (recordType === "campaign") {
+      if (isCampaignListingUrl(r.sourceUrl)) continue;
+      const title = prettifyCampaignTitle(
+        String(r.title || r.productName || ""),
+      );
+      if (isJunkCampaignTitle(title)) continue;
+      r = { ...r, title, productName: r.productName || title };
+    }
+
     const id = crypto
       .createHash("sha1")
-      .update(`${r.bankId}|${r.sourceUrl}|${r.productName || r.title || ""}|${recordType}`)
+      .update(
+        recordType === "campaign"
+          ? `${r.bankId}|${normalizeCampaignUrl(r.sourceUrl)}|campaign`
+          : `${r.bankId}|${r.sourceUrl}|${r.productName || r.title || ""}|${recordType}`,
+      )
       .digest("hex")
       .slice(0, 24);
 
@@ -252,7 +273,7 @@ export function listMemoryCampaigns(filter?: { bankId?: string; activeOnly?: boo
   if (filter?.activeOnly) {
     rows = rows.filter((r) => r.campaignStatus === "active");
   }
-  return rows;
+  return dedupeCampaignRecords(rows);
 }
 
 /** Postgres'teki kampanya/ürünleri bellek Map'ine yükler (rehber + matcher için). */
