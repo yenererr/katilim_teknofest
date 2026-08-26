@@ -131,7 +131,10 @@ export async function generateRagAnswer(opts: {
       userPrompt,
       jsonMode: true,
       temperature: 0,
-      maxTokens: 1600,
+      // Model cevaptan önce uzun bir muhakeme çıktısı üretiyor; sınır dar
+      // olduğunda bütçe muhakemede tükeniyor ve içerik boş dönüyordu
+      // ("EVREN API boş yanıt döndürdü"), her soru hazır şablona düşüyordu.
+      maxTokens: 4096,
       fetchImpl: opts.fetchImpl,
       timeoutMs: ragTimeoutMs,
     });

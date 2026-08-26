@@ -45,13 +45,19 @@ export async function retrieveForPlan(
     structuredDurationMs = Date.now() - t0;
   }
 
-  // Kaynak çeşitliliği: aynı sourceId'den en fazla 3 parça
-  const perSource = new Map<string, number>();
+  // Kaynak çeşitliliği sayfa bazlı uygulanır. sourceId banka kimliğidir;
+  // banka başına 3 parça sınırı, o bankaya ait tüm sayfaların yalnızca ilk
+  // (çoğunlukla tanıtım) paragraflarının LLM'e ulaşmasına yol açıyordu.
+  const perPage = new Map<string, number>();
+  const perBank = new Map<string, number>();
   const diversified: RetrievedChunk[] = [];
   for (const c of chunks) {
-    const n = perSource.get(c.sourceId) || 0;
-    if (n >= 3) continue;
-    perSource.set(c.sourceId, n + 1);
+    const sayfa = perPage.get(c.sourceUrl) || 0;
+    if (sayfa >= 3) continue;
+    const banka = perBank.get(c.sourceId) || 0;
+    if (banka >= 6) continue;
+    perPage.set(c.sourceUrl, sayfa + 1);
+    perBank.set(c.sourceId, banka + 1);
     diversified.push({ ...c, citationId: diversified.length + 1 });
   }
 

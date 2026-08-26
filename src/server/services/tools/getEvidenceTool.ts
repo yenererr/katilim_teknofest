@@ -18,7 +18,7 @@ const INTENT_DOC_TYPES: Partial<Record<string, DocumentType[]>> = {
 export async function getEvidenceChunks(
   query: string,
   plan: RagQueryPlan,
-  topK = 10,
+  topK = 16,
 ): Promise<RetrievedChunk[]> {
   if (!isQdrantConfigured()) return [];
 
