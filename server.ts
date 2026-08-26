@@ -7,6 +7,7 @@ import { createServer as createViteServer } from "vite";
 import { asciiKatla, terimOzeti } from "./src/nlp";
 import { createQdrantRouter } from "./src/server/routes/qdrantRoutes";
 import { createAssistantRouter } from "./src/server/routes/assistantRoutes";
+import { createCalculatorRouter } from "./src/server/routes/calculatorRoutes";
 import {
   createLiveDataRouter,
   createSystemRouter,
@@ -477,6 +478,7 @@ Yalnızca geçerli JSON döndür. Kod bloğu markatörleri veya açıklama EKLEM
 app.use("/api/qdrant", createQdrantRouter());
 app.use("/api/assistant", createAssistantRouter());
 app.use("/api/live", createLiveDataRouter());
+app.use("/api/calculators", createCalculatorRouter());
 app.use("/api/system", createSystemRouter());
 
 app.get("/api/health", (req, res) => {

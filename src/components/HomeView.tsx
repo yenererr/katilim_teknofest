@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import {
   ArrowRight,
@@ -60,6 +60,17 @@ const ETIKET_TONU: Record<string, string> = {
   'NAKİT İADE': 'bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300',
 };
 
+/** /api/calculators/vakif-katilim yanıtı */
+type VakifCanliSonuc = {
+  profitRatePercent: number | null;
+  monthlyInstallmentTl: number | null;
+  totalPaymentTl: number | null;
+  appraisementFeeTl: number | null;
+  termMonths: number;
+  amountTl: number;
+  calculatedAt: string;
+};
+
 export const HomeView: React.FC<HomeViewProps> = ({
   setActiveTab,
   onKarsilastir,
@@ -74,6 +85,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [tutarMetni, setTutarMetni] = useState<string>(sayiBicim(talep.tutar));
   const [vadeAy, setVadeAy] = useState<number>(talep.vadeAy);
   const [soru, setSoru] = useState('');
+  // Vakıf Katılım'ın kendi hesaplama servisinden gelen canlı sonuç.
+  const [vakifCanli, setVakifCanli] = useState<VakifCanliSonuc | null>(null);
+  const [vakifNotu, setVakifNotu] = useState<string | null>(null);
+  const [vakifYukleniyor, setVakifYukleniyor] = useState(false);
 
   const tutar = useMemo(() => {
     const rakamlar = tutarMetni.replace(/[^\d]/g, '');
@@ -126,8 +141,85 @@ export const HomeView: React.FC<HomeViewProps> = ({
         }),
     [ogeler, talep],
   );
+  // Vakıf Katılım için bankanın kendi hesaplama servisinden canlı sonuç al.
+  // Kullanıcı yazarken her tuşta istek gitmesin diye kısa bir bekleme var.
+  useEffect(() => {
+    if (talep.tutar <= 0 || talep.vadeAy <= 0) {
+      setVakifCanli(null);
+      return;
+    }
+    let iptal = false;
+    setVakifYukleniyor(true);
+    const zamanlayici = setTimeout(() => {
+      fetch('/api/calculators/vakif-katilim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          financingType: talep.tur,
+          amountTl: talep.tutar,
+          termMonths: talep.vadeAy,
+        }),
+      })
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error('yanıt yok'))))
+        .then((d: VakifCanliSonuc & { available?: boolean; reason?: string }) => {
+          if (iptal) return;
+          if (d.available === false) {
+            // Bankanın kendi kısıtı (tutar/vade limiti) — kullanıcıya gösterilir.
+            setVakifCanli(null);
+            setVakifNotu(d.reason || null);
+            return;
+          }
+          setVakifCanli(d);
+          setVakifNotu(null);
+        })
+        .catch(() => {
+          // Banka servisi ulaşılamazsa tablo mevcut verisiyle çalışmaya devam eder.
+          if (!iptal) {
+            setVakifCanli(null);
+            setVakifNotu(null);
+          }
+        })
+        .finally(() => {
+          if (!iptal) setVakifYukleniyor(false);
+        });
+    }, 350);
+    return () => {
+      iptal = true;
+      clearTimeout(zamanlayici);
+    };
+  }, [talep.tur, talep.tutar, talep.vadeAy]);
+
   const canliVeriAktif = canliSatirlar.length > 0;
-  const tabloSatirlari = canliVeriAktif ? canliSatirlar : satirlar;
+  const temelSatirlar = canliVeriAktif ? canliSatirlar : satirlar;
+
+  // Vakıf Katılım satırı, bankanın ilan ettiği güncel rakamlarla değiştirilir.
+  const tabloSatirlari = useMemo(() => {
+    const t = vakifCanli;
+    if (!t || t.monthlyInstallmentTl == null || t.profitRatePercent == null) {
+      return temelSatirlar;
+    }
+    const toplamOdeme = t.totalPaymentTl ?? t.monthlyInstallmentTl * t.termMonths;
+    const tahsisUcreti = t.appraisementFeeTl ?? 0;
+    const vakifSatir = {
+      id: 'vakif-katilim-canli',
+      bankaId: 'vakif-katilim',
+      bankaAdi: 'Vakıf Katılım',
+      aylikKarPayi: t.profitRatePercent / 100,
+      taksit: t.monthlyInstallmentTl,
+      toplamOdeme,
+      tahsisUcreti,
+      toplamMaliyet: toplamOdeme + tahsisUcreti,
+      kampanyaliMi: false,
+      uygunMu: true,
+      canli: true as const,
+    };
+    const digerleri = temelSatirlar.filter((s) => s.bankaId !== 'vakif-katilim');
+    return [...digerleri, vakifSatir].sort((a, b) => {
+      if (a.uygunMu !== b.uygunMu) return a.uygunMu ? -1 : 1;
+      return a.toplamMaliyet - b.toplamMaliyet;
+    });
+  }, [temelSatirlar, vakifCanli]);
+
   const gecerliSatirlar = tabloSatirlari.filter((s) => s.uygunMu);
   const fastUcretleri = UCRETLER.find((u) => u.key === 'fast')!;
 
@@ -309,7 +401,23 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   canlı scrape
                 </span>
               )}
+              {vakifYukleniyor && (
+                <span className="ml-1 text-[0.625rem] text-txt-muted">
+                  Vakıf Katılım hesaplanıyor…
+                </span>
+              )}
+              {vakifCanli && !vakifYukleniyor && (
+                <span className="ml-1 rounded border border-brand-200 bg-brand-50 px-1.5 py-0.5 text-[0.625rem] text-brand-700 dark:border-brand-800 dark:bg-brand-950 dark:text-brand-300">
+                  Vakıf Katılım: bankanın kendi hesaplaması
+                </span>
+              )}
             </p>
+
+            {vakifNotu && (
+              <p className="px-4 pb-1 text-xs text-warn-800 dark:text-warn-200">
+                Vakıf Katılım bu koşullarda hesaplama sunmuyor: {vakifNotu}
+              </p>
+            )}
 
             <div className="overflow-x-auto px-2 pb-2">
               <table className="w-full min-w-[44rem] border-collapse text-sm">
