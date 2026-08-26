@@ -172,7 +172,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                       setHeroSekme(s.key);
                       if (s.key === 'kampanya') setActiveTab('kampanyalar');
                       if (s.key === 'ucret') setActiveTab('ucretler');
-                      if (s.key === 'asistan') setActiveTab('asistan');
+                      if (s.key === 'asistan') setActiveTab('finansman-asistani');
                     }}
                     className={`relative flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm whitespace-nowrap transition-colors ${
                       isActive

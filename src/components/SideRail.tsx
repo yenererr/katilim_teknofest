@@ -44,16 +44,10 @@ const IHTIYACLAR: IhtiyacKarti[] = [
   },
   {
     key: 'finansman-asistani',
-    baslik: 'Finansman Asistanı',
-    aciklama: 'Sohbetle finansman bul',
-    icon: MessagesSquare,
-    tooltip: 'Finansman Asistanı',
-  },
-  {
-    key: 'asistan',
     baslik: 'Asistana Sor',
-    aciklama: 'Doğal dil ile sor, öğren',
-    icon: MessageSquare,
+    aciklama: 'Finansman bul veya soru sor',
+    icon: MessagesSquare,
+    tooltip: 'Asistan',
   },
 ];
 

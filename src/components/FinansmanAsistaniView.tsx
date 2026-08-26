@@ -442,7 +442,67 @@ const FlexTable: React.FC<{
   );
 };
 
-export const FinansmanAsistaniView: React.FC = () => {
+type GroupedCitation = {
+  key: string;
+  ids: number[];
+  bankName: string;
+  sourceUrl: string;
+  hostLabel: string;
+  sourceCheckedAt: string;
+};
+
+/** Kaynak URL'sinden okunabilir alan adı üretir. */
+function hostLabel(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "resmî kaynak";
+  }
+}
+
+/**
+ * Aynı sayfadan gelen parçalar tek satırda toplanır; aksi halde aynı banka
+ * için birebir aynı görünen satırlar alt alta tekrarlanıyordu.
+ */
+function groupCitations(
+  citations: Array<{
+    id: number;
+    bankName: string;
+    sourceUrl: string;
+    sourceCheckedAt: string;
+  }>,
+): GroupedCitation[] {
+  const map = new Map<string, GroupedCitation>();
+  for (const c of citations) {
+    const key = `${c.bankName}|${c.sourceUrl}`;
+    const mevcut = map.get(key);
+    if (mevcut) {
+      mevcut.ids.push(c.id);
+      continue;
+    }
+    map.set(key, {
+      key,
+      ids: [c.id],
+      bankName: c.bankName,
+      sourceUrl: c.sourceUrl,
+      hostLabel: hostLabel(c.sourceUrl),
+      sourceCheckedAt: c.sourceCheckedAt,
+    });
+  }
+  return [...map.values()].map((g) => ({
+    ...g,
+    ids: [...g.ids].sort((a, b) => a - b),
+  }));
+}
+
+type FinansmanAsistaniViewProps = {
+  /** Dışarıdan (arama kutusu, geçmiş, hızlı işlem) gelen ilk soru. */
+  initialQuestion?: string;
+};
+
+export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
+  initialQuestion,
+}) => {
   const [input, setInput] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [loading, setLoading] = useState(false);
@@ -455,9 +515,20 @@ export const FinansmanAsistaniView: React.FC = () => {
   const listRef = useRef<HTMLDivElement>(null);
   const inputId = useId();
 
+  const bootstrapped = useRef(false);
+
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [turns, loading]);
+
+  useEffect(() => {
+    if (bootstrapped.current) return;
+    const soru = initialQuestion?.trim();
+    if (!soru) return;
+    bootstrapped.current = true;
+    void send(soru);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuestion]);
 
   const send = async (message: string, selectedQuickReply?: string) => {
     const text = (selectedQuickReply || message).trim();
@@ -736,16 +807,19 @@ export const FinansmanAsistaniView: React.FC = () => {
           )}
           {latest.citations?.length > 0 && (
             <ul className="mt-3 space-y-1 text-xs text-txt-secondary">
-              {latest.citations.map((c) => (
-                <li key={c.id}>
-                  [{c.id}] {c.bankName} —{" "}
+              {groupCitations(latest.citations).map((c) => (
+                <li key={c.key}>
+                  <span className="font-mono text-[10px] text-txt-muted">
+                    {c.ids.map((id) => `[${id}]`).join("")}
+                  </span>{" "}
+                  {c.bankName} —{" "}
                   <a
                     href={c.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-brand-700 underline-offset-2 hover:underline dark:text-brand-300"
                   >
-                    resmî kaynak
+                    {c.hostLabel}
                   </a>{" "}
                   ({formatDateTr(c.sourceCheckedAt)})
                 </li>

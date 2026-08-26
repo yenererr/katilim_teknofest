@@ -12,7 +12,6 @@ import { CampaignList } from './components/CampaignList';
 import { JsonViewer } from './components/JsonViewer';
 import { CompareView } from './components/CompareView';
 import { TerminologyGuide } from './components/TerminologyGuide';
-import { AssistantChat } from './components/AssistantChat';
 import { FinansmanAsistaniView } from './components/FinansmanAsistaniView';
 import { ToastProvider, useToast } from './components/Toast';
 import { SAMPLE_BANK_TEXTS } from './data/samples';
@@ -248,7 +247,7 @@ function AppInner() {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
         event.preventDefault();
-        if (!isLoading && activeTab !== 'asistan') handleExtract();
+        if (!isLoading && activeTab !== 'finansman-asistani') handleExtract();
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -316,7 +315,7 @@ function AppInner() {
 
   const handleAsistanaSor = useCallback((soru: string) => {
     setAsistanSorusu(soru);
-    setActiveTab('asistan');
+    setActiveTab('finansman-asistani');
   }, []);
 
   /** Sol paneldeki son işlemler: karşılaştırmalar önce, ardından çıkarımlar. */
@@ -352,7 +351,7 @@ function AppInner() {
       setAsistanSorusu(
         `${kayit.bankName || 'Bu banka'} ürün ve kampanya koşullarını özetle`,
       );
-      setActiveTab('asistan');
+      setActiveTab('finansman-asistani');
     }
   };
 
@@ -504,15 +503,9 @@ function AppInner() {
               </div>
             )}
 
-            {activeTab === 'asistan' && (
-              <div {...panelProps('asistan')}>
-                <AssistantChat initialQuestion={asistanSorusu} />
-              </div>
-            )}
-
             {activeTab === 'finansman-asistani' && (
               <div {...panelProps('finansman-asistani')}>
-                <FinansmanAsistaniView />
+                <FinansmanAsistaniView initialQuestion={asistanSorusu} />
               </div>
             )}
 

@@ -36,11 +36,10 @@ export const ANA_NAV: NavItem[] = [
   { key: 'kampanyalar', label: 'Kampanyalar', shortLabel: 'Kampanya', icon: Megaphone },
   { key: 'ucretler', label: 'Ücretler', shortLabel: 'Ücret', icon: Receipt },
   { key: 'compare', label: 'Karşılaştırmalar', shortLabel: 'Karşılaştır', icon: ArrowLeftRight },
-  { key: 'asistan', label: 'Asistana Sor', shortLabel: 'Asistan', icon: MessageSquare },
   {
     key: 'finansman-asistani',
-    label: 'Finansman Asistanı',
-    shortLabel: 'Fin. Asistan',
+    label: 'Asistan',
+    shortLabel: 'Asistan',
     icon: MessagesSquare,
   },
 ];
@@ -73,13 +72,13 @@ export const TAB_TITLES: Record<TabKey, { baslik: string; aciklama: string }> = 
     aciklama: 'Benzer ürünleri standart kriterler üzerinden karşılaştırın.',
   },
   asistan: {
-    baslik: 'Asistana Sor',
-    aciklama: 'Doğrulanmış kaynaklarla kanıtlı RAG yanıtı alın.',
+    baslik: 'Asistan',
+    aciklama: 'İhtiyacınızı anlatın veya soru sorun; kanıtlı cevap alın.',
   },
   'finansman-asistani': {
-    baslik: 'Finansman Asistanı',
+    baslik: 'Asistan',
     aciklama:
-      'İhtiyacınızı anlatın; güncel katılım finansmanı seçeneklerini karşılaştıralım.',
+      'İhtiyacınızı anlatın; finansman seçeneklerini karşılaştırayım. Diğer sorularınızı resmî kaynaklara dayanarak yanıtlarım.',
   },
   json: {
     baslik: 'Ham JSON',
@@ -103,7 +102,8 @@ export function tabFromHash(hash: string): TabKey | null {
   if (h === '/finansman-asistani' || h === 'finansman-asistani') {
     return 'finansman-asistani';
   }
-  if (h === '/asistan' || h === 'asistan') return 'asistan';
+  // Eski /asistan bağlantıları tek asistana yönlendirilir.
+  if (h === '/asistan' || h === 'asistan') return 'finansman-asistani';
   if (h === '/' || h === '' || h === '/home') return null;
   return null;
 }
