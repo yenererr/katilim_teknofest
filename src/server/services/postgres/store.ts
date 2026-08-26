@@ -255,6 +255,139 @@ export function listMemoryCampaigns(filter?: { bankId?: string; activeOnly?: boo
   return rows;
 }
 
+/** Postgres'teki kampanya/ürünleri bellek Map'ine yükler (rehber + matcher için). */
+export async function hydrateMemoryFromPostgres(): Promise<{
+  campaigns: number;
+  products: number;
+  message: string;
+}> {
+  const p = getPool();
+  if (!p) {
+    return {
+      campaigns: memoryCampaigns.size,
+      products: memoryProducts.size,
+      message: "DATABASE_URL yok; bellek önbelleği değişmedi.",
+    };
+  }
+  try {
+    const camps = await p.query<{
+      id: string;
+      bank_id: string;
+      title: string | null;
+      category: string;
+      campaign_status: string;
+      campaign_start: string | null;
+      campaign_end: string | null;
+      source_url: string;
+      source_checked_at: string | null;
+      payload: Record<string, unknown> | string;
+    }>(
+      `SELECT id, bank_id, title, category, campaign_status, campaign_start,
+              campaign_end, source_url, source_checked_at, payload
+       FROM campaigns WHERE is_active = TRUE`,
+    );
+    for (const row of camps.rows) {
+      const payload =
+        typeof row.payload === "string"
+          ? (JSON.parse(row.payload || "{}") as Record<string, unknown>)
+          : row.payload || {};
+      memoryCampaigns.set(row.id, {
+        ...payload,
+        id: row.id,
+        bankId: row.bank_id,
+        title: row.title || payload.title || payload.productName,
+        productName: payload.productName || row.title,
+        category: row.category,
+        campaignStatus: row.campaign_status,
+        campaignStart: row.campaign_start,
+        campaignEnd: row.campaign_end,
+        sourceUrl: row.source_url,
+        sourceCheckedAt: row.source_checked_at,
+        recordType: "campaign",
+      });
+    }
+
+    const prods = await p.query<{
+      id: string;
+      bank_id: string;
+      product_name: string | null;
+      product_type: string | null;
+      category: string;
+      source_url: string;
+      source_checked_at: string | null;
+      payload: Record<string, unknown> | string;
+    }>(
+      `SELECT id, bank_id, product_name, product_type, category,
+              source_url, source_checked_at, payload
+       FROM products WHERE is_active = TRUE`,
+    );
+    for (const row of prods.rows) {
+      const payload =
+        typeof row.payload === "string"
+          ? (JSON.parse(row.payload || "{}") as Record<string, unknown>)
+          : row.payload || {};
+      memoryProducts.set(row.id, {
+        ...payload,
+        id: row.id,
+        bankId: row.bank_id,
+        productName: row.product_name || payload.productName,
+        productType: row.product_type || payload.productType,
+        category: row.category,
+        sourceUrl: row.source_url,
+        sourceCheckedAt: row.source_checked_at,
+        recordType: "product",
+      });
+    }
+
+    return {
+      campaigns: camps.rows.length,
+      products: prods.rows.length,
+      message: `Belleğe yüklendi: ${camps.rows.length} kampanya, ${prods.rows.length} ürün.`,
+    };
+  } catch (err) {
+    return {
+      campaigns: memoryCampaigns.size,
+      products: memoryProducts.size,
+      message: err instanceof Error ? err.message : "hydrate failed",
+    };
+  }
+}
+
+/**
+ * DB/bellek boşsa data/scraped-campaigns.json ile doldurur
+ * (imajda veya çalışma dizininde dosya varsa).
+ */
+export async function seedCampaignsFromJsonIfEmpty(): Promise<{
+  seeded: number;
+  message: string;
+}> {
+  if (memoryCampaigns.size > 0) {
+    return { seeded: 0, message: `Bellekte zaten ${memoryCampaigns.size} kampanya var.` };
+  }
+  const fs = await import("fs");
+  const path = await import("path");
+  const file = path.join(process.cwd(), "data", "scraped-campaigns.json");
+  if (!fs.existsSync(file)) {
+    return { seeded: 0, message: "scraped-campaigns.json yok." };
+  }
+  try {
+    const raw = JSON.parse(fs.readFileSync(file, "utf8")) as {
+      campaigns?: ExtractedFinancialRecord[];
+    };
+    const rows = (raw.campaigns || []).filter(Boolean);
+    if (!rows.length) {
+      return { seeded: 0, message: "JSON boş." };
+    }
+    const n = await upsertExtractedRecords(rows);
+    return { seeded: n, message: `JSON'dan ${n} kampanya yüklendi.` };
+  } catch (err) {
+    return {
+      seeded: 0,
+      message: err instanceof Error ? err.message : "JSON seed failed",
+    };
+  }
+}
+
 export async function countCampaignsInDb(): Promise<
   Array<{ bank_id: string; n: number }>
 > {

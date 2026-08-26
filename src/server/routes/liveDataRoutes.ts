@@ -8,7 +8,7 @@ import {
   listRecentJobs,
   runOfficialScrapeJob,
 } from "../services/scraper/orchestrator";
-import { listMemoryCampaigns, listMemoryProducts, isPostgresConfigured, ensureSchema } from "../services/postgres/store";
+import { listMemoryCampaigns, listMemoryProducts, isPostgresConfigured, ensureSchema, hydrateMemoryFromPostgres } from "../services/postgres/store";
 import { getCollectionHealth, isQdrantConfigured } from "../services/qdrant";
 import { BANK_SOURCE_CONFIGS } from "../services/scraper/bankSourceConfig";
 
@@ -128,6 +128,7 @@ export function createSystemRouter(): Router {
 
   router.get("/health", async (_req, res) => {
     const pg = await ensureSchema();
+    const hydrated = pg.ok ? await hydrateMemoryFromPostgres() : null;
     const qdrant = isQdrantConfigured()
       ? await getCollectionHealth()
       : { ok: false, message: "Qdrant yapılandırılmamış" };
@@ -136,6 +137,8 @@ export function createSystemRouter(): Router {
       postgres: {
         configured: isPostgresConfigured(),
         ...pg,
+        memory: hydrated,
+        campaignsInMemory: listMemoryCampaigns().length,
       },
       qdrant,
       scraper: {

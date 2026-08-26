@@ -142,7 +142,7 @@ export function rehberNiyetiTespit(mesaj: string): RehberNiyeti {
   if (
     kampanya &&
     !bankaBul(mesaj) &&
-    /(hangi|listele|neler|goster|tumu|hepsi|aktif|guncel|karsilastir|var mi|var\?|ne tur|ne cesit)/.test(
+    /(hangi|listele|neler|goster|tumu|hepsi|aktif|guncel|karsilastir|var mi|var\?|ne tur|ne cesit|hakkinda|bilgi|ogren|anlat|istiyorum)/.test(
       t,
     )
   ) {

@@ -14,6 +14,11 @@ import {
 } from "./src/server/routes/liveDataRoutes";
 import { bindOfficialScraperBridge, runOfficialScrapeJob } from "./src/server/services/scraper/orchestrator";
 import {
+  ensureSchema,
+  hydrateMemoryFromPostgres,
+  seedCampaignsFromJsonIfEmpty,
+} from "./src/server/services/postgres/store";
+import {
   buildIndexDocumentsFromScrape,
   getCollectionHealth,
   getDocumentIndexer,
@@ -715,6 +720,25 @@ async function startServer() {
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`[Katılım Bilgi Çıkarım Ajanı] Sunucu 0.0.0.0:${PORT} adresinde aktif.`);
+
+    void (async () => {
+      try {
+        const schema = await ensureSchema();
+        console.log(`[PostgreSQL] ${schema.message}`);
+        const hydrated = await hydrateMemoryFromPostgres();
+        console.log(`[PostgreSQL] ${hydrated.message}`);
+        if (hydrated.campaigns === 0) {
+          const seeded = await seedCampaignsFromJsonIfEmpty();
+          console.log(`[Kampanya seed] ${seeded.message}`);
+        }
+      } catch (err) {
+        console.warn(
+          "[PostgreSQL]",
+          err instanceof Error ? err.message : err,
+        );
+      }
+    })();
+
     if (SCRAPER_ENABLED) {
       console.log(
         `[Resmi Kaynak Scraper] ${BANK_SCRAPE_SOURCES.length} katılım bankası ${SCRAPER_INTERVAL_MINUTES} dk aralıkla (jitterli) kontrol edilecek.`,
