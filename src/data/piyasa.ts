@@ -46,6 +46,60 @@ export const FINANSMAN_TURLERI: { key: FinansmanTuru; etiket: string }[] = [
   { key: 'ihtiyac_finansmani', etiket: 'İhtiyaç Finansmanı' },
 ];
 
+/**
+ * Kullanıcıya sunulan ayrıntılı finansman seçenekleri.
+ *
+ * Bankaların kendi hesaplama araçları sıfır/2. el konut ve taşıt gibi
+ * ayrımları ayrı ürün olarak sunuyor. Karşılaştırma tablomuz üç temel tür
+ * üzerinden çalıştığı için her seçenek bir temel türe bağlanır; canlı
+ * hesaplamada ise bankanın beklediği ayrıntılı tür gönderilir.
+ */
+export interface FinansmanSecenegi {
+  /** Canlı hesaplama servislerine gönderilen ayrıntılı tür */
+  key: string;
+  etiket: string;
+  /** Statik karşılaştırma tablosunda kullanılan temel tür */
+  temelTur: FinansmanTuru;
+}
+
+export const FINANSMAN_SECENEKLERI: FinansmanSecenegi[] = [
+  {
+    key: 'ihtiyac_finansmani',
+    etiket: 'İhtiyaç Finansmanı',
+    temelTur: 'ihtiyac_finansmani',
+  },
+  {
+    key: 'konut_finansmani',
+    etiket: 'Sıfır Konut Finansmanı',
+    temelTur: 'konut_finansmani',
+  },
+  {
+    key: 'konut_finansmani_ikinci_el',
+    etiket: '2. El Konut Finansmanı',
+    temelTur: 'konut_finansmani',
+  },
+  {
+    key: 'tasit_finansmani',
+    etiket: 'Taşıt Finansmanı 0 km',
+    temelTur: 'tasit_finansmani',
+  },
+  {
+    key: 'tasit_finansmani_ikinci_el',
+    etiket: 'Taşıt Finansmanı 2. El',
+    temelTur: 'tasit_finansmani',
+  },
+  {
+    key: 'isyeri_finansmani',
+    etiket: 'İşyeri Finansmanı',
+    temelTur: 'ihtiyac_finansmani',
+  },
+  {
+    key: 'arsa_finansmani',
+    etiket: 'Arsa Finansmanı',
+    temelTur: 'konut_finansmani',
+  },
+];
+
 export const VADELER: Record<FinansmanTuru, number[]> = {
   konut_finansmani: [60, 84, 120, 180, 240],
   tasit_finansmani: [12, 24, 36, 48],

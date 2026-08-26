@@ -122,3 +122,28 @@ describe("Vakıf Katılım hesaplama", () => {
     expect(VAKIF_FINANSMAN_KODLARI.tasit_finansmani).toBe("BO");
   });
 });
+
+describe("banka boş yanıt verdiğinde", () => {
+  beforeEach(() => resetVakifSessionForTests());
+
+  it("sessizce boş sonuç değil, açıklayıcı kısıt döndürür", async () => {
+    const { impl } = makeFetch({
+      installmentAmount: "",
+      totalAmount: "",
+      profitRate: "",
+      errorMessage: null,
+      isErrorFriendly: false,
+    });
+
+    await expect(
+      hesaplaVakifKatilim(
+        {
+          financingType: "arsa_finansmani",
+          amountTl: 1500000,
+          termMonths: 120,
+        },
+        impl,
+      ),
+    ).rejects.toThrow(/çevrim içi hesaplama sunmuyor/);
+  });
+});

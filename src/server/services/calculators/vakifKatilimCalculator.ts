@@ -231,13 +231,26 @@ export async function hesaplaVakifKatilim(
     );
   }
 
+  const oran = parseTrNumber(json.profitRate);
+  const taksit = parseTrNumber(json.installmentAmount);
+
+  // Banka bazı ürünlerde hata döndürmeden boş alanlarla yanıt veriyor
+  // (ör. taşıt 2. el, arsa). Bu durumda satır sessizce kaybolmasın:
+  // kullanıcıya bu ürün için hesaplama sunulmadığı söylenir.
+  if (oran == null && taksit == null) {
+    throw new VakifKisitHatasi(
+      "Vakıf Katılım bu ürün için çevrim içi hesaplama sunmuyor; " +
+        "koşulları bankadan teyit etmeniz gerekir.",
+    );
+  }
+
   return {
     bankId: "vakif-katilim",
     financingType: opts.financingType,
     amountTl: opts.amountTl,
     termMonths: opts.termMonths,
-    profitRatePercent: parseTrNumber(json.profitRate),
-    monthlyInstallmentTl: parseTrNumber(json.installmentAmount),
+    profitRatePercent: oran,
+    monthlyInstallmentTl: taksit,
     totalPaymentTl: parseTrNumber(json.totalAmount),
     appraisementFeeTl: parseTrNumber(json.appraisementFee),
     mortgageReleaseFeeTl: parseTrNumber(json.mortgageReleaseFee),

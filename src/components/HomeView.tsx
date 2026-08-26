@@ -16,6 +16,7 @@ import {
 import {
   BANKALAR,
   BANKA_INDEKS,
+  FINANSMAN_SECENEKLERI,
   FINANSMAN_TURLERI,
   FinansmanTuru,
   KAMPANYALAR,
@@ -81,7 +82,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [heroSekme, setHeroSekme] = useState<'finansman' | 'kampanya' | 'ucret' | 'asistan'>(
     'finansman',
   );
-  const [tur, setTur] = useState<FinansmanTuru>(talep.tur);
+  // Seçim kullanıcıya bırakılır: form boş bir değerle başlar.
+  const [secenek, setSecenek] = useState<string>('');
+  // Karşılaştırılan ayrıntılı tür — canlı hesaplama servisine bu gönderilir.
+  const [aktifSecenek, setAktifSecenek] = useState<string>('');
+  const secilen = FINANSMAN_SECENEKLERI.find((f) => f.key === secenek) || null;
+  const tur: FinansmanTuru = secilen?.temelTur ?? talep.tur;
   const [tutarMetni, setTutarMetni] = useState<string>(sayiBicim(talep.tutar));
   const [vadeAy, setVadeAy] = useState<number>(talep.vadeAy);
   const [soru, setSoru] = useState('');
@@ -155,7 +161,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          financingType: talep.tur,
+          financingType: aktifSecenek || talep.tur,
           amountTl: talep.tutar,
           termMonths: talep.vadeAy,
         }),
@@ -187,7 +193,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       iptal = true;
       clearTimeout(zamanlayici);
     };
-  }, [talep.tur, talep.tutar, talep.vadeAy]);
+  }, [aktifSecenek, talep.tur, talep.tutar, talep.vadeAy]);
 
   const canliVeriAktif = canliSatirlar.length > 0;
   const temelSatirlar = canliVeriAktif ? canliSatirlar : satirlar;
@@ -223,16 +229,24 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const gecerliSatirlar = tabloSatirlari.filter((s) => s.uygunMu);
   const fastUcretleri = UCRETLER.find((u) => u.key === 'fast')!;
 
-  const turDegistir = (yeni: FinansmanTuru) => {
-    setTur(yeni);
-    setTutarMetni(sayiBicim(VARSAYILAN_TUTAR[yeni]));
-    if (!VADELER[yeni].includes(vadeAy)) setVadeAy(VADELER[yeni][Math.floor(VADELER[yeni].length / 2)]);
+  const secenekDegistir = (yeniKey: string) => {
+    setSecenek(yeniKey);
+    const yeni = FINANSMAN_SECENEKLERI.find((f) => f.key === yeniKey);
+    if (!yeni) return;
+    // Tutar ve vade seçilen türün makul aralığına çekilir.
+    setTutarMetni(sayiBicim(VARSAYILAN_TUTAR[yeni.temelTur]));
+    const vadeler = VADELER[yeni.temelTur];
+    if (!vadeler.includes(vadeAy)) {
+      setVadeAy(vadeler[Math.floor(vadeler.length / 2)]);
+    }
   };
 
   const karsilastirGonder = (event: React.FormEvent) => {
     event.preventDefault();
-    if (tutar <= 0) return;
-    onKarsilastir({ tur, tutar, vadeAy });
+    // Tür seçilmeden karşılaştırma yapılmaz.
+    if (!secilen || tutar <= 0) return;
+    setAktifSecenek(secilen.key);
+    onKarsilastir({ tur: secilen.temelTur, tutar, vadeAy });
   };
 
   return (
@@ -294,11 +308,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <label className="block">
               <span className="mb-1 block text-xs text-txt-secondary">Finansman Türü</span>
               <select
-                value={tur}
-                onChange={(e) => turDegistir(e.target.value as FinansmanTuru)}
-                className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-txt"
+                value={secenek}
+                onChange={(e) => secenekDegistir(e.target.value)}
+                className={`h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm ${
+                  secenek ? 'text-txt' : 'text-txt-muted'
+                }`}
               >
-                {FINANSMAN_TURLERI.map((f) => (
+                <option value="">Finansman türü seçin</option>
+                {FINANSMAN_SECENEKLERI.map((f) => (
                   <option key={f.key} value={f.key}>
                     {f.etiket}
                   </option>
@@ -339,7 +356,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             <button
               type="submit"
-              disabled={tutar <= 0}
+              disabled={!secilen || tutar <= 0}
               className="mt-auto inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-6 text-sm font-medium text-white shadow-raised transition-colors hover:bg-brand-700 disabled:opacity-50"
             >
               Karşılaştır
