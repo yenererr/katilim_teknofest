@@ -1,7 +1,7 @@
 import { asciiKatla, yaziliSayiCoz } from "../../../nlp/normalize";
 import { BANK_NAME_TO_ID } from "../rag/ragTypes";
 import type { FinancingConversationState, FinancingType } from "./finansmanTypes";
-import { bankaBul } from "./bankDirectory";
+import { bankaBul, kampanyaSinyaliVar } from "./bankDirectory";
 
 /** Yazıyla tutar: "beş yüz bin", "iki milyon" … */
 const YAZILI_TUTAR_RE =
@@ -399,7 +399,7 @@ export function classifyTurn(
     return "general_question";
   }
 
-  if (/kampanya/.test(t)) return "campaign_search";
+  if (kampanyaSinyaliVar(t)) return "campaign_search";
   if (/kar[sş]ila[sş]tir/.test(t)) return "comparison";
   if (parseSortPreference(t)) return "sort_only";
 
@@ -426,7 +426,7 @@ export function classifyTurn(
   }
 
   const hasFinanceSignal =
-    /finansman|kredi|faiz|kar pay|vade|tutar|\btl\b|\bbin\b|milyon|banka|kat[iı]l[iı]m|ihtiyac finansman|ihtiyac kredi|\bihtiyac\b(?!\s*im)|konut|tasit|araba|arac|otomobil|\bev\s+alc|alcam|alacag|alaca[gğ]|karsilastir|sirala|masraf|tahsis|musteri|pardon|uye olmak|hesap ac|muster[iı] olmak|kampanya|avantaj|ucret|aidat|komisyon|murabaha|tekaf[uü]l|icara|selem|mudarebe|musareke|katilma hesab|faizsiz/.test(
+    /finansman|kredi|faiz|kar pay|vade|tutar|\btl\b|\bbin\b|milyon|banka|kat[iı]l[iı]m|ihtiyac finansman|ihtiyac kredi|\bihtiyac\b(?!\s*im)|konut|tasit|araba|arac|otomobil|\bev\s+alc|alcam|alacag|alaca[gğ]|karsilastir|sirala|masraf|tahsis|musteri|pardon|uye olmak|hesap ac|muster[iı] olmak|kampanya|kmapnaya|kmapanya|kampnya|avantaj|ucret|aidat|komisyon|murabaha|tekaf[uü]l|icara|selem|mudarebe|musareke|katilma hesab|faizsiz/.test(
       t,
     ) ||
     parseTurkishAmount(t) != null ||
@@ -581,6 +581,8 @@ export function mergeMessageIntoState(
 export function missingRequiredFields(
   state: FinancingConversationState,
 ): string[] {
+  // Kampanya listesi tutar/vade istemez; rehber katmanı da buraya düşmeden yakalar.
+  if (state.intent === "campaign_search") return [];
   const missing: string[] = [];
   if (!state.financingType) missing.push("financingType");
   if (state.requestedAmountTl == null) missing.push("requestedAmountTl");

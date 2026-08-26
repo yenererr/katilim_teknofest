@@ -113,31 +113,43 @@ export type BekleyenTakip =
   | "capabilities"
   | null;
 
+/**
+ * "kampanya" + yaygın yazım hataları (kmapnaya, kampnyaları…).
+ * Finansman slot akışına düşmemesi için tek yerden kullanılır.
+ */
+export function kampanyaSinyaliVar(metin: string): boolean {
+  const t = asciiKatla(metin);
+  return /kampanya|kmapnaya|kmapanya|kampnya|kampnyal|kampanyal/.test(t);
+}
+
 /** Rehber sorusu mu? Değilse null döner ve normal akış sürer. */
 export function rehberNiyetiTespit(mesaj: string): RehberNiyeti {
   const t = asciiKatla(mesaj);
   const bankaSozu = /(katilim )?bank(a|alar)/.test(t);
+  const kampanya = kampanyaSinyaliVar(mesaj);
 
   if (/(kac|kac tane|sayisi|adedi)/.test(t) && bankaSozu) return "banka_sayisi";
 
   // Yeni müşteri avantajları / kampanyaları — tüm bankalar arası
   if (
     /yeni musteri/.test(t) &&
-    /(avantaj|kampanya|firsat|ozel|mantikli|hangisi|karsilastir|en iyi)/.test(t)
+    (kampanya || /(avantaj|firsat|ozel|mantikli|hangisi|karsilastir|en iyi)/.test(t))
   ) {
     return "yeni_musteri_avantaj";
   }
 
   // Tüm bankaların kampanyalarını listeleme (belirli banka belirtilmeden)
   if (
-    /kampanya/.test(t) &&
+    kampanya &&
     !bankaBul(mesaj) &&
-    /(hangi|listele|neler|goster|tumu|hepsi|aktif|guncel|karsilastir)/.test(t)
+    /(hangi|listele|neler|goster|tumu|hepsi|aktif|guncel|karsilastir|var mi|var\?|ne tur|ne cesit)/.test(
+      t,
+    )
   ) {
     return "genel_kampanyalar";
   }
 
-  if (/kampanya/.test(t) && bankaBul(mesaj)) return "banka_kampanyalari";
+  if (kampanya && bankaBul(mesaj)) return "banka_kampanyalari";
 
   // "Üye olmak istiyorum" / "hesap açmak istiyorum" — yeni müşteri avantajlarıyla eşle
   if (
@@ -397,6 +409,7 @@ function genelKampanyaYaniti(): RehberSonucu {
 export function rehberYaniti(
   niyet: Exclude<RehberNiyeti, null>,
   mesaj: string,
+  opts?: { preferredBankId?: string | null },
 ): RehberSonucu {
   const aktifler = BANK_SOURCE_CONFIGS.filter((b) => b.enabled);
 
@@ -432,7 +445,7 @@ export function rehberYaniti(
     };
   }
 
-  const bankId = bankaBul(mesaj);
+  const bankId = bankaBul(mesaj) || opts?.preferredBankId || null;
   const cfg = bankId
     ? BANK_SOURCE_CONFIGS.find((b) => b.bankId === bankId)
     : undefined;
@@ -465,12 +478,23 @@ export function rehberYaniti(
   }
 
   // niyet === "banka_kampanyalari"
-  const kampanyalar = listMemoryCampaigns({
+  const tumKampanyalar = listMemoryCampaigns({
     bankId: cfg.bankId,
     activeOnly: true,
   });
 
-  if (!kampanyalar.length) {
+  const t = asciiKatla(mesaj);
+  const egitimFiltresi = /egitim|okul|universite|ogrenci/.test(t);
+  const kampanyalar = egitimFiltresi
+    ? tumKampanyalar.filter((c) => {
+        const haystack = asciiKatla(
+          `${c.title || ""} ${c.productName || ""} ${c.summary || ""}`,
+        );
+        return /egitim|okul|universite|ogrenci|burs/.test(haystack);
+      })
+    : tumKampanyalar;
+
+  if (!tumKampanyalar.length) {
     return {
       message:
         `${cfg.bankName} için kayıtlı aktif kampanya görünmüyor. ` +
@@ -480,10 +504,23 @@ export function rehberYaniti(
     };
   }
 
+  if (egitimFiltresi && !kampanyalar.length) {
+    return {
+      message:
+        `${cfg.bankName} kayıtlarında başlığında eğitim geçen aktif kampanya bulamadım. ` +
+        `Toplam ${tumKampanyalar.length} kampanya var; “kampanyaları listele” dersen hepsini gösterebilirim.\n\n` +
+        `Resmî kampanya sayfası: ${anaSayfa(cfg.bankId)}`,
+      citations: [],
+    };
+  }
+
   const gosterilecek = kampanyalar.slice(0, 8);
+  const baslik = egitimFiltresi
+    ? `${cfg.bankName} için eğitimle ilgili ${kampanyalar.length} kampanya görünüyor`
+    : `${cfg.bankName} için ${kampanyalar.length} aktif kampanya görünüyor`;
   return {
     message:
-      `${cfg.bankName} için ${kampanyalar.length} aktif kampanya görünüyor:\n\n` +
+      `${baslik}:\n\n` +
       gosterilecek.map(kampanyaSatiri).join("\n") +
       (kampanyalar.length > gosterilecek.length
         ? `\n\n(İlk ${gosterilecek.length} tanesi gösterildi.)`

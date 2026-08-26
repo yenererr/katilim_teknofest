@@ -97,6 +97,9 @@ describe("finansman NLU", () => {
     const { classifyTurn } = await import("../finansmanNlu");
     expect(classifyTurn("kek tarıfı ver")).toBe("unsupported");
     expect(classifyTurn("kampanya var mı")).toBe("campaign_search");
+    expect(classifyTurn("ziraat katılımın ne tür kmapnayalrı var")).toBe(
+      "campaign_search",
+    );
     expect(classifyTurn("hacca gideceğim")).toBe("ambiguous_purpose");
     expect(classifyTurn("araba alcam")).toBe("param_update");
     expect(classifyTurn("ev alcam")).toBe("param_update");

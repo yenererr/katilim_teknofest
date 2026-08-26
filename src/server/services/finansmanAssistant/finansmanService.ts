@@ -22,7 +22,7 @@ import {
 } from "./finansmanTypes";
 import { asciiKatla } from "../../../nlp/normalize";
 import { runRagChat } from "../rag/ragService";
-import { rehberNiyetiTespit, rehberYaniti, bekleyenTakibiCoz } from "./bankDirectory";
+import { rehberNiyetiTespit, rehberYaniti, bekleyenTakibiCoz, kampanyaSinyaliVar } from "./bankDirectory";
 import { sozluktenYanitla } from "./terimSozlugu";
 import { hesaplaOdemePlani } from "../../../lib/odemePlani";
 import { enrichWithLiveCalculators } from "./liveCalculatorEnrichment";
@@ -534,11 +534,23 @@ export async function runFinansmanAssistantChat(
   }
 
   // Bekleyen takip (ör. “listele yazın”) veya yeni rehber sorusu
-  const rehberNiyeti =
+  let rehberNiyeti =
     bekleyenTakibiCoz(req.message, state.pendingFollowUp) ||
     rehberNiyetiTespit(req.message);
+
+  // Oturumda banka seçiliyken “eğitim kampanyaları var mı” → o bankaya bağla
+  if (
+    kampanyaSinyaliVar(req.message) &&
+    state.selectedBankIds.length === 1 &&
+    (rehberNiyeti == null || rehberNiyeti === "genel_kampanyalar")
+  ) {
+    rehberNiyeti = "banka_kampanyalari";
+  }
+
   if (rehberNiyeti) {
-    const sonuc = rehberYaniti(rehberNiyeti, req.message);
+    const sonuc = rehberYaniti(rehberNiyeti, req.message, {
+      preferredBankId: state.selectedBankIds[0] ?? null,
+    });
     const nextPending =
       rehberNiyeti === "banka_sayisi"
         ? ("banka_listesi" as const)
@@ -558,10 +570,20 @@ export async function runFinansmanAssistantChat(
               { id: "r-listele", label: "Listele", value: "listele" },
               ...purposeQuickReplies().slice(0, 3),
             ]
-          : [
-              ...purposeQuickReplies().slice(0, 3),
-              ...termQuickReplies().slice(0, 2),
-            ],
+          : rehberNiyeti === "banka_kampanyalari" ||
+              rehberNiyeti === "genel_kampanyalar"
+            ? [
+                {
+                  id: "c-new",
+                  label: "Yeni müşteri kampanyaları",
+                  value: "Yeni müşteri kampanyalarını göster",
+                },
+                ...purposeQuickReplies().slice(0, 2),
+              ]
+            : [
+                ...purposeQuickReplies().slice(0, 3),
+                ...termQuickReplies().slice(0, 2),
+              ],
       query: { ...state, pendingFollowUp: nextPending },
       exactMatches: [],
       flexibleMatches: [],

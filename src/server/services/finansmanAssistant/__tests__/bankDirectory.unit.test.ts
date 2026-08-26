@@ -27,6 +27,12 @@ describe("banka rehberi niyet tespiti", () => {
     expect(rehberNiyetiTespit("Albaraka kampanyaları neler?")).toBe(
       "banka_kampanyalari",
     );
+    expect(rehberNiyetiTespit("ziraat katılımın ne tür kmapnayalrı var")).toBe(
+      "banka_kampanyalari",
+    );
+    expect(rehberNiyetiTespit("eğitim kampanyaları var mı")).toBe(
+      "genel_kampanyalar",
+    );
   });
 
   it("tek başına listele banka listesi döner", () => {
