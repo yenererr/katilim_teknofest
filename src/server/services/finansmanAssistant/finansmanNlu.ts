@@ -1,7 +1,46 @@
-import { asciiKatla } from "../../../nlp/normalize";
+import { asciiKatla, yaziliSayiCoz } from "../../../nlp/normalize";
 import { BANK_NAME_TO_ID } from "../rag/ragTypes";
 import type { FinancingConversationState, FinancingType } from "./finansmanTypes";
 import { bankaBul } from "./bankDirectory";
+
+/** Yazıyla tutar: "beş yüz bin", "iki milyon" … */
+const YAZILI_TUTAR_RE =
+  /(?:bir|iki|üç|uc|dört|dort|beş|bes|altı|alti|yedi|sekiz|dokuz|on|yirmi|otuz|kırk|kirk|elli|altmış|altmis|yetmiş|yetmis|seksen|doksan|yüz|yuz|bin|milyon|milyar)(?:\s+(?:bir|iki|üç|uc|dört|dort|beş|bes|altı|alti|yedi|sekiz|dokuz|on|yirmi|otuz|kırk|kirk|elli|altmış|altmis|yetmiş|yetmis|seksen|doksan|yüz|yuz|bin|milyon|milyar)){0,14}/giu;
+
+function parseWrittenTurkishAmount(text: string): number | null {
+  const lower = text.toLocaleLowerCase("tr-TR");
+  let best: number | null = null;
+
+  for (const m of lower.matchAll(YAZILI_TUTAR_RE)) {
+    const phrase = m[0].trim();
+    const words = phrase.split(/\s+/);
+    const hasScale = /\b(bin|milyon|milyar|yüz|yuz)\b/i.test(phrase);
+    if (!hasScale && words.length < 2) continue;
+
+    const n = yaziliSayiCoz(phrase);
+    if (n == null || !Number.isFinite(n)) continue;
+
+    const after = lower.slice(
+      (m.index ?? 0) + m[0].length,
+      (m.index ?? 0) + m[0].length + 16,
+    );
+    const hasCurrency = /^(?:\s*(?:tl|₺|lira|türk|turk))/.test(after);
+    const inMoneyContext =
+      hasCurrency ||
+      /\b(tl|lira|tutar|finansman|kredi|ihtiyac|ihtiyacım|ihtiyacim)\b/i.test(
+        asciiKatla(lower),
+      );
+
+    // Finansman tutarı: en az 1.000 TL; "beş yüz tl" gibi küçük tutarlar yalnızca para bağlamında
+    if (n >= 1000) {
+      if (best == null || n > best) best = n;
+    } else if (n >= 100 && inMoneyContext) {
+      if (best == null || n > best) best = n;
+    }
+  }
+
+  return best;
+}
 
 /** Türkçe tutar ifadelerini TL'ye çevirir */
 export function parseTurkishAmount(text: string): number | null {
@@ -29,7 +68,7 @@ export function parseTurkishAmount(text: string): number | null {
     return Number.isFinite(n) && n >= 1000 ? n : null;
   }
 
-  return null;
+  return parseWrittenTurkishAmount(text);
 }
 
 /** Vade ayı: "24 ay", "2 yıl", "pardon 24 ay", veya yalnızca "24". */

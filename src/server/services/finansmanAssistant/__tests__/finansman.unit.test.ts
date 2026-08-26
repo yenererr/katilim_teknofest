@@ -67,6 +67,10 @@ describe("finansman NLU", () => {
     expect(parseTurkishAmount("200 bin TL")).toBe(200000);
     expect(parseTurkishAmount("0,2 milyon")).toBe(200000);
     expect(parseTurkishAmount("1 milyon")).toBe(1000000);
+    expect(parseTurkishAmount("beş yüz bin tl")).toBe(500000);
+    expect(parseTurkishAmount("Bes yuz bin TL ihtiyac")).toBe(500000);
+    expect(parseTurkishAmount("iki milyon")).toBe(2000000);
+    expect(parseTurkishAmount("yüz elli bin")).toBe(150000);
   });
 
   it("vade ve amaç çıkarır", () => {

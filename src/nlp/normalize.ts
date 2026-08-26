@@ -179,10 +179,10 @@ export const yaziliSayiCoz = (ifade: string): number | null => {
   let herhangiEslesme = false;
 
   for (const kelime of kelimeler) {
-    const k = sapkaSadelestir(kelime);
-    const birlerAnahtar = Object.keys(BIRLER).find((a) => sapkaSadelestir(a) === k);
-    const onlarAnahtar = Object.keys(ONLAR).find((a) => sapkaSadelestir(a) === k);
-    const carpanAnahtar = Object.keys(CARPANLAR).find((a) => sapkaSadelestir(a) === k);
+    const k = asciiKatla(kelime);
+    const birlerAnahtar = Object.keys(BIRLER).find((a) => asciiKatla(a) === k);
+    const onlarAnahtar = Object.keys(ONLAR).find((a) => asciiKatla(a) === k);
+    const carpanAnahtar = Object.keys(CARPANLAR).find((a) => asciiKatla(a) === k);
 
     if (birlerAnahtar) {
       gecerliGrup += BIRLER[birlerAnahtar];
