@@ -14,6 +14,7 @@ import {
 } from "./finansmanTypes";
 import { asciiKatla } from "../../../nlp/normalize";
 import { runRagChat } from "../rag/ragService";
+import { rehberNiyetiTespit, rehberYaniti } from "./bankDirectory";
 
 const conversations = new Map<string, FinancingConversationState>();
 
@@ -362,6 +363,30 @@ export async function runFinansmanAssistantChat(
   state = mergeMessageIntoState(state, req.message, req.selectedQuickReply);
   state = applyFlexibleClick(state, req.selectedQuickReply);
   state.conversationId = conversationId;
+
+  // Banka rehberi soruları (liste, sayı, resmî site, kampanya listesi)
+  // doğrulanmış yapılandırmadan anında yanıtlanır; LLM beklenmez.
+  const rehberNiyeti = rehberNiyetiTespit(req.message);
+  if (rehberNiyeti) {
+    conversations.set(conversationId, state);
+    const sonuc = rehberYaniti(rehberNiyeti, req.message);
+    return {
+      conversationId,
+      assistantMessage: sonuc.message,
+      status: "general_answer",
+      missingFields: [],
+      quickReplies: [
+        ...purposeQuickReplies().slice(0, 3),
+        ...termQuickReplies().slice(0, 2),
+      ],
+      query: state,
+      exactMatches: [],
+      flexibleMatches: [],
+      summary: emptySummary(),
+      warnings: [],
+      citations: sonuc.citations,
+    };
+  }
 
   const turn = classifyTurn(req.message, req.selectedQuickReply);
 
