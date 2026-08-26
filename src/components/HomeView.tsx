@@ -460,7 +460,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
                             </span>
                           </span>
                         </th>
-                        <td className="tnum px-3 py-3 font-mono">{tlBicim(s.taksit)}</td>
+                        {/* Aylik taksit, tablodaki karar verdirici sayi:
+                            bankanin kendi hesaplama aracindaki gibi vurgulanir. */}
+                        <td className="tnum px-3 py-3 font-mono font-medium text-accent-700 dark:text-accent-400">
+                          {tlBicim(s.taksit)}
+                        </td>
                         <td className="tnum px-3 py-3 font-mono text-txt-secondary">
                           {oranBicim(s.aylikKarPayi)}
                         </td>

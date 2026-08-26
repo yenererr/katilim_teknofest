@@ -82,18 +82,36 @@
   --text-hero: 2.75rem; /* 44px — kart kahraman metriği */
   --text-hero--line-height: 1;
 
-  /* --- Marka: jade (katılım yeşili, hafif desatüre) --- */
-  --color-brand-50: #ecfdf5;
-  --color-brand-100: #d3f5e5;
-  --color-brand-200: #a9ebcd;
-  --color-brand-300: #72dbb0;
-  --color-brand-400: #3cc190;
-  --color-brand-500: #16a674;
-  --color-brand-600: #068c5e;
-  --color-brand-700: #04704d;
-  --color-brand-800: #06593e;
-  --color-brand-900: #064935;
-  --color-brand-950: #02291e;
+  /* --- Marka: lacivert ---
+     Vakıf Katılım kurumsal kimliğinden türetildi: birincil #25477b,
+     ikincil #325892, açık zemin #ecf4ff. 700 tonu bankanın kendi
+     birincil rengidir. --- */
+  --color-brand-50: #eff4fb;
+  --color-brand-100: #dbe7f5;
+  --color-brand-200: #b9cfea;
+  --color-brand-300: #8db0db;
+  --color-brand-400: #5d8ac7;
+  --color-brand-500: #3d6bae;
+  --color-brand-600: #325892;
+  --color-brand-700: #25477b;
+  --color-brand-800: #1f3a63;
+  --color-brand-900: #1b3153;
+  --color-brand-950: #101d31;
+
+  /* --- Vurgu: magenta ---
+     Bankanın hesaplama aracında taksit/toplam gibi kritik sayılar bu
+     renkle veriliyor (#e70695). Aynı işlevde kullanılır. --- */
+  --color-accent-50: #fdf2f9;
+  --color-accent-100: #fce7f4;
+  --color-accent-200: #fbcfe9;
+  --color-accent-300: #f9a8d5;
+  --color-accent-400: #f472b8;
+  --color-accent-500: #ea3a9b;
+  --color-accent-600: #e70695;
+  --color-accent-700: #c2067e;
+  --color-accent-800: #9d0b68;
+  --color-accent-900: #820f57;
+  --color-accent-950: #500233;
 
   /* --- Uyarı: amber --- */
   --color-warn-50: #fffbeb;
@@ -148,16 +166,16 @@
   --color-ink-950: #171c1b;
 
   /* --- Semantik yüzey / metin (açık tema varsayılanı) --- */
-  --color-canvas: #f3f6f5;
+  --color-canvas: #f4f6fa;
   --color-surface: #ffffff;
   --color-raised: #ffffff;
-  --color-sunken: #f3f6f5;
-  --color-line: #e4e9e7;
-  --color-line-strong: #c6cecb;
-  --color-txt: #171c1b;
-  --color-txt-secondary: #52605c;
-  --color-txt-muted: #6a7975;
-  --color-focus: #16a674;
+  --color-sunken: #f4f6fa;
+  --color-line: #e3e8f0;
+  --color-line-strong: #c4cddb;
+  --color-txt: #16191f;
+  --color-txt-secondary: #525c68;
+  --color-txt-muted: #6a7480;
+  --color-focus: #3d6bae;
 
   /* --- Yarıçap --- */
   --radius-xs: 0.25rem;
@@ -182,18 +200,19 @@
   --duration-slow: 320ms;
 }
 
-/* Karanlık tema: aynı semantik isimler, ayrı tonal değerler (ters çevirme yok) */
+/* Karanlık tema: aynı semantik isimler, ayrı tonal değerler (ters çevirme yok)
+ */
 .dark {
-  --color-canvas: #101514;
-  --color-surface: #171d1c;
-  --color-raised: #1e2625;
-  --color-sunken: #131817;
-  --color-line: #2a3432;
-  --color-line-strong: #3d4a47;
-  --color-txt: #eef2f1;
-  --color-txt-secondary: #b3bfbc;
-  --color-txt-muted: #8d9a97;
-  --color-focus: #3cc190;
+  --color-canvas: #0f1319;
+  --color-surface: #161b23;
+  --color-raised: #1d2430;
+  --color-sunken: #12161d;
+  --color-line: #29313d;
+  --color-line-strong: #3b4655;
+  --color-txt: #eef0f4;
+  --color-txt-secondary: #b3bac6;
+  --color-txt-muted: #8d95a3;
+  --color-focus: #8db0db;
 
   --shadow-flat: 0 1px 1px rgb(0 0 0 / 0.4);
   --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 8px 24px -16px rgb(0 0 0 / 0.8);

@@ -24,7 +24,7 @@ export const BankMark: React.FC<BankMarkProps> = ({ bankaId, ad, size = 'md' }) 
   const banka = bankaId ? BANKA_INDEKS[bankaId] : undefined;
   const isim = banka?.ad ?? ad ?? 'Banka';
   const kisa = banka?.kisa ?? monogram(isim);
-  const renk = banka?.renk ?? '#068c5e';
+  const renk = banka?.renk ?? '#25477b';
   const boyut = size === 'sm' ? 'h-7 w-7' : 'h-9 w-9';
   const yazi = size === 'sm' ? 'text-[0.625rem]' : 'text-xs';
 
