@@ -95,7 +95,39 @@ describe("finansman NLU", () => {
     expect(classifyTurn("kampanya var mı")).toBe("campaign_search");
     expect(classifyTurn("hacca gideceğim")).toBe("ambiguous_purpose");
     expect(classifyTurn("araba alcam")).toBe("param_update");
+    expect(classifyTurn("ev alcam")).toBe("param_update");
+    expect(parseFinancingType("ev alcam")).toBe("housing");
     expect(classifyTurn("pardon 24 ay")).toBe("param_update");
+    expect(classifyTurn("merhaba")).toBe("greeting");
+    expect(classifyTurn("merhaba yardıma ihtiyacım var")).toBe("greeting");
+    expect(classifyTurn("baska banka yok mu")).toBe("meta_question");
+    expect(classifyTurn("niye hep aynı cevabı veriyorsun")).toBe("meta_question");
+    expect(classifyTurn("albarakada oranlar ne")).toBe("bank_focus");
+    expect(classifyTurn("ziraat katılım oranları ne")).toBe("bank_focus");
+  });
+
+  it("selamlaşma önceki aramayı yeniden çalıştırmaz", async () => {
+    resetConversationsForTests();
+    const first = await runFinansmanAssistantChat(
+      { message: "200 bin TL ihtiyaç finansmanı, 24 ay." },
+      {
+        matchOverride: {
+          state: createEmptyState("hi"),
+          states: makeStates({ "kuveyt-turk": [makeProduct()] }),
+          memoryProducts: [],
+          memoryCampaigns: [],
+        },
+      },
+    );
+    const second = await runFinansmanAssistantChat({
+      conversationId: first.conversationId,
+      message: "merhaba yardıma ihtiyacım var",
+    });
+    expect(second.query.financingType).toBe("consumer");
+    expect(second.query.preferredTermMonths).toBe(24);
+    expect(second.assistantMessage).toMatch(/Merhaba/i);
+    expect(second.assistantMessage).not.toMatch(/karşılaştırdım/);
+    expect(second.exactMatches).toEqual([]);
   });
 
   it("konu dışı mesaj önceki türü bozmaz ve arama yapmaz", async () => {

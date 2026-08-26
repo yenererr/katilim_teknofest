@@ -83,6 +83,13 @@ export async function buildMatchesFromQdrantEvidence(
   for (const chunk of chunks) {
     if (chunk.score < 0.42) continue;
     if (!isAllowedParticipationBank(chunk.sourceId, chunk.bankName)) continue;
+    if (
+      state.selectedBankIds.length &&
+      !state.selectedBankIds.includes(chunk.sourceId)
+    ) {
+      continue;
+    }
+    if (state.excludedBankIds.includes(chunk.sourceId)) continue;
     if (looksLikeParticipationAccountOnly(chunk.chunkText)) continue;
     const ascii = asciiKatla(chunk.chunkText);
     if (!typeRe.test(ascii)) continue;

@@ -108,6 +108,7 @@ export async function generateRagAnswer(opts: {
   fetchImpl?: typeof fetch;
 }): Promise<GenerateAnswerResult> {
   const t0 = Date.now();
+  const ragTimeoutMs = Number(process.env.EVREN_RAG_TIMEOUT_MS || 25000);
   const userPrompt = [
     `Kullanıcı sorusu: ${opts.userMessage}`,
     `Sorgu niyeti: ${opts.plan.intent}`,
@@ -127,7 +128,9 @@ export async function generateRagAnswer(opts: {
       userPrompt,
       jsonMode: true,
       temperature: 0,
+      maxTokens: 1600,
       fetchImpl: opts.fetchImpl,
+      timeoutMs: ragTimeoutMs,
     });
 
     if (!evren) {
@@ -154,7 +157,9 @@ export async function generateRagAnswer(opts: {
         userPrompt: evren.content.slice(0, 6000),
         jsonMode: true,
         temperature: 0,
+        maxTokens: 1200,
         fetchImpl: opts.fetchImpl,
+        timeoutMs: ragTimeoutMs,
       });
       if (!fix) throw new Error("JSON düzeltme başarısız");
       parsed = parseJsonContent(fix.content);

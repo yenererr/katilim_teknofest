@@ -12,7 +12,8 @@ export function parseTurkishAmount(text: string): number | null {
     return Number.isFinite(n) ? Math.round(n * 1_000_000) : null;
   }
 
-  m = t.match(/(\d+([.,]\d+)?)\s*(bin|k)\b/);
+  m = t.match(/(\d+([.,]\d+)?)\s*bin(?:e|i|den|den)?\b/) ||
+    t.match(/(\d+([.,]\d+)?)\s*(bin|k)\b/);
   if (m) {
     const n = parseFloat(m[1].replace(",", "."));
     return Number.isFinite(n) ? Math.round(n * 1_000) : null;
@@ -60,8 +61,9 @@ export function parseTermMonths(text: string): number | null {
 
 export function parseFinancingType(text: string): FinancingType | null {
   const t = asciiKatla(text);
+  // "ev alcam", "ev alacağım", "ev bakıyorum"
   if (
-    /konut|mortgage|gayrimenkul|\bev alac|\bev al[iı]yorum|\bev almak|\bev bak/.test(
+    /konut|mortgage|gayrimenkul|\bev\s+alc|\bev\s+al[iı]|\bev almak|\bev bak|\bev istiyorum/.test(
       t,
     )
   ) {
@@ -72,12 +74,12 @@ export function parseFinancingType(text: string): FinancingType | null {
   if (/alisveris|magaza|taksitle/.test(t)) return "shopping";
   if (/ticari|kobi|isletme|mikro/.test(t)) return "commercial";
   if (
-    /ihtiyac finansman|tuketici finansman|bireysel finansman|nakit finansman/.test(
+    /ihtiyac finansman|ihtiyac kredi|tuketici finansman|bireysel finansman|nakit finansman/.test(
       t,
     ) ||
     (/\bihtiyac\b/.test(t) &&
       !/ihtiyac(im|ım)\b/.test(t) &&
-      !/ihtiyacim var|ihtiyac[iı]m var/.test(t))
+      !/ihtiyacim var|ihtiyac[iı]m var|yardim/.test(t))
   ) {
     return "consumer";
   }
@@ -121,14 +123,40 @@ export function parseSortPreference(
   text: string,
 ): FinancingConversationState["sortPreference"] {
   const t = asciiKatla(text);
+  // "albarakada oranlar ne" sıralama değil, banka sorusu
+  if (/oran(lar)?\s*(ne|nedir|kac)|ne\s+(kadar\s+)?(oran|kar)/.test(t)) {
+    return null;
+  }
   if (/toplam.*(odeme|ödeme)|en dusuk toplam/.test(t)) return "lowest_total_payment";
   if (/en uzun vade/.test(t)) return "longest_term";
-  if (/masraf|ucret|ücret|tahsis/.test(t) && /dusuk|düşük|en az/.test(t)) {
+  if (/masraf|ucret|ücret|tahsis/.test(t) && /(dusuk|düşük|en az|sirala)/.test(t)) {
     return "lowest_fee";
   }
-  if (/odul|ödül/.test(t)) return "highest_reward";
-  if (/kar pay|kâr pay|oran/.test(t)) return "lowest_profit_rate";
+  if (/odul|ödül/.test(t) && /sirala|en (yuksek|fazla)/.test(t)) return "highest_reward";
+  if (
+    /(en dusuk).*(kar pay|oran)|(kar pay|oran).*(sirala|gore|en dusuk)/.test(t)
+  ) {
+    return "lowest_profit_rate";
+  }
   return null;
+}
+
+/** Sonuç / meta sorular: neden az banka, neden aynı cevap */
+export function isMetaResultQuestion(text: string): boolean {
+  const t = asciiKatla(text);
+  return (
+    /baska banka|daha (fazla|cok) banka|sadece .* banka|neden .* banka|niye .* banka|hep ayni|neden ayni|niye ayni|ayn[iı] cevap|tekrar (ediyorsun|liyorsun)/.test(
+      t,
+    ) || /neden|niye/.test(t) && /ayn[iı]|tekrar|hep/.test(t)
+  );
+}
+
+/** Belirli bankanın oranı / detayı soruluyor mu */
+export function isBankRateQuestion(text: string): boolean {
+  const t = asciiKatla(text);
+  const banks = parseBanks(text);
+  if (!banks.requested.length) return false;
+  return /oran|kar pay|ne kadar|nasil|var m[iı]|goster|karsilastir/.test(t);
 }
 
 export function detectFollowUpFlags(text: string): {
@@ -153,7 +181,34 @@ export type TurnKind =
   | "comparison"
   | "ambiguous_purpose"
   | "unsupported"
+  | "greeting"
+  | "meta_question"
+  | "bank_focus"
   | "sort_only";
+
+/** Selam / genel yardım — finansman parametresi yok */
+export function isGreetingOrHelpRequest(text: string): boolean {
+  const t = asciiKatla(text).trim();
+  if (!t) return false;
+
+  const hasRealFinance =
+    parseTurkishAmount(t) != null ||
+    (parseTermMonths(t) != null && !/yardim/.test(t)) ||
+    parseFinancingType(t) != null ||
+    /finansman|kredi|faiz|kar pay|vade\b|kampanya|konut|tasit|araba|arac|otomobil|banka|kat[iı]l[iı]m|tahsis|masraf|\btl\b|\bbin\b|milyon/.test(
+      t,
+    );
+
+  if (hasRealFinance) return false;
+
+  return (
+    /^(merhaba|selam|selamlar|hey|hi|hello|iyi gunler|gunaydin)\b/.test(t) ||
+    /yardim(a|iniz)?\s+ihtiyac|bana yardim|yardim eder misin|ne yapabilirsin|nasil (calisir|kullan)/.test(
+      t,
+    ) ||
+    /^(merhaba|selam).{0,60}yardim/.test(t)
+  );
+}
 
 export function classifyTurn(
   message: string,
@@ -171,6 +226,18 @@ export function classifyTurn(
     return "unsupported";
   }
 
+  if (isGreetingOrHelpRequest(t)) {
+    return "greeting";
+  }
+
+  if (isMetaResultQuestion(t)) {
+    return "meta_question";
+  }
+
+  if (isBankRateQuestion(t)) {
+    return "bank_focus";
+  }
+
   if (isAmbiguousPurpose(t) && !parseFinancingType(t)) {
     return "ambiguous_purpose";
   }
@@ -179,8 +246,13 @@ export function classifyTurn(
   if (/kar[sş]ila[sş]tir/.test(t)) return "comparison";
   if (parseSortPreference(t)) return "sort_only";
 
+  const flags = detectFollowUpFlags(t);
+  if (flags.amountCapStrict || flags.hideUnknownFees || flags.onlyNewCustomer) {
+    return "param_update";
+  }
+
   const hasFinanceSignal =
-    /finansman|kredi|faiz|kar pay|vade|tutar|tl\b|bin|milyon|banka|kat[iı]l[iı]m|ihtiyac|konut|tasit|araba|arac|otomobil|alcam|alacag|alaca[gğ]|karsilastir|sirala|masraf|tahsis|musteri|pardon/.test(
+    /finansman|kredi|faiz|kar pay|vade|tutar|\btl\b|\bbin\b|milyon|banka|kat[iı]l[iı]m|ihtiyac finansman|ihtiyac kredi|\bihtiyac\b(?!\s*im)|konut|tasit|araba|arac|otomobil|\bev\s+alc|alcam|alacag|alaca[gğ]|karsilastir|sirala|masraf|tahsis|musteri|pardon/.test(
       t,
     ) ||
     parseTurkishAmount(t) != null ||
@@ -237,6 +309,10 @@ export function mergeMessageIntoState(
     next.intent = "unsupported";
     return next;
   }
+  if (turn === "greeting" || turn === "meta_question") {
+    next.intent = "general_question";
+    return next;
+  }
   if (turn === "ambiguous_purpose") {
     next.intent = "general_question";
     return next;
@@ -255,6 +331,7 @@ export function mergeMessageIntoState(
 
   if (termCandidate != null) next.preferredTermMonths = termCandidate;
 
+  const prevType = next.financingType;
   const fType = parseFinancingType(text);
   if (fType) next.financingType = fType;
 
@@ -271,6 +348,9 @@ export function mergeMessageIntoState(
   if (qr === "ihtiyac olarak devam" || qr === "ihtiyac finansmani olarak bak") {
     next.financingType = "consumer";
   }
+  if (qr === "tum bankalar" || qr === "tumunu goster") {
+    next.selectedBankIds = [];
+  }
 
   const cs = parseCustomerStatus(text);
   if (cs !== "unknown" || /yeni musteri|mevcut musteri/.test(asciiKatla(text))) {
@@ -279,6 +359,13 @@ export function mergeMessageIntoState(
 
   const banks = parseBanks(text);
   if (banks.requested.length) next.selectedBankIds = banks.requested;
+  else if (fType && fType !== prevType) {
+    // Amaç değişince önceki banka filtresini temizle
+    next.selectedBankIds = [];
+  }
+  if (/tum banka|tumunu goster|filtreyi kaldir|butun banka/.test(asciiKatla(text))) {
+    next.selectedBankIds = [];
+  }
   if (banks.excluded.length) {
     next.excludedBankIds = [
       ...new Set([...next.excludedBankIds, ...banks.excluded]),
@@ -296,7 +383,8 @@ export function mergeMessageIntoState(
   if (flags.hideUnknownFees) next.hideUnknownFees = true;
   if (flags.onlyNewCustomer) next.customerStatus = "new";
 
-  if (turn === "campaign_search") next.intent = "campaign_search";
+  if (turn === "bank_focus") next.intent = "follow_up";
+  else if (turn === "campaign_search") next.intent = "campaign_search";
   else if (turn === "comparison") next.intent = "comparison";
   else if (turn === "param_update" || turn === "sort_only") next.intent = "follow_up";
   else next.intent = "finance_search";

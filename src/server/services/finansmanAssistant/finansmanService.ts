@@ -169,6 +169,63 @@ function buildCampaignMessage(
   );
 }
 
+function buildBankFocusMessage(
+  state: FinancingConversationState,
+  matches: Array<{
+    bankName: string;
+    profitRate: number | null;
+    ratePeriod: string | null;
+    calculationWarning: string | null;
+    sourceUrl: string;
+    evidence: string[];
+  }>,
+): string {
+  const bankLabel =
+    matches[0]?.bankName ||
+    state.selectedBankIds.join(", ") ||
+    "Seçilen banka";
+  const typeLabel = state.financingType
+    ? FINANCING_TYPE_LABEL[state.financingType]
+    : "finansman";
+  if (!matches.length) {
+    return (
+      `${bankLabel} için ${formatAmount(state.requestedAmountTl!)} TL ${typeLabel.toLowerCase()} ` +
+      `ve ${state.preferredTermMonths} ay koşullarında doğrulanmış ilan edilmiş bir kâr payı kaydı bulamadım.\n\n` +
+      `Resmî kaynakta oran kişiye özel / belirtilmemiş olabilir. Tüm bankalara dönmek veya vadeyi değiştirmek ister misiniz?`
+    );
+  }
+  const lines = matches.slice(0, 3).map((m) => {
+    const rate =
+      m.profitRate == null
+        ? "Resmî kaynakta belirtilmemiş (bankadan teklif alınmalı)"
+        : `%${(m.profitRate * 100).toLocaleString("tr-TR", {
+            maximumFractionDigits: 2,
+          })} (${m.ratePeriod === "monthly" ? "aylık" : m.ratePeriod === "annual" ? "yıllık" : "periyot belirsiz"})`;
+    return `• ${m.bankName}: ilan edilen kâr payı — ${rate}`;
+  });
+  return (
+    `${bankLabel} için mevcut talebinize göre doğrulanmış kayıtlara baktım.\n\n` +
+    lines.join("\n") +
+    `\n\nAyrıntı ve kanıt için aşağıdaki tabloyu / resmî kaynak bağlantısını kullanabilirsiniz.`
+  );
+}
+
+function buildMetaQuestionMessage(
+  state: FinancingConversationState,
+  lastExactCount: number,
+): string {
+  const typeLabel = state.financingType
+    ? FINANCING_TYPE_LABEL[state.financingType]
+    : "finansman";
+  return (
+    `Parametreler aynı kaldığı için aynı doğrulanmış sonucu gösteriyorum.\n\n` +
+    `10 katılım bankası içinde şu an koşullarınıza uyan ${lastExactCount || "sınırlı sayıda"} seçenek var; ` +
+    `uygun olmayan bankaları tabloya eklemiyorum.\n\n` +
+    `Daha fazla seçenek için tutarı, vadeyi (${state.preferredTermMonths ?? "?"} ay) veya amacı ` +
+    `(şu an: ${typeLabel}) değiştirebilir; ya da “Albaraka oranları ne?” gibi tek banka sorabilirsiniz.`
+  );
+}
+
 function emptySummary(): FinancingAssistantResponse["summary"] {
   return {
     totalParticipationBanks: 10,
@@ -320,6 +377,62 @@ export async function runFinansmanAssistantChat(
       quickReplies: [
         ...purposeQuickReplies().slice(0, 4),
         ...termQuickReplies().slice(0, 3),
+      ],
+      query: state,
+      exactMatches: [],
+      flexibleMatches: [],
+      summary: emptySummary(),
+      warnings: [],
+      citations: [],
+    };
+  }
+
+  if (turn === "greeting") {
+    conversations.set(conversationId, state);
+    const hasContext =
+      state.requestedAmountTl != null ||
+      state.financingType != null ||
+      state.preferredTermMonths != null;
+    return {
+      conversationId,
+      assistantMessage: hasContext
+        ? "Merhaba! Mevcut talebinizi koruyorum. İsterseniz tutarı, vadeyi veya finansman amacını güncelleyin; ya da kampanya sorabilirsiniz."
+        : "Merhaba! Katılım bankalarının doğrulanmış finansman seçeneklerini karşılaştırmanıza yardımcı olabilirim.\n\nİhtiyacınız olan tutarı ve finansman amacınızı yazmanız yeterli.",
+      status: "needs_information",
+      missingFields: missingRequiredFields(state),
+      quickReplies: [
+        {
+          id: "g-ihtiyac",
+          label: "200.000 TL ihtiyaç, 24 ay",
+          value: "200.000 TL ihtiyaç finansmanı, 24 ay",
+        },
+        ...purposeQuickReplies().slice(0, 3),
+        ...termQuickReplies().slice(0, 3),
+      ],
+      query: state,
+      exactMatches: [],
+      flexibleMatches: [],
+      summary: emptySummary(),
+      warnings: [],
+      citations: [],
+    };
+  }
+
+  if (turn === "meta_question") {
+    conversations.set(conversationId, state);
+    return {
+      conversationId,
+      assistantMessage: buildMetaQuestionMessage(
+        state,
+        state.lastResultIds.length,
+      ),
+      status: "needs_information",
+      missingFields: [],
+      quickReplies: [
+        { id: "m-all", label: "Tüm bankaları göster", value: "Tüm bankalar" },
+        { id: "m-term", label: "Vadeyi 36 ay yap", value: "Vadeyi 36 ay yap" },
+        { id: "m-konut", label: "Konut finansmanı", value: "Ev alcam" },
+        ...purposeQuickReplies().slice(0, 3),
       ],
       query: state,
       exactMatches: [],
@@ -492,18 +605,20 @@ export async function runFinansmanAssistantChat(
       : ("no_exact_match" as const);
 
   const assistantMessage =
-    state.intent === "campaign_search"
-      ? buildCampaignMessage(
-          state,
-          match.flexibleMatches.length,
-          match.exactMatches.length,
-        )
-      : buildResultMessage(
-          state,
-          match.exactMatches.length,
-          match.flexibleMatches.length,
-          10,
-        );
+    turn === "bank_focus"
+      ? buildBankFocusMessage(state, match.exactMatches)
+      : state.intent === "campaign_search"
+        ? buildCampaignMessage(
+            state,
+            match.flexibleMatches.length,
+            match.exactMatches.length,
+          )
+        : buildResultMessage(
+            state,
+            match.exactMatches.length,
+            match.flexibleMatches.length,
+            10,
+          );
 
   return {
     conversationId,
@@ -511,16 +626,21 @@ export async function runFinansmanAssistantChat(
     status,
     missingFields: [],
     quickReplies:
-      state.intent === "campaign_search"
+      turn === "bank_focus"
         ? [
-            {
-              id: "c-new-camp",
-              label: "Yeni müşteri kampanyaları",
-              value: "Yeni müşteri kampanyalarını göster",
-            },
+            { id: "bf-all", label: "Tüm bankalar", value: "Tüm bankalar" },
             ...sortFollowUpReplies(),
           ]
-        : sortFollowUpReplies(),
+        : state.intent === "campaign_search"
+          ? [
+              {
+                id: "c-new-camp",
+                label: "Yeni müşteri kampanyaları",
+                value: "Yeni müşteri kampanyalarını göster",
+              },
+              ...sortFollowUpReplies(),
+            ]
+          : sortFollowUpReplies(),
     query: state,
     exactMatches: match.exactMatches,
     flexibleMatches: match.flexibleMatches,

@@ -10,8 +10,10 @@ import { refreshSourcesForQuery } from "../tools/refreshSourceTool";
 import type {
   ComparisonToolResult,
   FreshnessStatus,
+  RagAnswer,
   RagChatResponse,
   RagObservability,
+  RetrievedChunk,
 } from "./ragTypes";
 
 /** Kısa konuşma bağlamı — finansal değerleri yeniden kullanmaz */
@@ -34,6 +36,78 @@ function priorContext(conversationId?: string): string {
     "Önceki konuşma (yalnızca niyet bağlamı; finansal değerleri güncel sanma):\n" +
     list.map((m) => `${m.role}: ${m.text}`).join("\n")
   );
+}
+
+function toCitations(chunks: RetrievedChunk[]) {
+  return chunks.slice(0, 8).map((c) => ({
+    id: c.citationId,
+    title: c.productName || `${c.bankName} — ${c.documentType}`,
+    bankName: c.bankName,
+    sourceUrl: c.sourceUrl,
+    sourceCheckedAt: c.sourceCheckedAt,
+    evidenceText: c.chunkText.slice(0, 500),
+  }));
+}
+
+function buildDeterministicComparisonAnswer(opts: {
+  chunks: RetrievedChunk[];
+  comparison: ComparisonToolResult | null;
+  dataAsOf: string;
+  warnings: string[];
+}): RagAnswer {
+  const ranked = opts.comparison?.ranked || [];
+  const best = ranked[0];
+  const bestMetricMissing =
+    !best || best.metricValue === null || best.metricDisplay === null;
+
+  if (!ranked.length || bestMetricMissing) {
+    return {
+      answer:
+        "36 ay vadeye ait doğrulanmış kâr payı oranı bulunamadı; bu nedenle en düşük oran karşılaştırılamadı.",
+      status: "insufficient_data",
+      products: [],
+      citations: toCitations(opts.chunks),
+      warnings: opts.warnings,
+      dataAsOf: opts.dataAsOf,
+    };
+  }
+
+  const top = ranked.slice(0, 3);
+  const lines = top.map((r, i) => {
+    const metric = r.metricDisplay || "Belirtilmemiş";
+    return `${i + 1}. ${r.bankName} — ${r.productName} (${metric})`;
+  });
+
+  return {
+    answer:
+      `Karşılaştırmayı backend deterministik kriterleriyle yaptım.\n\n` +
+      `En avantajlı görünen seçenek: ${best.bankName} — ${best.productName}` +
+      (best.metricDisplay ? ` (${best.metricDisplay})` : "") +
+      `.\n\n` +
+      `İlk 3 doğrulanmış sonuç:\n${lines.join("\n")}`,
+    status: "answered",
+    products: top.map((r) => ({
+      productId: r.productId,
+      bankName: r.bankName,
+      productName: r.productName,
+      verifiedFields: {
+        metricLabel: r.metricLabel,
+        metricValue: r.metricValue,
+        metricDisplay: r.metricDisplay,
+      },
+      freshnessStatus: "MIXED",
+    })),
+    citations: toCitations(opts.chunks),
+    warnings: opts.warnings,
+    calculation: opts.comparison
+      ? {
+          method: opts.comparison.method,
+          inputs: opts.comparison.inputs,
+          result: opts.comparison.result,
+        }
+      : undefined,
+    dataAsOf: opts.dataAsOf,
+  };
 }
 
 export async function runRagChat(opts: {
@@ -108,6 +182,34 @@ export async function runRagChat(opts: {
       .sort()
       .at(-1) || new Date().toISOString();
 
+  // Karşılaştırma sorularında LLM'e gitmeden deterministik cevap ver (hız ve stabilite).
+  if (comparison && (plan.intent === "comparison" || plan.intent === "calculation")) {
+    const deterministic = buildDeterministicComparisonAnswer({
+      chunks: retrieved.chunks,
+      comparison,
+      dataAsOf,
+      warnings: [...refresh.warnings],
+    });
+    return {
+      ...deterministic,
+      requestId,
+      observability: {
+        request_id: requestId,
+        intent: plan.intent,
+        retrieval_duration_ms: retrieved.retrievalDurationMs,
+        structured_query_duration_ms: retrieved.structuredDurationMs,
+        llm_duration_ms: 0,
+        total_duration_ms: Date.now() - started,
+        retrieved_chunk_count: retrieved.chunks.length,
+        used_source_count: deterministic.citations.length,
+        freshness_status: overallFreshness,
+        model_alias: null,
+        fallback_used: false,
+        validation_status: "skipped",
+      },
+    };
+  }
+
   if (!retrieved.chunks.length && !retrieved.products.length) {
     const empty = safeFallback(
       "insufficient_data",
@@ -178,8 +280,35 @@ export async function runRagChat(opts: {
     comparison,
   });
 
-  const finalAnswer = validated.answer;
+  let finalAnswer = validated.answer;
   finalAnswer.dataAsOf = dataAsOf;
+
+  if (
+    finalAnswer.status === "insufficient_data" &&
+    retrieved.chunks.length > 0 &&
+    !comparison
+  ) {
+    finalAnswer = {
+      answer:
+        "Resmî kaynaklarda ilgili içerikleri buldum ancak bu soruya net sayısal cevap üretecek düzeyde doğrulanmış yapılandırılmış veri henüz tamamlanmamış görünüyor. Aşağıdaki kaynakları inceleyebilir veya soruyu tutar/vade/banka belirterek daraltabilirsiniz.",
+      status: "answered",
+      products: retrieved.products.slice(0, 5).map((p) => ({
+        productId: p.productId,
+        bankName: p.bankName,
+        productName: String((p.product as Record<string, unknown>).urun_adi || ""),
+        verifiedFields: {},
+        freshnessStatus: p.freshness,
+      })),
+      citations: toCitations(retrieved.chunks),
+      warnings: [
+        ...new Set([
+          ...finalAnswer.warnings,
+          "LLM yanıtı yeterli olmadığından deterministic kaynak özeti gösterildi.",
+        ]),
+      ],
+      dataAsOf,
+    };
+  }
 
   if (opts.conversationId) {
     remember(opts.conversationId, "user", opts.message);
