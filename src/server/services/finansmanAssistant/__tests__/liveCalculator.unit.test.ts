@@ -2,6 +2,12 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { createEmptyState } from "../finansmanNlu";
 
 vi.mock("../../calculators/vakifKatilimCalculator", () => ({
+  VAKIF_FINANSMAN_KODLARI: {
+    ihtiyac_finansmani: "1",
+    tasit_finansmani: "2",
+    konut_finansmani: "3",
+    isyeri_finansmani: "4",
+  },
   hesaplaVakifKatilim: vi.fn(async () => ({
     bankId: "vakif-katilim",
     financingType: "ihtiyac_finansmani",
@@ -29,6 +35,12 @@ vi.mock("../../calculators/ziraatKatilimCalculator", () => ({
     konut_finansmani_ikinci_el: "3",
     tasit_finansmani_ikinci_el: "2",
   },
+  getZiraatUrunMeta: vi.fn(async () => ({
+    eid: "1",
+    ratio: 4.99,
+    maxAmount: 500000,
+    maxTerm: 36,
+  })),
   hesaplaZiraatKatilim: vi.fn(async () => ({
     bankId: "ziraat-katilim",
     financingType: "ihtiyac_finansmani",
@@ -113,5 +125,26 @@ describe("liveCalculatorEnrichment", () => {
     expect(ziraat?.estimatedMonthlyPaymentTl).toBe(11200);
     expect(ziraat?.profitRate).toBeCloseTo(0.0499);
     expect(out.matches.every((m) => m.calculationAvailable)).toBe(true);
+  });
+
+  it("canlı API düşerse Ziraat meta oranı + Softtech ile doldurur", async () => {
+    const { hesaplaZiraatKatilim } = await import(
+      "../../calculators/ziraatKatilimCalculator"
+    );
+    vi.mocked(hesaplaZiraatKatilim).mockRejectedValueOnce(new Error("timeout"));
+
+    const { enrichWithLiveCalculators } = await import(
+      "../liveCalculatorEnrichment"
+    );
+    const state = createEmptyState("live-fallback");
+    state.financingType = "consumer";
+    state.requestedAmountTl = 200000;
+    state.preferredTermMonths = 24;
+
+    const out = await enrichWithLiveCalculators([], state);
+    const ziraat = out.matches.find((m) => m.bankId === "ziraat-katilim");
+    expect(ziraat?.calculationAvailable).toBe(true);
+    expect(ziraat?.estimatedMonthlyPaymentTl).toBeGreaterThan(0);
+    expect(ziraat?.evidence.some((e) => /Softtech/i.test(e))).toBe(true);
   });
 });

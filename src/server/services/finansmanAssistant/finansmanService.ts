@@ -889,6 +889,12 @@ export async function runFinansmanAssistantChat(
     warnings.push(`Kontrol edilemeyen: ${match.failedBanks.join(", ")}`);
   }
 
+  const liveNote = exactMatches.some((m) =>
+    m.evidence.some((e) => /canlı motor|Softtech|yerel motor/i.test(e)),
+  )
+    ? "\n\nTaksit ve kâr payı; Vakıf, Ziraat ve Kuveyt için bankanın hesaplama aracı / Softtech uyumlu motorla dolduruldu."
+    : "";
+
   const citations = exactMatches.slice(0, 8).map((m, i) => ({
     id: i + 1,
     bankName: m.bankName,
@@ -902,8 +908,13 @@ export async function runFinansmanAssistantChat(
       ? ("results_ready" as const)
       : ("no_exact_match" as const);
 
+  const liveFailNote = evidenceWarnings
+    .filter((w) => /canlı hesaplama|ulaşılamadı/i.test(w))
+    .slice(0, 2)
+    .join(" ");
+
   const assistantMessage =
-    turn === "bank_focus"
+    (turn === "bank_focus"
       ? buildBankFocusMessage(state, exactMatches)
       : state.intent === "campaign_search"
         ? buildCampaignMessage(
@@ -916,7 +927,9 @@ export async function runFinansmanAssistantChat(
             exactMatches.length,
             match.flexibleMatches.length,
             10,
-          );
+          )) +
+    liveNote +
+    (liveFailNote ? `\n\nNot: ${liveFailNote}` : "");
 
   const href = buildHesaplamaHref(state);
 

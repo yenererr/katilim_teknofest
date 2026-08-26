@@ -1,12 +1,18 @@
 /**
- * Chatbot eşleşmelerini Vakıf / Ziraat / Kuveyt canlı hesaplama motorlarıyla
- * zenginleştirir. Scrape’te oran olmasa bile taksit üretir.
+ * Chatbot eşleşmelerini Vakıf / Ziraat / Kuveyt canlı motorlarıyla zenginleştirir.
+ * Canlı uç başarısız olursa Softtech formülü (hesaplaOdemePlani) ile yedekler.
  */
 
 import { BANKA_INDEKS } from "../../../data/piyasa";
-import { hesaplaVakifKatilim } from "../calculators/vakifKatilimCalculator";
+import { hesaplaOdemePlani } from "../../../lib/odemePlani";
+import {
+  hesaplaVakifKatilim,
+  VAKIF_FINANSMAN_KODLARI,
+  type VakifFinansmanTuru,
+} from "../calculators/vakifKatilimCalculator";
 import {
   hesaplaZiraatKatilim,
+  getZiraatUrunMeta,
   ZIRAAT_FINANSMAN_EID,
   type ZiraatFinansmanTuru,
 } from "../calculators/ziraatKatilimCalculator";
@@ -31,12 +37,59 @@ function mapFinancingKey(type: FinancingType | null): string {
   if (type === "vehicle") return "tasit_finansmani";
   if (type === "housing") return "konut_finansmani";
   if (type === "commercial") return "isyeri_finansmani";
-  // shopping / education / consumer / other → ihtiyaç
   return "ihtiyac_finansmani";
 }
 
 function bankName(id: string): string {
   return BANKA_INDEKS[id]?.ad || id;
+}
+
+function softtechLocal(opts: {
+  bankId: string;
+  financingKey: string;
+  amountTl: number;
+  termMonths: number;
+  profitRatePercent: number;
+  sourceUrl: string;
+  label: string;
+  feeTl?: number | null;
+}): FinancingMatch | null {
+  try {
+    const plan = hesaplaOdemePlani({
+      amountTl: opts.amountTl,
+      termMonths: opts.termMonths,
+      profitRatePercent: opts.profitRatePercent,
+      financingType: opts.financingKey,
+    });
+    const now = new Date().toISOString();
+    return {
+      bankId: opts.bankId,
+      bankName: bankName(opts.bankId),
+      productId: `live-${opts.bankId}-${opts.financingKey}`,
+      productName: `${bankName(opts.bankId)} — hesaplama`,
+      financingType: opts.financingKey,
+      requestedAmountTl: opts.amountTl,
+      termMonths: opts.termMonths,
+      profitRate: opts.profitRatePercent / 100,
+      ratePeriod: "monthly",
+      estimatedMonthlyPaymentTl: plan.taksitTutari,
+      estimatedTotalPaymentTl: plan.odenecekToplamTutar,
+      allocationFeeTl: opts.feeTl ?? plan.finansmanTahsisUcreti,
+      customerCondition: null,
+      campaignEnd: null,
+      freshnessStatus: "fresh",
+      sourceCheckedAt: now,
+      sourceUrl: opts.sourceUrl,
+      evidence: [
+        `${opts.label}: aylık %${opts.profitRatePercent.toLocaleString("tr-TR", { maximumFractionDigits: 4 })} ile Softtech uyumlu motor.`,
+      ],
+      calculationAvailable: true,
+      calculationWarning: null,
+    };
+  } catch (err) {
+    console.warn("[LiveCalc] softtechLocal", opts.bankId, err);
+    return null;
+  }
 }
 
 function toMatch(opts: {
@@ -86,37 +139,216 @@ function mergeLive(
   for (const m of existing) byBank.set(m.bankId, m);
   for (const m of live) {
     const prev = byBank.get(m.bankId);
-    if (!prev || !prev.calculationAvailable) {
-      byBank.set(m.bankId, prev ? { ...prev, ...m, productId: prev.productId, productName: prev.productName || m.productName, evidence: [...(prev.evidence || []), ...m.evidence] } : m);
-    } else if (m.calculationAvailable) {
-      // Canlı sonuç scrape oranının üzerine yazılır
-      byBank.set(m.bankId, {
-        ...prev,
-        profitRate: m.profitRate,
-        ratePeriod: m.ratePeriod,
-        estimatedMonthlyPaymentTl: m.estimatedMonthlyPaymentTl,
-        estimatedTotalPaymentTl: m.estimatedTotalPaymentTl,
-        allocationFeeTl: m.allocationFeeTl ?? prev.allocationFeeTl,
-        calculationAvailable: true,
-        calculationWarning: null,
-        freshnessStatus: "fresh",
-        sourceCheckedAt: m.sourceCheckedAt,
-        sourceUrl: m.sourceUrl || prev.sourceUrl,
-        evidence: [
-          ...prev.evidence.filter((e) => !/yeterli bilgi bulunmuyor/i.test(e)),
-          ...m.evidence,
-        ],
-      });
+    if (!prev) {
+      byBank.set(m.bankId, m);
+      continue;
     }
+    // Canlı / hesaplanmış sonuç her zaman scrape “oran yok” satırının üzerine yazılır
+    byBank.set(m.bankId, {
+      ...prev,
+      ...m,
+      productId: prev.productId.startsWith("live-") ? m.productId : prev.productId,
+      productName: m.calculationAvailable
+        ? m.productName
+        : prev.productName || m.productName,
+      evidence: [
+        ...prev.evidence.filter((e) => !/yeterli bilgi bulunmuyor/i.test(e)),
+        ...m.evidence,
+      ],
+    });
   }
-  return [...byBank.values()].sort((a, b) => {
+
+  const all = [...byBank.values()];
+  const calculated = all.filter((m) => m.calculationAvailable);
+  const rest = all.filter((m) => !m.calculationAvailable);
+  const byPay = (a: FinancingMatch, b: FinancingMatch) => {
     const av = a.estimatedMonthlyPaymentTl;
     const bv = b.estimatedMonthlyPaymentTl;
     if (av == null && bv == null) return a.bankName.localeCompare(b.bankName, "tr");
     if (av == null) return 1;
     if (bv == null) return -1;
     return av - bv;
-  });
+  };
+  // Hesaplanmışlar önde; oranı olmayanlar sonda (veya gizlenebilir)
+  return [...calculated.sort(byPay), ...rest.sort(byPay)];
+}
+
+async function calcVakif(
+  financingKey: string,
+  amount: number,
+  term: number,
+  customRate: number | null | undefined,
+): Promise<FinancingMatch | null> {
+  if (!(financingKey in VAKIF_FINANSMAN_KODLARI)) return null;
+  const tur = financingKey as VakifFinansmanTuru;
+  try {
+    const r = await hesaplaVakifKatilim({
+      financingType: tur,
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: customRate,
+      calculateType: "1",
+    });
+    if (r.monthlyInstallmentTl != null && r.profitRatePercent != null) {
+      return toMatch({
+        bankId: "vakif-katilim",
+        financingKey,
+        amountTl: amount,
+        termMonths: term,
+        profitRatePercent: r.profitRatePercent,
+        monthlyTl: r.monthlyInstallmentTl,
+        totalTl: r.totalPaymentTl,
+        feeTl: r.appraisementFeeTl,
+        sourceUrl: r.sourceUrl,
+        label: "Vakıf Katılım canlı motor",
+      });
+    }
+    if (r.profitRatePercent != null) {
+      return softtechLocal({
+        bankId: "vakif-katilim",
+        financingKey,
+        amountTl: amount,
+        termMonths: term,
+        profitRatePercent: r.profitRatePercent,
+        sourceUrl: r.sourceUrl,
+        label: "Vakıf Katılım (oran + yerel motor)",
+        feeTl: r.appraisementFeeTl,
+      });
+    }
+  } catch (err) {
+    console.warn("[LiveCalc] vakif", err instanceof Error ? err.message : err);
+  }
+  // Özel oran varsa yerel Softtech
+  if (customRate != null && customRate > 0) {
+    return softtechLocal({
+      bankId: "vakif-katilim",
+      financingKey,
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: customRate,
+      sourceUrl: "https://www.vakifkatilim.com.tr/tr",
+      label: "Vakıf Katılım (özel oran + yerel motor)",
+    });
+  }
+  return null;
+}
+
+async function calcZiraat(
+  financingKey: string,
+  amount: number,
+  term: number,
+  customRate: number | null | undefined,
+): Promise<FinancingMatch | null> {
+  if (!(financingKey in ZIRAAT_FINANSMAN_EID)) return null;
+  const tur = financingKey as ZiraatFinansmanTuru;
+  try {
+    const r = await hesaplaZiraatKatilim({
+      financingType: tur,
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: customRate,
+    });
+    if (r.monthlyInstallmentTl != null && r.profitRatePercent != null) {
+      return toMatch({
+        bankId: "ziraat-katilim",
+        financingKey,
+        amountTl: amount,
+        termMonths: term,
+        profitRatePercent: r.profitRatePercent,
+        monthlyTl: r.monthlyInstallmentTl,
+        totalTl: r.totalPaymentTl,
+        feeTl: r.appraisementFeeTl,
+        sourceUrl: r.sourceUrl,
+        label: "Ziraat Katılım canlı motor",
+      });
+    }
+  } catch (err) {
+    console.warn("[LiveCalc] ziraat", err instanceof Error ? err.message : err);
+  }
+
+  // get-vade oranı + yerel Softtech (canlı HTML parse başarısız olsa bile)
+  try {
+    const meta = await getZiraatUrunMeta(tur, term, fetch, amount);
+    const oran = customRate != null && customRate > 0 ? customRate : meta.ratio;
+    if (oran != null && oran > 0) {
+      return softtechLocal({
+        bankId: "ziraat-katilim",
+        financingKey,
+        amountTl: amount,
+        termMonths: term,
+        profitRatePercent: oran,
+        sourceUrl: "https://www.ziraatkatilim.com.tr/bireysel/finansman-urunleri",
+        label: "Ziraat Katılım (ilan oranı + Softtech motor)",
+      });
+    }
+  } catch (err) {
+    console.warn("[LiveCalc] ziraat-meta", err instanceof Error ? err.message : err);
+  }
+
+  if (customRate != null && customRate > 0) {
+    return softtechLocal({
+      bankId: "ziraat-katilim",
+      financingKey,
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: customRate,
+      sourceUrl: "https://www.ziraatkatilim.com.tr/bireysel/finansman-urunleri",
+      label: "Ziraat Katılım (özel oran + Softtech motor)",
+    });
+  }
+  return null;
+}
+
+async function calcKuveyt(
+  financingKey: string,
+  amount: number,
+  term: number,
+  customRate: number | null | undefined,
+): Promise<FinancingMatch | null> {
+  if (!resolveKuveytProduct(financingKey)) return null;
+  try {
+    const r = await hesaplaKuveytTurk({
+      financingType: financingKey,
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: customRate,
+      calculateType: "1",
+    });
+    if (r.monthlyInstallmentTl != null && r.profitRatePercent != null) {
+      return toMatch({
+        bankId: "kuveyt-turk",
+        financingKey,
+        amountTl: amount,
+        termMonths: term,
+        profitRatePercent: r.profitRatePercent,
+        monthlyTl: r.monthlyInstallmentTl,
+        totalTl: r.totalPaymentTl,
+        feeTl: r.allocationFeeTl,
+        sourceUrl: r.sourceUrl,
+        label: "Kuveyt Türk canlı motor",
+      });
+    }
+  } catch (err) {
+    console.warn("[LiveCalc] kuveyt", err instanceof Error ? err.message : err);
+  }
+  // Kuveyt BSMV farkı var; özel oranla yaklaşık Softtech yedek (bilinçli)
+  if (customRate != null && customRate > 0) {
+    const row = softtechLocal({
+      bankId: "kuveyt-turk",
+      financingKey,
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: customRate,
+      sourceUrl: "https://www.kuveytturk.com.tr/hesaplama-araclari/finansman-hesaplama",
+      label: "Kuveyt Türk (özel oran + yaklaşık motor)",
+    });
+    if (row) {
+      row.calculationWarning =
+        "Kuveyt Türk canlı ucuna ulaşılamadı; taksit Softtech formülüyle yaklaşık hesaplandı.";
+    }
+    return row;
+  }
+  return null;
 }
 
 /**
@@ -139,124 +371,31 @@ export async function enrichWithLiveCalculators(
   const financingKey = mapFinancingKey(state.financingType);
   const customRate = state.customProfitRatePercent;
 
-  const jobs: Array<Promise<void>> = [];
+  const results = await Promise.all([
+    calcVakif(financingKey, amount, term, customRate),
+    calcZiraat(financingKey, amount, term, customRate),
+    calcKuveyt(financingKey, amount, term, customRate),
+  ]);
 
-  // Vakıf Katılım
-  jobs.push(
-    (async () => {
-      try {
-        const r = await hesaplaVakifKatilim({
-          financingType: financingKey as Parameters<typeof hesaplaVakifKatilim>[0]["financingType"],
-          amountTl: amount,
-          termMonths: term,
-          profitRatePercent: customRate,
-          calculateType: "1",
-        });
-        if (r.monthlyInstallmentTl == null || r.profitRatePercent == null) return;
-        liveBankIds.push("vakif-katilim");
-        liveRows.push(
-          toMatch({
-            bankId: "vakif-katilim",
-            financingKey,
-            amountTl: amount,
-            termMonths: term,
-            profitRatePercent: r.profitRatePercent,
-            monthlyTl: r.monthlyInstallmentTl,
-            totalTl: r.totalPaymentTl,
-            feeTl: r.appraisementFeeTl,
-            sourceUrl: r.sourceUrl,
-            label: "Vakıf Katılım canlı motor",
-          }),
-        );
-      } catch (err) {
-        warnings.push(
-          `Vakıf Katılım canlı hesaplama: ${err instanceof Error ? err.message : "başarısız"}`,
-        );
-      }
-    })(),
-  );
-
-  // Ziraat Katılım
-  if (financingKey in ZIRAAT_FINANSMAN_EID) {
-    jobs.push(
-      (async () => {
-        try {
-          const r = await hesaplaZiraatKatilim({
-            financingType: financingKey as ZiraatFinansmanTuru,
-            amountTl: amount,
-            termMonths: term,
-            profitRatePercent: customRate,
-          });
-          if (r.monthlyInstallmentTl == null || r.profitRatePercent == null) return;
-          liveBankIds.push("ziraat-katilim");
-          liveRows.push(
-            toMatch({
-              bankId: "ziraat-katilim",
-              financingKey,
-              amountTl: amount,
-              termMonths: term,
-              profitRatePercent: r.profitRatePercent,
-              monthlyTl: r.monthlyInstallmentTl,
-              totalTl: r.totalPaymentTl,
-              feeTl: r.appraisementFeeTl,
-              sourceUrl: r.sourceUrl,
-              label: "Ziraat Katılım canlı motor",
-            }),
-          );
-        } catch (err) {
-          warnings.push(
-            `Ziraat Katılım canlı hesaplama: ${err instanceof Error ? err.message : "başarısız"}`,
-          );
-        }
-      })(),
-    );
+  for (const row of results) {
+    if (!row) continue;
+    liveBankIds.push(row.bankId);
+    liveRows.push(row);
   }
-
-  // Kuveyt Türk
-  if (resolveKuveytProduct(financingKey)) {
-    jobs.push(
-      (async () => {
-        try {
-          const r = await hesaplaKuveytTurk({
-            financingType: financingKey,
-            amountTl: amount,
-            termMonths: term,
-            profitRatePercent: customRate,
-            calculateType: "1",
-          });
-          if (r.monthlyInstallmentTl == null || r.profitRatePercent == null) return;
-          liveBankIds.push("kuveyt-turk");
-          liveRows.push(
-            toMatch({
-              bankId: "kuveyt-turk",
-              financingKey,
-              amountTl: amount,
-              termMonths: term,
-              profitRatePercent: r.profitRatePercent,
-              monthlyTl: r.monthlyInstallmentTl,
-              totalTl: r.totalPaymentTl,
-              feeTl: r.allocationFeeTl,
-              sourceUrl: r.sourceUrl,
-              label: "Kuveyt Türk canlı motor",
-            }),
-          );
-        } catch (err) {
-          warnings.push(
-            `Kuveyt Türk canlı hesaplama: ${err instanceof Error ? err.message : "başarısız"}`,
-          );
-        }
-      })(),
-    );
-  }
-
-  await Promise.all(jobs);
 
   if (liveRows.length === 0) {
+    warnings.push(
+      "Vakıf, Ziraat ve Kuveyt canlı hesaplama uçlarına şu an ulaşılamadı. “Oranı %3,99 yap” diyerek yerel motorla taksit hesaplatabilirsiniz.",
+    );
     return { matches, liveBankIds, warnings };
   }
 
+  // Hesaplanmış satırlar varsa oranı olmayan scrape satırlarını listeden düşür
+  // (kullanıcı “Teklif alınmalı” kalabalığı görmesin).
+  const merged = mergeLive(matches, liveRows);
+  const onlyCalculated = merged.filter((m) => m.calculationAvailable);
   return {
-    matches: mergeLive(matches, liveRows),
+    matches: onlyCalculated.length > 0 ? onlyCalculated : merged,
     liveBankIds,
     warnings,
   };
