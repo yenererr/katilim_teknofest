@@ -578,7 +578,7 @@
       "manualReviewRequired": true,
       "isDemo": false,
       "version": 1,
-      "campaignTheme": "education"
+      "campaignTheme": "general"
     },
     {
       "id": "97e2cbabbc20f3579dddb789",
@@ -778,7 +778,7 @@
       "manualReviewRequired": true,
       "isDemo": false,
       "version": 1,
-      "campaignTheme": "general"
+      "campaignTheme": "education"
     },
     {
       "id": "d61b744557d71caf8512203e",
@@ -4035,7 +4035,7 @@
     }
   ],
   "meta": {
-    "cleanedAt": "2026-08-26T20:36:50.351Z",
+    "cleanedAt": "2026-08-26T20:37:10.042Z",
     "before": 100,
     "after": 100
   }

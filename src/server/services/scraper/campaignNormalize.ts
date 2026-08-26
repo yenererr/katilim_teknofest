@@ -21,7 +21,7 @@ export const CAMPAIGN_THEME_LABEL: Record<CampaignTheme, string> = {
 const THEME_PATTERNS: Array<{ theme: CampaignTheme; re: RegExp }> = [
   {
     theme: "education",
-    re: /egitim|okul|universite|ogrenci|burs|okula\s*don|dershane|yurt\b|kitap/,
+    re: /egitim|okul|universite|ogrenci|burs|okula\s*don|dershane|ogrenci\s*yurd|yurt\s*(ucret|aidat|finans)|kitap|kirtasiye/,
   },
   {
     theme: "new_customer",
