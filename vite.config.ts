@@ -6,6 +6,12 @@ import {defineConfig} from 'vite';
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
+    build: {
+      // Sunucu paketi dist/server.cjs olarak üretildiği için istemci
+      // çıktısı ayrı klasöre alınır; express.static yalnızca burayı açar.
+      outDir: 'dist/client',
+      emptyOutDir: true,
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

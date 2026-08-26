@@ -23,7 +23,8 @@ import {
 bindOfficialScraperBridge();
 
 const app = express();
-const PORT = 3000;
+// Dokploy/konteyner ortamları portu PORT değişkeniyle bildirir.
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json({ limit: "5mb" }));
 
@@ -702,7 +703,8 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), "dist");
+    // Yalnızca istemci çıktısı servis edilir; dist/server.cjs dışarı açılmaz.
+    const distPath = path.join(process.cwd(), "dist", "client");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
