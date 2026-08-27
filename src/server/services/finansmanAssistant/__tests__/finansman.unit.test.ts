@@ -702,6 +702,7 @@ describe("doğrulanmış araştırma kayıtları", () => {
 
   it("Oranı %3 yap parametre güncellemesi olarak sınıflanır", () => {
     expect(parseProfitRatePercent("Oranı %3 yap")).toBe(3);
+    expect(parseTermMonths("Oranı %3 yap")).toBeNull();
     expect(classifyTurn("Oranı %3 yap")).toBe("param_update");
     const s = createEmptyState("rate-only");
     s.financingType = "vehicle";
@@ -710,6 +711,7 @@ describe("doğrulanmış araştırma kayıtları", () => {
     const next = mergeMessageIntoState(s, "Oranı %3 yap");
     expect(next.customProfitRatePercent).toBe(3);
     expect(next.financingType).toBe("vehicle");
+    expect(next.preferredTermMonths).toBe(24);
   });
 
   it("taşıt sorgusunda ihtiyaç yeni-müşteri kampanyalarını esnek alternatif olarak göstermez", () => {

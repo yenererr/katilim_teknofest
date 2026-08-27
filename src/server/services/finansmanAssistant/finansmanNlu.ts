@@ -90,7 +90,11 @@ export function parseTermMonths(text: string): number | null {
     const n = Number(bare[1]);
     if (Number.isFinite(n) && n >= 1 && n <= 120) return n;
   }
-  const soft = asciiKatla(t).match(
+  const folded = asciiKatla(t);
+  if (/oran|kar\s*pay/.test(folded) && !/vade|pardon/.test(folded)) {
+    return null;
+  }
+  const soft = folded.match(
     /(?:pardon|vade(?:yi)?|olsun|yap)\s*.*?(\d{1,3})\s*(?:ay)?/,
   );
   if (soft) {
