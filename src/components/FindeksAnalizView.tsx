@@ -30,18 +30,33 @@ export interface BankOffer {
 }
 
 export interface FindeksAnalysisResult {
-  score: number;
+  isPdfExtracted?: boolean;
+  isScoreExtracted?: boolean;
+  parsingStatus?: 'parsed' | 'partial' | 'failed' | 'manual';
+  extractionMethod?: string;
+  pageCount?: number;
+  textLength?: number;
+  reportDate?: string | null;
+  referenceCode?: string | null;
+  score: number | null;
   riskGroup: string;
-  totalLimitTl: number;
-  totalDebtTl: number;
-  pastDueDebtTl: number;
+  totalLimitTl: number | null;
+  availableLimitTl?: number | null;
+  totalDebtTl: number | null;
+  pastDueDebtTl: number | null;
   delayCount: number;
-  approvalChancePercent: number;
+  followupCount?: number;
+  followupDebtTl?: number | null;
+  debtLimitRatioPercent?: number | null;
+  worstPaymentStatus?: string | null;
+  approvalChancePercent: number | null;
   monthlyIncomeTl: number;
   dtiPercent: number;
   dtiStatus: string;
   bankOffers: BankOffer[];
   summaryMessage: string;
+  warnings?: string[];
+  evidence?: Array<{ field: string; label: string; text: string }>;
 }
 
 interface FindeksAnalizViewProps {
@@ -119,13 +134,26 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
     setError(null);
   };
 
-  const getScoreColor = (score: number) => {
+  const formatOptionalTl = (value: number | null | undefined) => (
+    value == null ? 'Okunamadı' : `${sayiBicim(value)} TL`
+  );
+
+  const formatOptionalPercent = (value: number | null | undefined) => (
+    value == null ? 'Okunamadı' : `%${value.toLocaleString('tr-TR', { maximumFractionDigits: 1 })}`
+  );
+
+  const getScoreColor = (score: number | null) => {
+    if (score == null) return 'text-txt-muted bg-sunken border-line';
     if (score >= 1700) return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30';
     if (score >= 1500) return 'text-teal-500 bg-teal-500/10 border-teal-500/30';
     if (score >= 1100) return 'text-amber-500 bg-amber-500/10 border-amber-500/30';
     if (score >= 700) return 'text-orange-500 bg-orange-500/10 border-orange-500/30';
     return 'text-rose-500 bg-rose-500/10 border-rose-500/30';
   };
+
+  const scoreText = result?.score == null ? 'Okunamadı' : String(result.score);
+  const approvalText = result?.approvalChancePercent == null ? 'Okunamadı' : `%${result.approvalChancePercent}`;
+  const isPdfBased = Boolean(result?.isPdfExtracted);
 
   return (
     <div className="space-y-8">
@@ -289,6 +317,14 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
                 <p className="text-xs text-txt-secondary">
                   {file ? `Yüklenen Rapor: ${file.name}` : 'Girilen Finansal Parametrelere Göre Oluşturuldu'}
                 </p>
+                {result.extractionMethod && (
+                  <p className="mt-1 text-[11px] text-txt-muted">
+                    {isPdfBased
+                      ? `${result.pageCount || 0} sayfa, ${result.textLength || 0} karakter okundu · ${result.extractionMethod}`
+                      : 'Manuel giriş'}
+                    {result.reportDate ? ` · Rapor tarihi: ${result.reportDate}` : ''}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -307,21 +343,31 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
           <div className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-3">
               <p className="text-sm leading-relaxed text-txt font-medium">
-                Sayın Müşterimiz, Findeks Kredi Notunuz <span className="font-bold text-brand-600 dark:text-brand-400">{result.score} ({result.riskGroup})</span> olarak tespit edilmiştir. Katılım Bankacılığı kredi uygunluk değerlendirmesinde skorunuz yüksek onay beklentisi kategorisinde yer almaktadır.
+                {result.summaryMessage ? result.summaryMessage.replace(/\*\*/g, '') : (
+                  <>
+                    Sayın Müşterimiz, Findeks Kredi Notunuz <span className="font-bold text-brand-600 dark:text-brand-400">{scoreText} ({result.riskGroup})</span> olarak değerlendirilmiştir.
+                  </>
+                )}
               </p>
               <div className="grid grid-cols-1 gap-2.5 text-xs sm:grid-cols-2">
                 <div className="flex items-start gap-2 rounded-xl border border-line bg-sunken/40 p-3">
                   <Award className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <div>
-                    <span className="font-semibold text-txt">Özel Kâr Payı İndirimi</span>
-                    <p className="mt-0.5 text-txt-secondary">Türkiye Finans ve Kuveyt Türk'te skorunuza özel kâr payı indirimi hakkınız aktiftir.</p>
+                    <span className="font-semibold text-txt">Rapor Kaynağı</span>
+                    <p className="mt-0.5 text-txt-secondary">
+                      {isPdfBased
+                        ? 'Değerler yüklediğiniz PDF metin katmanından çıkarıldı; uydurma örnek veri kullanılmadı.'
+                        : 'Değerlendirme manuel girdiğiniz skor üzerinden hesaplandı.'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2 rounded-xl border border-line bg-sunken/40 p-3">
                   <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
                   <div>
                     <span className="font-semibold text-txt">BDDK Gelir Dengesi (%{result.dtiPercent})</span>
-                    <p className="mt-0.5 text-txt-secondary">Borç/Gelir oranınız yasal %50 sınırının altında olup onay sürecini hızlandırmaktadır.</p>
+                    <p className="mt-0.5 text-txt-secondary">
+                      Okunan toplam borç ve girdiğiniz aylık gelirle tahmini borç/gelir dengesi hesaplandı.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -330,11 +376,23 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
             {/* Quick Status Pill */}
             <div className="flex flex-col items-center justify-center rounded-xl border border-brand-500/20 bg-brand-500/5 p-4 text-center">
               <span className="text-xs font-semibold text-txt-muted uppercase tracking-wider">AI Tavsiyesi</span>
-              <span className="mt-1 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                🟢 Ön Onaylı Başvuruya Uygun
+              <span className={`mt-1 text-sm font-bold ${
+                (result.approvalChancePercent || 0) >= 80
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : (result.approvalChancePercent || 0) >= 50
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : 'text-risk-600 dark:text-risk-300'
+              }`}>
+                {result.approvalChancePercent == null
+                  ? 'Skor okunamadı'
+                  : result.approvalChancePercent >= 80
+                    ? 'Yüksek onay beklentisi'
+                    : result.approvalChancePercent >= 50
+                      ? 'Standart değerlendirme'
+                      : 'Dikkatli değerlendirme gerekli'}
               </span>
               <p className="mt-1 text-xs text-txt-secondary">
-                Dijital mobil kanallar üzerinden yapılan başvurularda belge talebi olmadan onay alma ihtimaliniz %{result.approvalChancePercent}'dir.
+                Bu oran kesin onay değil; banka gelir, teminat, ürün ve başvuru koşullarını ayrıca değerlendirir. Tahmini onay ihtimali: {approvalText}.
               </p>
             </div>
           </div>
@@ -361,7 +419,7 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
             <div className="rounded-2xl border border-line bg-surface p-6 shadow-raised text-center flex flex-col items-center justify-center">
               <span className="text-xs font-medium text-txt-muted">Findeks Kredi Notu</span>
               <div className="my-3 text-4xl font-extrabold tracking-tight text-brand-600 dark:text-brand-400">
-                {result.score} <span className="text-xs font-normal text-txt-muted">/ 1900</span>
+                {scoreText} <span className="text-xs font-normal text-txt-muted">/ 1900</span>
               </div>
               <div className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-xs font-semibold ${getScoreColor(result.score)}`}>
                 <TrendingUp className="h-3.5 w-3.5" />
@@ -373,10 +431,14 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
             <div className="rounded-2xl border border-line bg-surface p-6 shadow-raised text-center flex flex-col items-center justify-center">
               <span className="text-xs font-medium text-txt-muted">Tahmini Onay İhtimali</span>
               <div className="my-3 text-4xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
-                %{result.approvalChancePercent}
+                {approvalText}
               </div>
               <span className="text-xs font-medium text-txt-secondary">
-                {result.approvalChancePercent >= 80 ? '🟢 Yüksek Onay Beklentisi' : '🟡 Standart Risk Değerlendirmesi'}
+                {result.approvalChancePercent == null
+                  ? 'Skor bulunamadığı için hesaplanmadı'
+                  : result.approvalChancePercent >= 80
+                    ? 'Yüksek Onay Beklentisi'
+                    : 'Standart Risk Değerlendirmesi'}
               </span>
             </div>
 
@@ -384,13 +446,57 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
             <div className="rounded-2xl border border-line bg-surface p-6 shadow-raised text-center flex flex-col items-center justify-center">
               <span className="text-xs font-medium text-txt-muted">BDDK Borç/Gelir (DTI) Oranı</span>
               <div className="my-3 text-4xl font-extrabold tracking-tight text-txt">
-                %{result.dtiPercent}
+                {formatOptionalPercent(result.dtiPercent)}
               </div>
               <span className={`text-xs font-medium ${result.dtiPercent <= 50 ? 'text-emerald-600' : 'text-amber-600'}`}>
                 {result.dtiStatus}
               </span>
             </div>
           </div>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+            <div className="rounded-xl border border-line bg-surface p-4">
+              <p className="text-[11px] font-medium text-txt-muted">Toplam Limit</p>
+              <p className="mt-1 text-sm font-semibold text-txt">{formatOptionalTl(result.totalLimitTl)}</p>
+            </div>
+            <div className="rounded-xl border border-line bg-surface p-4">
+              <p className="text-[11px] font-medium text-txt-muted">Kullanılabilir Limit</p>
+              <p className="mt-1 text-sm font-semibold text-txt">{formatOptionalTl(result.availableLimitTl)}</p>
+            </div>
+            <div className="rounded-xl border border-line bg-surface p-4">
+              <p className="text-[11px] font-medium text-txt-muted">Toplam Borç</p>
+              <p className="mt-1 text-sm font-semibold text-txt">{formatOptionalTl(result.totalDebtTl)}</p>
+            </div>
+            <div className="rounded-xl border border-line bg-surface p-4">
+              <p className="text-[11px] font-medium text-txt-muted">Borç / Limit</p>
+              <p className="mt-1 text-sm font-semibold text-txt">{formatOptionalPercent(result.debtLimitRatioPercent)}</p>
+            </div>
+          </div>
+
+          {result.warnings && result.warnings.length > 0 && (
+            <div className="rounded-2xl border border-warn-200 bg-warn-50 p-4 text-xs text-warn-900 dark:border-warn-900 dark:bg-warn-950 dark:text-warn-100">
+              <p className="font-semibold">Okuma uyarıları</p>
+              <ul className="mt-2 space-y-1">
+                {result.warnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {result.evidence && result.evidence.length > 0 && (
+            <div className="rounded-2xl border border-line bg-surface p-5 shadow-raised">
+              <h3 className="text-sm font-semibold text-txt">PDF'den Okunan Kanıt Satırları</h3>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {result.evidence.map((item) => (
+                  <div key={`${item.field}-${item.text}`} className="rounded-xl border border-line bg-sunken/50 p-3">
+                    <p className="text-[11px] font-semibold text-brand-700 dark:text-brand-300">{item.label}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-txt-secondary">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Bank Offers Matrix */}
           <div className="rounded-2xl border border-line bg-surface p-6 shadow-raised">
@@ -407,7 +513,11 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
               {onAsistanaSor && (
                 <button
                   type="button"
-                  onClick={() => onAsistanaSor(`Findeks notum ${result.score} (${result.riskGroup}), en uygun katılım bankası tekliflerini incelemek istiyorum`)}
+                  onClick={() => onAsistanaSor(
+                    result.score == null
+                      ? 'Findeks raporum okundu ama kredi notu bulunamadı; uygun katılım finansmanı için nasıl ilerlemeliyim?'
+                      : `Findeks notum ${result.score} (${result.riskGroup}), toplam borcum ${formatOptionalTl(result.totalDebtTl)}; en uygun katılım bankası tekliflerini incelemek istiyorum`
+                  )}
                   className="inline-flex items-center gap-2 rounded-xl border border-brand-500/30 bg-brand-500/10 px-3.5 py-2 text-xs font-semibold text-brand-600 transition-all hover:bg-brand-500/20 dark:text-brand-400"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
@@ -427,14 +537,21 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
+                  {result.bankOffers.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-5 text-center text-txt-secondary">
+                        Skor okunamadığı için banka bazlı tahmini onay matrisi oluşturulmadı.
+                      </td>
+                    </tr>
+                  )}
                   {result.bankOffers.map((offer) => {
                     const bankMeta = BANKALAR.find((b) => b.id === offer.bankId);
                     return (
                       <tr key={offer.bankId} className="transition-colors hover:bg-sunken/40">
                         <td className="px-4 py-3.5 font-semibold text-txt">
                           <div className="flex items-center gap-2.5">
-                            {bankMeta?.logoUrl ? (
-                              <img src={bankMeta.logoUrl} alt={offer.bankName} className="h-5 w-5 object-contain" />
+                            {bankMeta?.logo ? (
+                              <img src={bankMeta.logo} alt={offer.bankName} className="h-5 w-5 object-contain" />
                             ) : (
                               <Building2 className="h-4 w-4 text-brand-600" />
                             )}

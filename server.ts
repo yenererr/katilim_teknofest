@@ -33,7 +33,7 @@ const app = express();
 // Dokploy/konteyner ortamları portu PORT değişkeniyle bildirir.
 const PORT = Number(process.env.PORT) || 3000;
 
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "25mb" }));
 app.use("/api/findeks", findeksRoutes);
 
 // SSB EVREN (OpenAI uyumlu) yapılandırması

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BANKA_INDEKS } from '../data/piyasa';
+import { BANKALAR, BANKA_INDEKS } from '../data/piyasa';
 
 interface BankMarkProps {
   bankaId?: string;
