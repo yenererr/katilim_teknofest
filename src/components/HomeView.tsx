@@ -2,16 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import {
   ArrowRight,
-  CalendarDays,
   ChevronRight,
   Home as HomeIcon,
   MessageSquare,
   Receipt,
   Send,
-  ShieldCheck,
   Sparkles,
   Tag,
-  Users,
 } from 'lucide-react';
 import {
   BANKALAR,
@@ -634,36 +631,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </form>
 
       <FxRateTicker />
-
-      {/* ---------- Güven şeridi ---------- */}
-      <section className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line shadow-flat lg:grid-cols-4">
-        {[
-          { icon: CalendarDays, ust: 'Canlı kaynak', alt: 'Banka siteleri' },
-          { icon: Users, ust: `${BANKALAR.length} Katılım Bankası`, alt: 'Kapsamda' },
-          {
-            icon: Tag,
-            ust:
-              canliKampanyalar.length > 0
-                ? `${canliKampanyalar.length} Kampanya`
-                : 'Kampanyalar',
-            alt: canliKampanyalar.length > 0 ? 'Scrape edildi' : 'Veri bekleniyor',
-          },
-          { icon: ShieldCheck, ust: 'Şeffaf Karşılaştırma', alt: 'Aynı koşullarda' },
-        ].map((k) => {
-          const Icon = k.icon;
-          return (
-            <div key={k.ust} className="flex items-center gap-3 bg-surface px-4 py-3.5">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-400">
-                <Icon className="h-4.5 w-4.5" aria-hidden="true" />
-              </span>
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-medium text-txt">{k.ust}</span>
-                <span className="block truncate text-xs text-txt-muted">{k.alt}</span>
-              </span>
-            </div>
-          );
-        })}
-      </section>
 
       {/* ---------- İki sütun ---------- */}
       <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-3">
