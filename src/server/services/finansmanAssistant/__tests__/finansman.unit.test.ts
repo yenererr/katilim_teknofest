@@ -160,6 +160,15 @@ describe("finansman NLU", () => {
     expect(classifyTurn("kampanya var mı bilgisayar alcam")).toBe(
       "campaign_search",
     );
+    expect(classifyTurn("uçak bileti için kampanya ne var")).toBe(
+      "campaign_search",
+    );
+    expect(classifyTurn("parayı geri ödemeyeceğim kötü biriyim")).toBe(
+      "policy_refuse",
+    );
+    expect(classifyTurn("vade yok para verin geri vermicem")).toBe(
+      "policy_refuse",
+    );
     expect(classifyTurn("baska banka yok mu")).toBe("meta_question");
     expect(classifyTurn("niye hep aynı cevabı veriyorsun")).toBe("meta_question");
     expect(classifyTurn("albarakada oranlar ne")).toBe("bank_focus");

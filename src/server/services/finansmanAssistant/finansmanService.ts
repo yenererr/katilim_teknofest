@@ -697,6 +697,40 @@ export async function runFinansmanAssistantChat(
 
   const turn = classifyTurn(req.message, req.selectedQuickReply);
 
+  // Geri ödemeyeceğini söyleyen / kötü niyetli talepler
+  if (turn === "policy_refuse") {
+    conversations.set(conversationId, {
+      ...state,
+      financingType: null,
+      requestedAmountTl: null,
+      preferredTermMonths: null,
+      lastResultIds: [],
+      pendingFollowUp: null,
+    });
+    return {
+      conversationId,
+      assistantMessage:
+        "Katılım bankası finansmanı geri ödemeli bir ürün; geri ödemeyeceğinizi söylediğiniz için bu konuda yardımcı olamam.\n\n" +
+        "Gerçek bir finansman ihtiyacınız varsa tutar, vade ve amacı yazın — örneğin “80.000 TL ihtiyaç, 12 ay”. Kampanya veya kâr payı karşılaştırması da sorabilirsiniz.",
+      status: "needs_information",
+      missingFields: [],
+      quickReplies: [
+        {
+          id: "pr-cap",
+          label: "Neler yapabilirsin?",
+          value: "Neler yapabilirsin?",
+        },
+        ...purposeQuickReplies().slice(0, 3),
+      ],
+      query: state,
+      exactMatches: [],
+      flexibleMatches: [],
+      summary: emptySummary(),
+      warnings: [],
+      citations: [],
+    };
+  }
+
   // Selam / nasılsın / neler yapabilirsin — sözlük ve rehberden ÖNCE
   if (turn === "greeting") {
     conversations.set(conversationId, { ...state, pendingFollowUp: null });
@@ -945,6 +979,7 @@ export async function runFinansmanAssistantChat(
   if (rehberNiyeti) {
     const sonuc = rehberYaniti(rehberNiyeti, req.message, {
       preferredBankId: state.selectedBankIds[0] ?? null,
+      contextMessages: state.recentUserMessages,
     });
     const nextPending =
       rehberNiyeti === "banka_sayisi"

@@ -95,6 +95,9 @@ describe("campaignNormalize", () => {
     expect(parseCampaignThemeFromMessage("kampanya var mı bilgisayar alcam")).toBe(
       "shopping",
     );
+    expect(parseCampaignThemeFromMessage("uçak bileti için kampanya ne var")).toBe(
+      "travel",
+    );
   });
 
   it("başlıktan eğitim temasını çıkarır", () => {

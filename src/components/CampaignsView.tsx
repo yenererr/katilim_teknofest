@@ -34,6 +34,7 @@ type ThemeKey =
   | 'new_customer'
   | 'pilgrimage'
   | 'shopping'
+  | 'travel'
   | 'general';
 
 const TEMALAR: { key: ThemeKey; etiket: string }[] = [
@@ -45,6 +46,7 @@ const TEMALAR: { key: ThemeKey; etiket: string }[] = [
   { key: 'new_customer', etiket: 'Yeni müşteri' },
   { key: 'pilgrimage', etiket: 'Hac / Umre' },
   { key: 'shopping', etiket: 'Alışveriş' },
+  { key: 'travel', etiket: 'Seyahat' },
   { key: 'general', etiket: 'Genel' },
 ];
 
@@ -56,6 +58,7 @@ const TEMA_ETIKET: Record<string, string> = {
   new_customer: 'YENİ MÜŞTERİ',
   pilgrimage: 'HAC / UMRE',
   shopping: 'ALIŞVERİŞ',
+  travel: 'SEYAHAT',
   general: 'GENEL',
 };
 

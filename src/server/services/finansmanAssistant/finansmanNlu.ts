@@ -164,7 +164,7 @@ export function parseFinancingType(text: string): FinancingType | null {
   if (/alisveris|magaza|taksitle/.test(t)) return "shopping";
   // Dayanıklı tüketim / hediye alışverişi → alışveriş veya ihtiyaç
   if (
-    /(bisiklet|scooter|telefon|laptop|bilgisayar|tablet|mobilya|beyaz\s*esya|buzdolabi|camasir|televizyon|\btv\b|koltuk|yatak|klima|buzdolab)/.test(
+    /(bisiklet|scooter|telefon|laptop|bilgisayar|tablet|mobilya|beyaz\s*esya|buzdolabi|camasir|televizyon|\btv\b|koltuk|yatak|klima|buzdolab|ucak|u[cç]ak\s*bilet|hava\s*yolu|bilet|otel|seyahat)/.test(
       t,
     ) &&
     /(al|ald[iı]|alicam|alacam|alacag|almak|lazim|icin|oglum|kizim|cocuk|kendim)/.test(
@@ -323,7 +323,8 @@ export type TurnKind =
   | "sort_only"
   | "payment_plan"
   | "limit_inquiry"
-  | "deposit_inquiry";
+  | "deposit_inquiry"
+  | "policy_refuse";
 
 /** “En fazla kaç ay / ne kadar tutar” — azami vade veya tutar sorusu */
 export type LimitInquiryKind = "term" | "amount" | "both";
@@ -392,6 +393,23 @@ export function isGreetingOrHelpRequest(text: string): boolean {
       t,
     ) ||
     /^(merhaba|selam).{0,80}(yardim|nasil)/.test(t)
+  );
+}
+
+/**
+ * Geri ödemeyeceğini / kötü niyetini açıkça söyleyen mesajlar —
+ * finansman karşılaştırması yapılmaz.
+ */
+export function isNonRepaymentIntent(text: string): boolean {
+  const t = asciiKatla(text).trim();
+  if (!t) return false;
+  return (
+    (/geri\s*(verm|ode|odeme)/.test(t) &&
+      /(meyeceg|miycem|micem|meyecegim|yok|istemiyorum)/.test(t)) ||
+    /odemeyeceg|odemiycem|odemicem|borc\s*odemeyeceg|vade\s*yok.*geri|geri\s*verm[ei]cem/.test(
+      t,
+    ) ||
+    /kotu\s*biriy|kotu\s*biriyim|kaciraca[gğ]|dolandir|sahte/.test(t)
   );
 }
 
@@ -509,6 +527,10 @@ export function classifyTurn(
 
   if (isGreetingOrHelpRequest(t)) {
     return "greeting";
+  }
+
+  if (isNonRepaymentIntent(t)) {
+    return "policy_refuse";
   }
 
   if (isDepositOrProfitShareIntent(t)) {
@@ -651,6 +673,15 @@ export function mergeMessageIntoState(
   }
   if (turn === "deposit_inquiry") {
     next.intent = "general_question";
+    next.financingType = null;
+    next.requestedAmountTl = null;
+    next.preferredTermMonths = null;
+    next.lastResultIds = [];
+    next.pendingFollowUp = null;
+    return next;
+  }
+  if (turn === "policy_refuse") {
+    next.intent = "unsupported";
     next.financingType = null;
     next.requestedAmountTl = null;
     next.preferredTermMonths = null;

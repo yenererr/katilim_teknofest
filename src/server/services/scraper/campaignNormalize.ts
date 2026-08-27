@@ -15,6 +15,7 @@ export type CampaignTheme =
   | "new_customer"
   | "pilgrimage"
   | "shopping"
+  | "travel"
   | "general";
 
 export const CAMPAIGN_THEME_LABEL: Record<CampaignTheme, string> = {
@@ -25,6 +26,7 @@ export const CAMPAIGN_THEME_LABEL: Record<CampaignTheme, string> = {
   new_customer: "Yeni müşteri",
   pilgrimage: "Hac / Umre",
   shopping: "Alışveriş / Teknoloji",
+  travel: "Seyahat / Bilet",
   general: "Genel",
 };
 
@@ -44,6 +46,10 @@ const THEME_PATTERNS: Array<{ theme: CampaignTheme; re: RegExp }> = [
   {
     theme: "shopping",
     re: /bilgisayar|\bpc\b|laptop|notebook|tablet|telefon|elektronik|teknoloji|xiaomi|e[\s-]?ticaret|eticaret|alisveris|magaza|mouse|klavye|monitor|televizyon|\btv\b|beyaz\s*esya/,
+  },
+  {
+    theme: "travel",
+    re: /ucak|u[cç]ak\s*bilet|hava\s*yolu|havayolu|seyahat|yurt\s*disi|touristica|otel|tatil|bilet\s*al|thy|pegasus|anadolujet|sunexpress/,
   },
   {
     theme: "card",
@@ -135,14 +141,14 @@ export function campaignMatchesTheme(
 export function extractCampaignKeywordHint(mesaj: string): string | null {
   const t = asciiKatla(mesaj);
   const m = t.match(
-    /\b(bilgisayar|\bpc\b|laptop|notebook|tablet|telefon|elektronik|teknoloji|xiaomi|mouse|klavye|monitor|televizyon|\btv\b|beyaz\s*esya|e[\s-]?ticaret|eticaret|alisveris)\b/,
+    /\b(bilgisayar|\bpc\b|laptop|notebook|tablet|telefon|elektronik|teknoloji|xiaomi|mouse|klavye|monitor|televizyon|\btv\b|beyaz\s*esya|e[\s-]?ticaret|eticaret|alisveris|ucak|u[cç]ak\s*bilet|hava\s*yolu|havayolu|seyahat|yurt\s*disi|otel|tatil|bilet)\b/,
   );
   return m ? m[1].replace(/\s+/g, " ") : null;
 }
 
 /**
  * Kampanyaları mesajdaki ürün/kategori kelimelerine göre daraltır.
- * Alışveriş/teknoloji sorularında e-ticaret, xiaomi, alışveriş vb. satırları tutar.
+ * Alışveriş/teknoloji veya seyahat/bilet sorularında ilgili satırları tutar.
  */
 export function filterCampaignsByMessageKeywords<
   T extends {
@@ -155,22 +161,41 @@ export function filterCampaignsByMessageKeywords<
   },
 >(campaigns: T[], mesaj: string): T[] {
   const t = asciiKatla(mesaj);
+  const wantsTravel =
+    /ucak|u[cç]ak\s*bilet|hava\s*yolu|havayolu|seyahat|yurt\s*disi|touristica|otel|tatil|\bbilet\b/.test(
+      t,
+    );
   const wantsTech =
     /bilgisayar|\bpc\b|laptop|notebook|tablet|telefon|elektronik|teknoloji|xiaomi|mouse|klavye|monitor|televizyon|\btv\b|beyaz\s*esya/.test(
       t,
     );
   const wantsShopping =
     wantsTech || /alisveris|e[\s-]?ticaret|eticaret|magaza/.test(t);
-  if (!wantsShopping) return [];
+  if (!wantsTravel && !wantsShopping) return [];
 
   return campaigns.filter((c) => {
-    if (campaignMatchesTheme(c, "shopping")) return true;
+    if (wantsTravel && campaignMatchesTheme(c, "travel")) return true;
+    if (wantsShopping && campaignMatchesTheme(c, "shopping")) return true;
     const hay = asciiKatla(
       `${c.title || ""} ${c.productName || ""} ${c.sourceUrl || ""} ${c.category || ""} ${Array.isArray(c.conditions) ? c.conditions.join(" ") : ""}`,
     );
-    return /e[\s-]?ticaret|eticaret|alisveris|xiaomi|elektronik|teknoloji|laptop|telefon|bilgisayar|magaza|taksitlio|vivense|techno|teknosa|media\s*markt|n11|trendyol|hepsiburada/.test(
-      hay,
-    );
+    if (
+      wantsTravel &&
+      /hava\s*yolu|havayolu|ucak|bilet|seyahat|yurt\s*disi|touristica|otel|tatil|thy|pegasus|miles|mil\b|check[\s-]?in/.test(
+        hay,
+      )
+    ) {
+      return true;
+    }
+    if (
+      wantsShopping &&
+      /e[\s-]?ticaret|eticaret|alisveris|xiaomi|elektronik|teknoloji|laptop|telefon|bilgisayar|magaza|taksitlio|vivense|techno|teknosa|media\s*markt|n11|trendyol|hepsiburada/.test(
+        hay,
+      )
+    ) {
+      return true;
+    }
+    return false;
   });
 }
 

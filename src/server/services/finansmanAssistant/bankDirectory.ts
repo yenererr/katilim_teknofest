@@ -400,28 +400,34 @@ function yeniMusteriKampanyaYaniti(): RehberSonucu {
   };
 }
 
-function genelKampanyaYaniti(mesaj?: string): RehberSonucu {
-  const tema = mesaj ? parseCampaignThemeFromMessage(mesaj) : null;
+function genelKampanyaYaniti(
+  mesaj?: string,
+  contextMessages?: string[],
+): RehberSonucu {
+  const combined = [mesaj, ...(contextMessages || [])]
+    .filter(Boolean)
+    .join(" \n ");
+  const tema = combined ? parseCampaignThemeFromMessage(combined) : null;
   const tumAktif = listMemoryCampaigns({ activeOnly: true });
   let tumKampanyalar = tumAktif.filter((c) =>
     tema ? campaignMatchesTheme(c, tema) : true,
   );
 
-  // Ek anahtar kelime süzgeci (bilgisayar, xiaomi…) — tema yoksa veya temayı daraltmak için
-  if (mesaj) {
-    const keywordFiltered = filterCampaignsByMessageKeywords(tumKampanyalar, mesaj);
+  // Ek anahtar kelime süzgeci — mevcut + önceki mesaj bağlamı (ör. “uçak bileti” → “kampanya var mı”)
+  if (combined) {
+    const keywordFiltered = filterCampaignsByMessageKeywords(
+      tumKampanyalar,
+      combined,
+    );
     if (keywordFiltered.length) {
       tumKampanyalar = keywordFiltered;
-    } else if (tema) {
-      // Tema var ama anahtar kelime daraltması boşsa temalı listeyi koru
-    } else {
-      // Tema yok, anahtar kelime de eşleşmedi → tümünü dökmeyelim
-      const hint = extractCampaignKeywordHint(mesaj);
+    } else if (!tema) {
+      const hint = extractCampaignKeywordHint(combined);
       if (hint) {
         return {
           message:
             `“${hint}” ile doğrudan eşleşen aktif kampanya bulamadım.\n\n` +
-            `E-ticaret, teknoloji veya alışveriş finansmanı kampanyalarını “alışveriş kampanyaları” diye sorabilirsiniz; ` +
+            `Seyahat için “uçak bileti kampanyası”, alışveriş için “e-ticaret kampanyaları” diye sorabilirsiniz; ` +
             `ya da kırtasiye / kart / yeni müşteri diye daraltabilirsiniz.`,
           citations: [],
         };
@@ -488,12 +494,17 @@ function genelKampanyaYaniti(mesaj?: string): RehberSonucu {
 export function rehberYaniti(
   niyet: Exclude<RehberNiyeti, null>,
   mesaj: string,
-  opts?: { preferredBankId?: string | null },
+  opts?: {
+    preferredBankId?: string | null;
+    contextMessages?: string[];
+  },
 ): RehberSonucu {
   const aktifler = BANK_SOURCE_CONFIGS.filter((b) => b.enabled);
 
   if (niyet === "yeni_musteri_avantaj") return yeniMusteriKampanyaYaniti();
-  if (niyet === "genel_kampanyalar") return genelKampanyaYaniti(mesaj);
+  if (niyet === "genel_kampanyalar") {
+    return genelKampanyaYaniti(mesaj, opts?.contextMessages);
+  }
   if (niyet === "ucret_karsilastir") return ucretYaniti(mesaj);
 
   if (niyet === "banka_sayisi") {
