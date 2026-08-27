@@ -364,6 +364,56 @@ export function replaceMemoryCampaigns(
   return { loaded, skipped };
 }
 
+const CAMPAIGN_CACHE_PATH = pathJoinSafe(
+  process.cwd(),
+  "data",
+  "campaign-memory-cache.json",
+);
+
+function pathJoinSafe(...parts: string[]): string {
+  return parts.join("/").replace(/\\/g, "/");
+}
+
+export async function persistCampaignMemoryCache(
+  rows?: Array<Record<string, unknown>>,
+): Promise<{ path: string; count: number }> {
+  const fs = await import("fs/promises");
+  const list = rows ?? listMemoryCampaigns();
+  await fs.mkdir(pathJoinSafe(process.cwd(), "data"), { recursive: true });
+  await fs.writeFile(
+    CAMPAIGN_CACHE_PATH,
+    JSON.stringify(
+      {
+        savedAt: new Date().toISOString(),
+        campaigns: list,
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
+  return { path: CAMPAIGN_CACHE_PATH, count: list.length };
+}
+
+export async function loadCampaignMemoryCache(): Promise<{
+  loaded: number;
+  skipped: number;
+  path: string;
+}> {
+  const fs = await import("fs/promises");
+  try {
+    const raw = await fs.readFile(CAMPAIGN_CACHE_PATH, "utf8");
+    const parsed = JSON.parse(raw) as {
+      campaigns?: Array<Record<string, unknown>>;
+    };
+    const rows = parsed.campaigns || [];
+    const result = replaceMemoryCampaigns(rows);
+    return { ...result, path: CAMPAIGN_CACHE_PATH };
+  } catch {
+    return { loaded: 0, skipped: 0, path: CAMPAIGN_CACHE_PATH };
+  }
+}
+
 /** Postgres'teki kampanya/ürünleri bellek Map'ine yükler (rehber + matcher için). */
 export async function hydrateMemoryFromPostgres(): Promise<{
   campaigns: number;

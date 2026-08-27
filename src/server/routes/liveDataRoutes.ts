@@ -8,7 +8,7 @@ import {
   listRecentJobs,
   runOfficialScrapeJob,
 } from "../services/scraper/orchestrator";
-import { listMemoryCampaigns, listMemoryProducts, isPostgresConfigured, ensureSchema, hydrateMemoryFromPostgres, pruneNonDisplayableCampaigns, replaceMemoryCampaigns } from "../services/postgres/store";
+import { listMemoryCampaigns, listMemoryProducts, isPostgresConfigured, ensureSchema, hydrateMemoryFromPostgres, pruneNonDisplayableCampaigns, replaceMemoryCampaigns, persistCampaignMemoryCache, loadCampaignMemoryCache } from "../services/postgres/store";
 import { getCollectionHealth, isQdrantConfigured } from "../services/qdrant";
 import { BANK_SOURCE_CONFIGS } from "../services/scraper/bankSourceConfig";
 import { getVerifiedFeeMatrix } from "../../data/verifiedFees";
@@ -125,12 +125,14 @@ export function createLiveDataRouter(): Router {
     });
   });
 
-  /** Belleği Postgres’ten yeniden yükle veya çöpü budar (local↔canlı eşitleme). */
+  /** Belleği Postgres’ten yeniden yükle, uzaktan çek veya gövdeyle değiştir. */
   router.post("/campaigns/resync", requireAdmin, async (req, res) => {
     const body = z
       .object({
         fromUrl: z.string().url().optional(),
         pruneOnly: z.boolean().optional(),
+        campaigns: z.array(z.record(z.string(), z.unknown())).optional(),
+        persistCache: z.boolean().optional(),
       })
       .safeParse(req.body || {});
     if (!body.success) {
@@ -142,6 +144,18 @@ export function createLiveDataRouter(): Router {
       return res.json({
         mode: "prune",
         ...pruned,
+        listed: listMemoryCampaigns({ activeOnly: true }).length,
+      });
+    }
+
+    if (body.data.campaigns?.length) {
+      const replaced = replaceMemoryCampaigns(body.data.campaigns);
+      if (body.data.persistCache !== false) {
+        await persistCampaignMemoryCache(listMemoryCampaigns());
+      }
+      return res.json({
+        mode: "payload",
+        ...replaced,
         listed: listMemoryCampaigns({ activeOnly: true }).length,
       });
     }
@@ -170,6 +184,7 @@ export function createLiveDataRouter(): Router {
           ...(data.cardAndDiscountCampaigns || []),
         ];
         const replaced = replaceMemoryCampaigns(rows);
+        await persistCampaignMemoryCache(listMemoryCampaigns());
         return res.json({
           mode: "remote",
           remote: base,
@@ -177,7 +192,6 @@ export function createLiveDataRouter(): Router {
           listed: listMemoryCampaigns({ activeOnly: true }).length,
         });
       } catch (err) {
-        // uzak yoksa Postgres hydrate dene
         console.warn(
           "[campaigns/resync] remote failed:",
           err instanceof Error ? err.message : err,
@@ -185,17 +199,27 @@ export function createLiveDataRouter(): Router {
       }
     }
 
+    const fromDisk = await loadCampaignMemoryCache();
+    if (fromDisk.loaded > 0) {
+      return res.json({
+        mode: "cache",
+        ...fromDisk,
+        listed: listMemoryCampaigns({ activeOnly: true }).length,
+      });
+    }
+
     const schema = await ensureSchema();
     if (!schema.ok) {
       const pruned = pruneNonDisplayableCampaigns();
       return res.status(503).json({
-        error: "Postgres yok ve uzak sync başarısız; yalnızca prune yapıldı.",
+        error: "Postgres yok, uzak sync ve disk cache boş; yalnızca prune yapıldı.",
         postgres: schema,
         prune: pruned,
         listed: listMemoryCampaigns({ activeOnly: true }).length,
       });
     }
     const hydrated = await hydrateMemoryFromPostgres();
+    await persistCampaignMemoryCache(listMemoryCampaigns());
     return res.json({
       mode: "postgres",
       ...hydrated,
