@@ -112,6 +112,7 @@ export function createLiveDataRouter(): Router {
   });
 
   router.get("/campaigns", async (_req, res) => {
+    let source = "memory";
     // Anlık canlı kaynak: production API’ye proxy (mock değil)
     const origin = (
       process.env.LIVE_CAMPAIGNS_ORIGIN ||
@@ -128,7 +129,7 @@ export function createLiveDataRouter(): Router {
         });
         if (remote.ok) {
           const data = await remote.json();
-          return res.json(data);
+          return res.json({ ...data, source: "proxy" });
         }
         console.warn(
           "[live/campaigns] proxy HTTP",
@@ -146,17 +147,35 @@ export function createLiveDataRouter(): Router {
     // Postgres erişilebiliyorsa her istekte tazele (local = canlı DB)
     if (isPostgresConfigured()) {
       try {
-        await hydrateMemoryFromPostgres();
+        const hydrated = await hydrateMemoryFromPostgres();
+        if (hydrated.campaigns > 0) source = "postgres";
       } catch {
         /* bellek ile devam */
       }
     }
 
-    const campaigns = listMemoryCampaigns({ activeOnly: true });
-    const cardLike = listMemoryCampaigns().filter((c) =>
+    let campaigns = listMemoryCampaigns({ activeOnly: true });
+    let cardLike = listMemoryCampaigns().filter((c) =>
       ["card_campaign", "discount_campaign"].includes(c.category),
     );
+    let cacheFallback:
+      | Awaited<ReturnType<typeof loadCampaignMemoryCache>>
+      | null = null;
+
+    if (campaigns.length === 0 && cardLike.length === 0) {
+      cacheFallback = await loadCampaignMemoryCache();
+      if (cacheFallback.loaded > 0) {
+        source = "cache";
+        campaigns = listMemoryCampaigns({ activeOnly: true });
+        cardLike = listMemoryCampaigns().filter((c) =>
+          ["card_campaign", "discount_campaign"].includes(c.category),
+        );
+      }
+    }
+
     res.json({
+      source,
+      cacheFallback,
       financingCampaigns: campaigns.filter(
         (c) => !["card_campaign", "discount_campaign"].includes(c.category),
       ),
