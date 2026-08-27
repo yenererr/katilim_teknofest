@@ -15,6 +15,7 @@ import { bindOfficialScraperBridge, runOfficialScrapeJob } from "./src/server/se
 import {
   ensureSchema,
   hydrateMemoryFromPostgres,
+  pruneNonDisplayableCampaigns,
   seedVerifiedResearchRecords,
 } from "./src/server/services/postgres/store";
 import {
@@ -696,8 +697,16 @@ async function startServer() {
       try {
         const schema = await ensureSchema();
         console.log(`[PostgreSQL] ${schema.message}`);
-        const hydrated = await hydrateMemoryFromPostgres();
-        console.log(`[PostgreSQL] ${hydrated.message}`);
+        if (schema.ok) {
+          const hydrated = await hydrateMemoryFromPostgres();
+          console.log(`[PostgreSQL] ${hydrated.message}`);
+        } else {
+          // Localde Docker-internal DB host çözülmezse bellek scrape çöpüyle şişmesin
+          const pruned = pruneNonDisplayableCampaigns();
+          console.warn(
+            `[PostgreSQL] Hydrate yok; bellek budandı (${pruned.removed} çöp silindi, ${pruned.after} kaldı).`,
+          );
+        }
         const verified = await seedVerifiedResearchRecords();
         console.log(
           `[VerifiedResearch] ${verified.alreadySeeded ? "zaten yüklü" : `${verified.inserted} kayıt yüklendi`}.`,

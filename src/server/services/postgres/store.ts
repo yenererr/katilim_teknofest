@@ -317,6 +317,53 @@ export function listMemoryCampaigns(filter?: { bankId?: string; activeOnly?: boo
   return dedupeCampaignRecords(rows.filter(isDisplayableCampaign));
 }
 
+/** Bellekteki gösterilemeyen kampanyaları siler (local/canlı eşitleme). */
+export function pruneNonDisplayableCampaigns(): {
+  before: number;
+  after: number;
+  removed: number;
+} {
+  const before = memoryCampaigns.size;
+  for (const [id, row] of [...memoryCampaigns.entries()]) {
+    if (!isDisplayableCampaign(row)) memoryCampaigns.delete(id);
+  }
+  const after = memoryCampaigns.size;
+  return { before, after, removed: before - after };
+}
+
+/** Kampanya belleğini verilen satırlarla değiştirir (Postgres yokken canlı snapshot). */
+export function replaceMemoryCampaigns(
+  rows: Array<Record<string, unknown>>,
+): { loaded: number; skipped: number } {
+  memoryCampaigns.clear();
+  let loaded = 0;
+  let skipped = 0;
+  for (const raw of rows) {
+    const candidate = {
+      ...raw,
+      recordType: "campaign" as const,
+      campaignStatus: raw.campaignStatus || "active",
+    };
+    if (!isDisplayableCampaign(candidate)) {
+      skipped += 1;
+      continue;
+    }
+    const id = String(
+      raw.id ||
+        crypto
+          .createHash("sha1")
+          .update(
+            `${raw.bankId}|${normalizeCampaignUrl(String(raw.sourceUrl || ""))}|campaign`,
+          )
+          .digest("hex")
+          .slice(0, 24),
+    );
+    memoryCampaigns.set(id, { ...candidate, id });
+    loaded += 1;
+  }
+  return { loaded, skipped };
+}
+
 /** Postgres'teki kampanya/ürünleri bellek Map'ine yükler (rehber + matcher için). */
 export async function hydrateMemoryFromPostgres(): Promise<{
   campaigns: number;
@@ -332,6 +379,30 @@ export async function hydrateMemoryFromPostgres(): Promise<{
     };
   }
   try {
+    // Önce bellek temizle — aksi halde eski local scrape çöpü kalır, canlıyla uyuşmaz
+    memoryCampaigns.clear();
+    memoryProducts.clear();
+
+    // Çöpü DB’de pasifleştir, sonra aktifleri yükle
+    try {
+      await p.query(
+        `UPDATE campaigns
+         SET is_active = FALSE, updated_at = NOW()
+         WHERE is_active = TRUE
+           AND (
+             source_url !~* 'kampanya'
+             OR source_url ~* '(gizlilik|bize-ulasin|yatirimci|musteri-memnuniyet|katilim-bankaciligi|hakkimizda|kvkk|cerez|finansmanlar/|finansman-urunleri/|index\\.html|urunlerimiz|bilgi-toplumu|sozlesme|kisisel-veri|mobil-sube|iletisim|hesaplama-arac|icazet|default\\.aspx|urun-hizmet-ucret|\\.pdf)'
+             OR source_url ~* '(biten-kampanyalar|kampanya-arsivi|finansman-kampanyalari\\.aspx|ticari-kampanyalar\\.aspx|/kampanyalar/?$)'
+             OR (campaign_end IS NOT NULL AND campaign_end::date < CURRENT_DATE)
+           )`,
+      );
+    } catch (err) {
+      console.warn(
+        "[postgres] junk campaign deactivate skipped:",
+        err instanceof Error ? err.message : err,
+      );
+    }
+
     const camps = await p.query<{
       id: string;
       bank_id: string;
@@ -380,26 +451,6 @@ export async function hydrateMemoryFromPostgres(): Promise<{
       memoryCampaigns.set(row.id, candidate);
     }
 
-    // Postgres’teki çöp / ürün / kurumsal kayıtları pasifleştir
-    try {
-      await p.query(
-        `UPDATE campaigns
-         SET is_active = FALSE, updated_at = NOW()
-         WHERE is_active = TRUE
-           AND (
-             source_url !~* 'kampanya'
-             OR source_url ~* '(gizlilik|bize-ulasin|yatirimci|musteri-memnuniyet|katilim-bankaciligi|hakkimizda|kvkk|cerez|finansmanlar/|finansman-urunleri/|index\\.html|urunlerimiz|bilgi-toplumu|sozlesme|kisisel-veri|mobil-sube|iletisim|hesaplama-arac|icazet|default\\.aspx|urun-hizmet-ucret|\\.pdf)'
-             OR source_url ~* '(biten-kampanyalar|kampanya-arsivi|finansman-kampanyalari\\.aspx|ticari-kampanyalar\\.aspx|/kampanyalar/?$)'
-             OR (campaign_end IS NOT NULL AND campaign_end::date < CURRENT_DATE)
-           )`,
-      );
-    } catch (err) {
-      console.warn(
-        "[postgres] junk campaign deactivate skipped:",
-        err instanceof Error ? err.message : err,
-      );
-    }
-
     const prods = await p.query<{
       id: string;
       bank_id: string;
@@ -433,9 +484,9 @@ export async function hydrateMemoryFromPostgres(): Promise<{
     }
 
     return {
-      campaigns: camps.rows.length,
-      products: prods.rows.length,
-      message: `Belleğe yüklendi: ${camps.rows.length} kampanya, ${prods.rows.length} ürün.`,
+      campaigns: memoryCampaigns.size,
+      products: memoryProducts.size,
+      message: `Bellek sıfırlandı ve Postgres’ten yüklendi: ${memoryCampaigns.size} kampanya, ${memoryProducts.size} ürün (DB aktif: ${camps.rows.length}).`,
     };
   } catch (err) {
     return {

@@ -8,7 +8,7 @@ import {
   listRecentJobs,
   runOfficialScrapeJob,
 } from "../services/scraper/orchestrator";
-import { listMemoryCampaigns, listMemoryProducts, isPostgresConfigured, ensureSchema, hydrateMemoryFromPostgres } from "../services/postgres/store";
+import { listMemoryCampaigns, listMemoryProducts, isPostgresConfigured, ensureSchema, hydrateMemoryFromPostgres, pruneNonDisplayableCampaigns, replaceMemoryCampaigns } from "../services/postgres/store";
 import { getCollectionHealth, isQdrantConfigured } from "../services/qdrant";
 import { BANK_SOURCE_CONFIGS } from "../services/scraper/bankSourceConfig";
 import { getVerifiedFeeMatrix } from "../../data/verifiedFees";
@@ -122,6 +122,84 @@ export function createLiveDataRouter(): Router {
       ),
       cardAndDiscountCampaigns: cardLike,
       note: "Kart kampanyaları finansman karşılaştırmasına dahil edilmez. Kurumsal sayfalar elenir.",
+    });
+  });
+
+  /** Belleği Postgres’ten yeniden yükle veya çöpü budar (local↔canlı eşitleme). */
+  router.post("/campaigns/resync", requireAdmin, async (req, res) => {
+    const body = z
+      .object({
+        fromUrl: z.string().url().optional(),
+        pruneOnly: z.boolean().optional(),
+      })
+      .safeParse(req.body || {});
+    if (!body.success) {
+      return res.status(400).json({ error: "Geçersiz istek." });
+    }
+
+    if (body.data.pruneOnly) {
+      const pruned = pruneNonDisplayableCampaigns();
+      return res.json({
+        mode: "prune",
+        ...pruned,
+        listed: listMemoryCampaigns({ activeOnly: true }).length,
+      });
+    }
+
+    const remote =
+      body.data.fromUrl ||
+      process.env.LIVE_SYNC_URL ||
+      process.env.APP_URL ||
+      "";
+    if (remote) {
+      try {
+        const base = remote.replace(/\/+$/, "");
+        const r = await fetch(`${base}/api/live/campaigns`);
+        if (!r.ok) {
+          return res.status(502).json({
+            error: `Uzak kampanya alınamadı: HTTP ${r.status}`,
+            remote: base,
+          });
+        }
+        const data = (await r.json()) as {
+          financingCampaigns?: Array<Record<string, unknown>>;
+          cardAndDiscountCampaigns?: Array<Record<string, unknown>>;
+        };
+        const rows = [
+          ...(data.financingCampaigns || []),
+          ...(data.cardAndDiscountCampaigns || []),
+        ];
+        const replaced = replaceMemoryCampaigns(rows);
+        return res.json({
+          mode: "remote",
+          remote: base,
+          ...replaced,
+          listed: listMemoryCampaigns({ activeOnly: true }).length,
+        });
+      } catch (err) {
+        // uzak yoksa Postgres hydrate dene
+        console.warn(
+          "[campaigns/resync] remote failed:",
+          err instanceof Error ? err.message : err,
+        );
+      }
+    }
+
+    const schema = await ensureSchema();
+    if (!schema.ok) {
+      const pruned = pruneNonDisplayableCampaigns();
+      return res.status(503).json({
+        error: "Postgres yok ve uzak sync başarısız; yalnızca prune yapıldı.",
+        postgres: schema,
+        prune: pruned,
+        listed: listMemoryCampaigns({ activeOnly: true }).length,
+      });
+    }
+    const hydrated = await hydrateMemoryFromPostgres();
+    return res.json({
+      mode: "postgres",
+      ...hydrated,
+      listed: listMemoryCampaigns({ activeOnly: true }).length,
     });
   });
 
