@@ -54,7 +54,7 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
   const [result, setResult] = useState<FindeksAnalysisResult | null>(null);
 
   const handleFileUpload = async (uploadedFile: File) => {
-    if (!uploadedFile || !uploadedFile.name.endsWith('.pdf')) {
+    if (!uploadedFile || !uploadedFile.name.toLowerCase().endsWith('.pdf')) {
       setError('Lütfen geçerli bir Findeks PDF raporu yükleyin.');
       return;
     }
@@ -64,13 +64,17 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
     setError(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', uploadedFile);
-      formData.append('monthlyIncome', String(monthlyIncome));
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(uploadedFile);
+      });
 
       const res = await fetch('/api/findeks/analyze-pdf', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pdfBase64: base64, monthlyIncome }),
       });
 
       if (!res.ok) {

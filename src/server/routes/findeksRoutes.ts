@@ -1,9 +1,6 @@
 import { Router } from "express";
-import multer from "multer";
-import fetch from "node-fetch";
 
 const router = Router();
-const upload = multer({ limits: { fileSize: 15 * 1024 * 1024 } }); // 15MB max
 
 function calculateFallbackAnalysis(score: number, income: number) {
   let riskGroup = "Az Riskli";
@@ -80,51 +77,52 @@ function calculateFallbackAnalysis(score: number, income: number) {
   };
 }
 
-router.post("/analyze-pdf", upload.single("file"), async (req, res) => {
+router.post("/analyze-pdf", async (req, res) => {
   try {
-    const file = req.file;
     const income = Number(req.body.monthlyIncome) || 60000;
+    const pdfBase64 = req.body.pdfBase64;
+    const manualScore = Number(req.body.manualScore);
 
-    if (!file || !file.buffer) {
-      // Manual score fallback if no PDF
-      const manualScore = Number(req.body.manualScore) || 1450;
+    if (manualScore && manualScore >= 1 && manualScore <= 1900) {
       return res.json(calculateFallbackAnalysis(manualScore, income));
     }
 
-    // Try proxying to Python speech-service at port 8001
-    try {
-      const FormData = (await import("form-data")).default;
-      const formData = new FormData();
-      formData.append("file", file.buffer, {
-        filename: file.originalname || "findeks_report.pdf",
-        contentType: "application/pdf",
-      });
-      formData.append("monthly_income", String(income));
+    if (pdfBase64 && typeof pdfBase64 === "string") {
+      const buffer = Buffer.from(pdfBase64.replace(/^data:application\/pdf;base64,/, ""), "base64");
+      
+      // Try proxying to Python speech-service at port 8001 using native fetch & FormData
+      try {
+        const Blob = (globalThis as any).Blob || (await import("node:buffer")).Blob;
+        const blob = new Blob([buffer], { type: "application/pdf" });
+        const formData = new (globalThis as any).FormData();
+        formData.append("file", blob, "findeks_report.pdf");
+        formData.append("monthly_income", String(income));
 
-      const pyRes = await fetch("http://localhost:8001/findeks/analyze-pdf", {
-        method: "POST",
-        body: formData as any,
-        headers: formData.getHeaders(),
-      });
+        const pyRes = await fetch("http://localhost:8001/findeks/analyze-pdf", {
+          method: "POST",
+          body: formData,
+        });
 
-      if (pyRes.ok) {
-        const data = await pyRes.json();
-        return res.json(data);
+        if (pyRes.ok) {
+          const data = await pyRes.json();
+          return res.json(data);
+        }
+      } catch {
+        // Fallback to text parsing
       }
-    } catch {
-      // Python service offline fallback
+
+      // Regex fallback on PDF buffer
+      const rawText = buffer.toString("binary");
+      let extractedScore = 1450;
+      const match = rawText.match(/(?:Findeks|Kredi\s*Notu)[\s:]*(\d{3,4})/i);
+      if (match) {
+        const val = parseInt(match[1], 10);
+        if (val >= 1 && val <= 1900) extractedScore = val;
+      }
+      return res.json(calculateFallbackAnalysis(extractedScore, income));
     }
 
-    // Fallback: Parse score using regex on raw PDF text buffer if available
-    const rawBufferText = file.buffer.toString("binary");
-    let score = 1450;
-    const match = rawBufferText.match(/(?:Findeks|Kredi\s*Notu)[\s:]*(\d{3,4})/i);
-    if (match) {
-      const val = parseInt(match[1], 10);
-      if (val >= 1 && val <= 1900) score = val;
-    }
-
-    return res.json(calculateFallbackAnalysis(score, income));
+    return res.json(calculateFallbackAnalysis(1450, income));
   } catch (err) {
     return res.status(500).json({ error: "Findeks PDF analizi başarısız oldu." });
   }
