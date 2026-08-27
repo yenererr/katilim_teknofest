@@ -810,7 +810,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
 
         {showStarters && (
           <div
-            className={`mb-4 grid w-full grid-cols-2 ${isWidget ? "gap-2 px-1" : "max-w-lg gap-2.5"}`}
+            className={`mb-6 mx-auto grid w-full grid-cols-2 justify-items-center ${isWidget ? "gap-2 px-1" : "max-w-xl gap-3"}`}
           >
             {STARTERS.map((s) => {
               const Icon = s.icon;
@@ -819,10 +819,10 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
                   key={s.label}
                   type="button"
                   onClick={() => void send(s.value)}
-                  className={`flex min-h-11 items-start gap-2 rounded-xl border border-line bg-surface text-left transition-colors hover:border-brand-300 hover:bg-brand-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-brand-950/30 ${isWidget ? "p-2.5" : "gap-2.5 p-3"}`}
+                  className={`flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface text-center transition-colors hover:border-brand-300 hover:bg-brand-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-brand-950/30 ${isWidget ? "p-2.5" : "gap-2.5 p-3"}`}
                 >
                   <Icon
-                    className={`mt-0.5 shrink-0 ${s.color} ${isWidget ? "h-3.5 w-3.5" : "h-4 w-4"}`}
+                    className={`shrink-0 ${s.color} ${isWidget ? "h-3.5 w-3.5" : "h-4 w-4"}`}
                   />
                   <span
                     className={`font-medium text-txt ${isWidget ? "text-xs" : "text-sm"}`}
