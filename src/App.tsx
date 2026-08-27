@@ -90,17 +90,13 @@ function AppInner() {
   const setActiveTab = useCallback((tab: TabKey) => {
     setActiveTabState(tab);
     const route = TAB_TO_HASH[tab];
-    if (route) {
-      window.history.replaceState(null, '', `#${route}`);
-    } else if (window.location.hash) {
-      window.history.replaceState(null, '', window.location.pathname);
-    }
+    window.history.replaceState(null, '', `#${route}`);
   }, []);
 
   useEffect(() => {
     const onHash = () => {
       const tab = tabFromHash(window.location.hash);
-      if (tab) setActiveTabState(tab);
+      setActiveTabState(tab ?? 'home');
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -290,16 +286,22 @@ function AppInner() {
     showToast('Tüm çıkarımlar JSON olarak indirildi.', 'basari');
   }, [ogeler, showToast]);
 
-  /** Ana sayfadaki karşılaştırma formu — sonuçlar yerinde tazelenir. */
-  const handleKarsilastir = useCallback((yeni: KarsilastirmaTalebi) => {
-    setTalep(yeni);
-    setKarsilastirmalar((prev) =>
-      [
-        { ...yeni, id: `kars_${Date.now()}`, zaman: saatDamgasi() },
-        ...prev.filter((k) => !(k.tur === yeni.tur && k.tutar === yeni.tutar && k.vadeAy === yeni.vadeAy)),
-      ].slice(0, 8),
-    );
-  }, []);
+  /** Ana sayfadaki karşılaştırma formu — karşılaştırmalar sayfasına taşır. */
+  const handleKarsilastir = useCallback(
+    (yeni: KarsilastirmaTalebi) => {
+      setTalep(yeni);
+      setKarsilastirmalar((prev) =>
+        [
+          { ...yeni, id: `kars_${Date.now()}`, zaman: saatDamgasi() },
+          ...prev.filter(
+            (k) => !(k.tur === yeni.tur && k.tutar === yeni.tutar && k.vadeAy === yeni.vadeAy),
+          ),
+        ].slice(0, 8),
+      );
+      setActiveTab('compare');
+    },
+    [setActiveTab],
+  );
 
   const handleAsistanaSor = useCallback((soru: string) => {
     setAsistanSorusu(soru);
@@ -530,7 +532,7 @@ function AppInner() {
 
             {activeTab === 'compare' && (
               <div {...panelProps('compare')}>
-                <CompareView history={history} ogeler={ogeler} seciliIds={seciliIds} />
+                <CompareView talep={talep} onTalepDegisti={setTalep} />
               </div>
             )}
 

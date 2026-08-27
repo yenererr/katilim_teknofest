@@ -111,32 +111,46 @@ export const TAB_TITLES: Record<TabKey, { baslik: string; aciklama: string }> = 
 };
 
 /** Hash tabanlı soft-route (React Router yok) */
-export const TAB_TO_HASH: Partial<Record<TabKey, string>> = {
-  'finansman-asistani': '/finansman-asistani',
-  asistan: '/asistan',
+export const TAB_TO_HASH: Record<TabKey, string> = {
+  home: '/',
+  finansmanlar: '/finansman-karsilastir',
   hesaplama: '/hesaplama',
   'kar-payi': '/kar-payi',
   findeks: '/findeks',
-  home: '/',
+  kampanyalar: '/kampanyalar',
+  ucretler: '/ucretler',
+  compare: '/karsilastirmalar',
+  'finansman-asistani': '/asistan',
+  asistan: '/asistan',
+  json: '/json',
+  guide: '/rehber',
 };
+
+const HASH_TO_TAB: Record<string, TabKey> = {};
+for (const [tab, route] of Object.entries(TAB_TO_HASH)) {
+  HASH_TO_TAB[route] = tab as TabKey;
+}
+HASH_TO_TAB['/finansman-asistani'] = 'finansman-asistani';
+HASH_TO_TAB['/home'] = 'home';
 
 export function tabFromHash(hash: string): TabKey | null {
   const h = hash.replace(/^#/, '');
   const [pathPart, query = ''] = h.split('?');
-  const path = pathPart;
-  if (path === '/finansman-asistani' || path === 'finansman-asistani') {
-    return 'finansman-asistani';
-  }
-  if (path === '/kar-payi' || path === 'kar-payi') return 'kar-payi';
-  if (path === '/findeks' || path === 'findeks') return 'findeks';
+  const path = pathPart || '/';
+
   if (
-    (path === '/hesaplama' || path === 'hesaplama') &&
+    path === '/hesaplama' &&
     /(?:^|&)mode=kar-payi(?:&|$)/.test(query)
   ) {
     return 'kar-payi';
   }
-  if (path === '/hesaplama' || path === 'hesaplama') return 'hesaplama';
-  if (path === '/asistan' || path === 'asistan') return 'finansman-asistani';
-  if (path === '/' || path === '' || path === '/home') return null;
+
+  const match = HASH_TO_TAB[path];
+  if (match) return match;
+
+  const bare = HASH_TO_TAB['/' + path];
+  if (bare) return bare;
+
+  if (path === '/') return 'home';
   return null;
 }

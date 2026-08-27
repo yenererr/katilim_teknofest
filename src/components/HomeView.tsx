@@ -60,6 +60,12 @@ export interface KarsilastirmaTalebi {
   tur: FinansmanTuru;
   tutar: number;
   vadeAy: number;
+  /** Ayrıntılı seçenek anahtarı (ör. tasit_finansmani_ikinci_el) */
+  secenek?: string;
+  /** Kullanıcının elle girdiği aylık kâr oranı yüzdesi; null = bankaların ilan oranı */
+  ozelOranYuzde?: number | null;
+  /** '1' = finansman tutarından, '2' = taksit tutarından hesapla */
+  hesapTipi?: '1' | '2';
 }
 
 interface HomeViewProps {
@@ -430,7 +436,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
     // Tür seçilmeden karşılaştırma yapılmaz.
     if (!secilen || tutar <= 0) return;
     setAktifSecenek(secilen.key);
-    onKarsilastir({ tur: secilen.temelTur, tutar, vadeAy });
+    onKarsilastir({
+      tur: secilen.temelTur,
+      tutar,
+      vadeAy,
+      secenek: secilen.key,
+      ozelOranYuzde,
+      hesapTipi,
+    });
   };
 
   return (
