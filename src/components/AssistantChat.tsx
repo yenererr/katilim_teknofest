@@ -7,7 +7,14 @@ import {
   RefreshCw,
   Send,
   ShieldAlert,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+  Square,
+  Radio,
 } from "lucide-react";
+import { useSpeech } from "../hooks/useSpeech";
 
 export type AssistantCitation = {
   id: number;
@@ -151,6 +158,18 @@ export const AssistantChat: React.FC<Props> = ({ initialQuestion }) => {
   const inputId = useId();
   const bootstrapped = useRef(false);
 
+  const {
+    state: speechState,
+    error: speechError,
+    audioLevel,
+    autoPlayTTS,
+    setAutoPlayTTS,
+    startListening,
+    stopListening,
+    speakText,
+    stopAudioPlayback,
+  } = useSpeech();
+
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [turns, loading]);
@@ -191,6 +210,9 @@ export const AssistantChat: React.FC<Props> = ({ initialQuestion }) => {
           payload,
         },
       ]);
+      if (autoPlayTTS && payload.answer) {
+        void speakText(payload.answer);
+      }
       setForceRefresh(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Bağlantı hatası");
@@ -250,13 +272,33 @@ export const AssistantChat: React.FC<Props> = ({ initialQuestion }) => {
             className={`max-w-3xl ${turn.role === "user" ? "ml-auto" : ""}`}
           >
             <div
-              className={`rounded-lg px-3.5 py-2.5 text-sm leading-relaxed ${
+              className={`flex items-start justify-between gap-2 rounded-lg px-3.5 py-2.5 text-sm leading-relaxed ${
                 turn.role === "user"
                   ? "bg-brand-600 text-white"
                   : "border border-line bg-sunken text-txt"
               }`}
             >
-              {turn.text}
+              <div className="flex-1">{turn.text}</div>
+              {turn.role === "assistant" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (speechState === "speaking") {
+                      stopAudioPlayback();
+                    } else {
+                      void speakText(turn.text);
+                    }
+                  }}
+                  className="grid h-7 w-7 shrink-0 place-items-center rounded text-txt-muted hover:bg-surface hover:text-txt"
+                  title={speechState === "speaking" ? "Durdur" : "Sesli oku"}
+                >
+                  {speechState === "speaking" ? (
+                    <Square className="h-3 w-3 text-brand-600 fill-brand-600" />
+                  ) : (
+                    <Volume2 className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              )}
             </div>
 
             {turn.payload && (
@@ -376,11 +418,52 @@ export const AssistantChat: React.FC<Props> = ({ initialQuestion }) => {
         )}
       </div>
 
-      {error && (
+      {speechError && (
         <p className="flex items-center gap-2 rounded-lg border border-risk-200 bg-risk-50 px-3 py-2 text-sm text-risk-800">
           <ShieldAlert className="h-4 w-4" />
-          {error}
+          {speechError}
         </p>
+      )}
+
+      {speechState !== "idle" && (
+        <div className="flex items-center justify-between gap-2 rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs text-brand-900 dark:border-brand-900 dark:bg-brand-950 dark:text-brand-200">
+          <div className="flex items-center gap-2">
+            {speechState === "listening" && (
+              <>
+                <Radio className="h-4 w-4 animate-pulse text-risk-500" />
+                <span>Dinleniyor... Tamamlamak için mikrofona tekrar basın. (Ses: %{audioLevel})</span>
+              </>
+            )}
+            {speechState === "transcribing" && (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-brand-600" />
+                <span>Ses yazıya çevriliyor...</span>
+              </>
+            )}
+            {speechState === "synthesizing" && (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-brand-600" />
+                <span>Ses oluşturuluyor...</span>
+              </>
+            )}
+            {speechState === "speaking" && (
+              <>
+                <Volume2 className="h-4 w-4 animate-bounce text-brand-600" />
+                <span>Seslendiriliyor...</span>
+              </>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (speechState === "listening") stopListening();
+              else stopAudioPlayback();
+            }}
+            className="rounded border border-line bg-surface px-2 py-0.5 text-[11px] font-medium"
+          >
+            Durdur
+          </button>
+        </div>
       )}
 
       <form
@@ -390,6 +473,28 @@ export const AssistantChat: React.FC<Props> = ({ initialQuestion }) => {
           void send(input);
         }}
       >
+        <button
+          type="button"
+          onClick={() => {
+            if (speechState === "listening") {
+              stopListening();
+            } else {
+              void startListening((text) => {
+                setInput(text);
+                void send(text);
+              });
+            }
+          }}
+          className={`inline-flex items-center justify-center rounded-lg border p-2 text-sm transition-colors ${
+            speechState === "listening"
+              ? "border-risk-500 bg-risk-500 text-white animate-pulse"
+              : "border-line bg-sunken text-txt-secondary hover:text-txt"
+          }`}
+          title={speechState === "listening" ? "Kaydı durdur" : "Mikrofonla konuş"}
+        >
+          {speechState === "listening" ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5 text-brand-600" />}
+        </button>
+
         <label className="min-w-0 flex-1">
           <span className="sr-only" id={inputId}>
             Sorunuz
@@ -405,6 +510,18 @@ export const AssistantChat: React.FC<Props> = ({ initialQuestion }) => {
           />
         </label>
         <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setAutoPlayTTS(!autoPlayTTS)}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-sm ${
+              autoPlayTTS
+                ? "border-brand-400 bg-brand-50 text-brand-800"
+                : "border-line bg-sunken text-txt-muted"
+            }`}
+            title={autoPlayTTS ? "Sesli yanıtlar açık" : "Sesli yanıtlar kapalı"}
+          >
+            {autoPlayTTS ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </button>
           <button
             type="button"
             title="İlgili kaynakları yenilemeyi dene"

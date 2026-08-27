@@ -2,9 +2,9 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Maximize2, X } from "lucide-react";
 import { FinansmanAsistaniView } from "./FinansmanAsistaniView";
-import { BRAND_LOGO } from "../lib/brand";
+import { ASSISTANT_MASCOT } from "../lib/brand";
 
-const AGENT_LOGO = BRAND_LOGO;
+const AGENT_MASCOT = ASSISTANT_MASCOT;
 
 type ChatWidgetProps = {
   /** Tam sayfa asistan açıkken FAB gizlenir. */
@@ -61,9 +61,9 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
           >
             <header className="flex shrink-0 items-center gap-2.5 border-b border-line bg-surface px-3 py-2.5">
               <img
-                src={AGENT_LOGO}
+                src={AGENT_MASCOT}
                 alt=""
-                className="h-8 w-20 rounded-lg bg-white object-contain object-left p-0.5"
+                className="h-9 w-9 shrink-0 object-contain"
               />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-txt">
@@ -119,15 +119,15 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
         onClick={() => setOpen((v) => !v)}
         whileHover={{ scale: 1.04 }}
         whileTap={{ scale: 0.96 }}
-        className="pointer-events-auto grid h-14 w-14 place-items-center rounded-full border border-brand-200 bg-brand-600 text-white shadow-raised transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 dark:border-brand-700 dark:ring-offset-canvas"
+        className="pointer-events-auto grid h-14 w-14 place-items-center overflow-hidden rounded-full border border-line bg-surface text-txt shadow-raised transition-colors hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 dark:ring-offset-canvas"
       >
         {open ? (
-          <X className="h-6 w-6" aria-hidden="true" />
+          <X className="h-6 w-6 text-txt-secondary" aria-hidden="true" />
         ) : (
           <img
-            src={AGENT_LOGO}
+            src={AGENT_MASCOT}
             alt=""
-            className="h-10 w-10 rounded-full bg-white object-cover object-left p-1"
+            className="h-12 w-12 object-contain"
           />
         )}
       </motion.button>

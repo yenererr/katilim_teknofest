@@ -16,3 +16,14 @@ data/scraped-*.json
 
 # Claude Code yerel yapılandırması ve vendored skill dosyaları
 .claude/
+
+# Speech Service (STT/TTS models & venv)
+speech-service/venv/
+speech-service/models/
+speech-service/.cache/
+__pycache__/
+*.pyc
+*.wav
+*.mp3
+*.webm
+

@@ -11,11 +11,18 @@ import {
   TrendingDown,
   BadgePercent,
   User,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+  Square,
+  Radio,
 } from "lucide-react";
+import { useSpeech } from "../hooks/useSpeech";
 import { WELCOME_MESSAGE } from "../lib/assistantPersona";
-import { BRAND_LOGO } from "../lib/brand";
+import { ASSISTANT_MASCOT } from "../lib/brand";
 
-const AGENT_LOGO = BRAND_LOGO;
+const AGENT_MASCOT = ASSISTANT_MASCOT;
 const WELCOME_TURN_ID = "welcome-assistant";
 
 export type FinancingMatchRow = {
@@ -462,6 +469,18 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
   const inputId = useId();
   const bootstrapped = useRef(false);
 
+  const {
+    state: speechState,
+    error: speechError,
+    audioLevel,
+    autoPlayTTS,
+    setAutoPlayTTS,
+    startListening,
+    stopListening,
+    speakText,
+    stopAudioPlayback,
+  } = useSpeech();
+
   const focusInput = () => {
     if (!preferInputFocus.current) return;
     // disabled/readOnly geçişi ve DOM güncellemesi sonrası odakla
@@ -568,6 +587,9 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
           payload: data,
         },
       ]);
+      if (autoPlayTTS && data.assistantMessage) {
+        void speakText(data.assistantMessage);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Bağlantı hatası");
     } finally {
@@ -654,15 +676,36 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
           return (
             <div key={t.id} className="mb-5 flex gap-2.5">
               <img
-                src={AGENT_LOGO}
+                src={AGENT_MASCOT}
                 alt=""
-                className="mt-1 h-7 w-7 shrink-0 rounded-full bg-white object-cover object-left p-0.5"
+                className="mt-0.5 h-8 w-8 shrink-0 object-contain"
               />
               <div className="min-w-0 flex-1 space-y-3">
                 {/* Tek sohbet kartı: metin + seçenekler birlikte */}
                 <div className="rounded-2xl rounded-tl-md border border-line bg-surface text-txt shadow-flat">
-                  <div className="px-3.5 py-2.5 text-sm leading-relaxed">
-                    {renderMarkdown(t.text)}
+                  <div className="flex items-start justify-between gap-2 px-3.5 pt-2.5">
+                    <div className="min-w-0 flex-1 text-sm leading-relaxed">
+                      {renderMarkdown(t.text)}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (speechState === "speaking") {
+                          stopAudioPlayback();
+                        } else {
+                          void speakText(t.text);
+                        }
+                      }}
+                      className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-txt-muted transition-colors hover:bg-sunken hover:text-txt"
+                      title={speechState === "speaking" ? "Sesli okumayı durdur" : "Sesli oku"}
+                      aria-label={speechState === "speaking" ? "Sesli okumayı durdur" : "Sesli oku"}
+                    >
+                      {speechState === "speaking" ? (
+                        <Square className="h-3.5 w-3.5 text-brand-600 fill-brand-600 dark:text-brand-400" />
+                      ) : (
+                        <Volume2 className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
 
                   {hasTurnResults && payload && (
@@ -795,9 +838,9 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
         {loading && (
           <div className="mb-4 flex gap-2.5">
             <img
-              src={AGENT_LOGO}
+              src={AGENT_MASCOT}
               alt=""
-              className="mt-1 h-7 w-7 shrink-0 rounded-full bg-white object-cover object-left p-0.5"
+              className="mt-0.5 h-8 w-8 shrink-0 object-contain"
             />
             <div className="flex items-center gap-2 rounded-2xl rounded-tl-md border border-line bg-surface px-4 py-3 shadow-flat">
               <Loader2 className="h-4 w-4 animate-spin text-brand-500" />
@@ -822,6 +865,64 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
             : "fixed inset-x-0 bottom-0 z-30 border-t border-line bg-canvas/95 px-3 py-3 backdrop-blur-md sm:px-4 lg:left-72"
         }
       >
+        {speechError && (
+          <div className="mb-3 rounded-xl border border-risk-200 bg-risk-50 px-4 py-2.5 text-xs text-risk-700 dark:border-risk-800 dark:bg-risk-950 dark:text-risk-300">
+            {speechError}
+          </div>
+        )}
+
+        {speechState !== "idle" && (
+          <div className="mb-2 flex items-center justify-between gap-2 rounded-xl border border-brand-200 bg-brand-50/80 px-3.5 py-2 text-xs text-brand-900 dark:border-brand-900 dark:bg-brand-950/80 dark:text-brand-200">
+            <div className="flex items-center gap-2">
+              {speechState === "listening" && (
+                <>
+                  <Radio className="h-4 w-4 animate-pulse text-risk-500" />
+                  <span>Dinleniyor... Tamamlamak için mikrofona tekrar basın.</span>
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4].map((i) => (
+                      <span
+                        key={i}
+                        className="h-3 w-1 rounded-full bg-brand-500 transition-all duration-75"
+                        style={{
+                          height: `${Math.max(4, (audioLevel * (i * 0.25)) / 3)}px`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+              {speechState === "transcribing" && (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-brand-600" />
+                  <span>Ses yazıya çevriliyor...</span>
+                </>
+              )}
+              {speechState === "synthesizing" && (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-brand-600" />
+                  <span>Ses oluşturuluyor...</span>
+                </>
+              )}
+              {speechState === "speaking" && (
+                <>
+                  <Volume2 className="h-4 w-4 animate-bounce text-brand-600" />
+                  <span>Yanıt seslendiriliyor...</span>
+                </>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (speechState === "listening") stopListening();
+                else stopAudioPlayback();
+              }}
+              className="rounded-md border border-line bg-surface px-2 py-1 text-[11px] font-medium text-txt hover:bg-sunken"
+            >
+              Durdur
+            </button>
+          </div>
+        )}
+
         <form
           className={`mx-auto flex items-end gap-2 ${isWidget ? "" : "max-w-4xl"}`}
           onSubmit={(e) => {
@@ -829,6 +930,33 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
             void send(input);
           }}
         >
+          <button
+            type="button"
+            onClick={() => {
+              if (speechState === "listening") {
+                stopListening();
+              } else {
+                void startListening((text) => {
+                  setInput(text);
+                  void send(text);
+                });
+              }
+            }}
+            className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
+              speechState === "listening"
+                ? "border-risk-500 bg-risk-500 text-white animate-pulse"
+                : "border-line bg-sunken text-txt-secondary hover:border-brand-300 hover:text-txt"
+            }`}
+            title={speechState === "listening" ? "Kaydı durdur" : "Mikrofonla konuş"}
+            aria-label={speechState === "listening" ? "Kaydı durdur" : "Mikrofonla konuş"}
+          >
+            {speechState === "listening" ? (
+              <MicOff className="h-5 w-5" />
+            ) : (
+              <Mic className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+            )}
+          </button>
+
           <label htmlFor={inputId} className="sr-only">
             Mesajınız
           </label>
@@ -845,11 +973,26 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
               if (preferInputFocus.current) focusInput();
             }}
             rows={1}
-            placeholder="Sorunuzu yazın..."
+            placeholder="Sorunuzu yazın veya konuşun..."
             className="max-h-32 min-h-11 flex-1 resize-none rounded-xl border border-line bg-sunken px-3.5 py-2.5 text-sm text-txt placeholder:text-txt-muted focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900 read-only:opacity-80"
-            readOnly={loading}
-            aria-busy={loading}
+            readOnly={loading || speechState === "listening" || speechState === "transcribing"}
+            aria-busy={loading || speechState === "transcribing"}
           />
+
+          <button
+            type="button"
+            onClick={() => setAutoPlayTTS(!autoPlayTTS)}
+            className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl border transition-colors ${
+              autoPlayTTS
+                ? "border-brand-400 bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300"
+                : "border-line bg-sunken text-txt-muted hover:text-txt"
+            }`}
+            title={autoPlayTTS ? "Sesli yanıtlar açık" : "Sesli yanıtlar kapalı"}
+            aria-label={autoPlayTTS ? "Sesli yanıtlar açık" : "Sesli yanıtlar kapalı"}
+          >
+            {autoPlayTTS ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </button>
+
           <button
             type="submit"
             disabled={loading || !input.trim()}

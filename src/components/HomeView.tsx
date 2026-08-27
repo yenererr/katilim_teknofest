@@ -804,8 +804,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </button>
             </div>
             <p className="text-sm leading-relaxed text-txt-secondary">
-              FAST, EFT ve hesap işletim için doğrulanmış dijital kanal tarifeleri bağlı.
-              Bilinmeyen bankalar tire ile gösterilir; ayrıntılı tablo Ücretler sekmesinde.
+              FAST, EFT, hesap işletim, aidatsız kart seçeneği ve ücretsiz ATM ağı için
+              doğrulanmış dijital kanal tarifeleri. “0 TL” ücretsiz; “—” tarife
+              yayımlanmadığı anlamına gelir. Kart sütununda ürün adı gösterilir.
             </p>
           </section>
 

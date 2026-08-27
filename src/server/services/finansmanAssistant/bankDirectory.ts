@@ -290,12 +290,15 @@ function ucretYaniti(mesaj: string): RehberSonucu {
     .map(([bankaId, tutar]) => ({
       ad: BANKA_INDEKS[bankaId]?.ad || bankaId,
       tutar: tutar as number,
+      not: kalem.notlar?.[bankaId],
     }))
     .sort((a, b) => a.tutar - b.tutar)
-    .map(
-      (s) =>
-        `• ${s.ad}: ${s.tutar === 0 ? "ücretsiz" : `${s.tutar.toLocaleString("tr-TR")} TL`}`,
-    );
+    .map((s) => {
+      const tutarMetin =
+        s.tutar === 0 ? "0 TL" : `${s.tutar.toLocaleString("tr-TR")} TL`;
+      const urun = s.not ? ` – ${s.not}` : "";
+      return `• ${s.ad}: ${tutarMetin}${urun}`;
+    });
 
   if (satirlar.length === 0) {
     return {
