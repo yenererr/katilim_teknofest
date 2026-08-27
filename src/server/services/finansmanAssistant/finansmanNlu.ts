@@ -239,15 +239,21 @@ export function parseCustomerStatus(
   return "unknown";
 }
 
+/** Yazım hataları: ziraaat → ziraat (3+ tekrarlayan harfi 2’ye indir) */
+export function fuzzyAsciiFold(text: string): string {
+  return asciiKatla(text).replace(/(.)\1{2,}/g, "$1$1");
+}
+
 export function parseBanks(text: string): {
   requested: string[];
   excluded: string[];
 } {
-  const lower = asciiKatla(text);
+  const lower = fuzzyAsciiFold(text);
   const requested: string[] = [];
   const excluded: string[] = [];
   for (const [name, id] of Object.entries(BANK_NAME_TO_ID)) {
-    if (!lower.includes(asciiKatla(name))) continue;
+    const key = fuzzyAsciiFold(name);
+    if (!lower.includes(key)) continue;
     if (/cikar|hari[cç]|gosterme|gösterme/.test(lower)) excluded.push(id);
     else requested.push(id);
   }
@@ -280,9 +286,26 @@ export function parseSortPreference(
 export function isMetaResultQuestion(text: string): boolean {
   const t = asciiKatla(text);
   return (
-    /baska banka|daha (fazla|cok) banka|sadece .* banka|neden .* banka|niye .* banka|hep ayni|neden ayni|niye ayni|ayn[iı] cevap|tekrar (ediyorsun|liyorsun)/.test(
+    /baska banka|daha (fazla|cok) banka|sadece .* banka|neden .* banka|niye .* banka|hep ayni|neden ayni|niye ayni|ayn[iı] cevap|tekrar (ediyorsun|liyorsun|ediyon|ediyosun|soyluyorsun|soruyorsun)/.test(
       t,
-    ) || /neden|niye/.test(t) && /ayn[iı]|tekrar|hep/.test(t)
+    ) ||
+    (/neden|niye|niye\s*tekrar/.test(t) && /ayn[iı]|tekrar|hep/.test(t)) ||
+    /^niye\s+tekrar/.test(t) ||
+    /neden\s+tekrar|niye\s+tekrar\s+ediyon/.test(t)
+  );
+}
+
+/** “Albaraka nasıl banka / iyi mi” — oran değil, banka tanıtımı */
+export function isBankInfoQuestion(text: string): boolean {
+  const t = asciiKatla(text);
+  if (/oran|kar\s*pay|finansman\s*icin|kredi\s*icin|\btl\b|\bbin\b|\d+\s*ay/.test(t)) {
+    return false;
+  }
+  return (
+    /nasil\s*(bir\s*)?banka|iyi\s*mi|guvenilir|hosuma|hakkinda|tan[iı]t|ne\s*tur\s*banka|nas[iı]l\s*(bi\s*)?banka|ismi\s*hos|begen(dim|iyorum)/.test(
+      t,
+    ) ||
+    (/nasil/.test(t) && /banka/.test(t))
   );
 }
 
@@ -290,8 +313,17 @@ export function isMetaResultQuestion(text: string): boolean {
 export function isBankRateQuestion(text: string): boolean {
   const t = asciiKatla(text);
   const banks = parseBanks(text);
-  if (!banks.requested.length) return false;
-  return /oran|kar pay|ne kadar|nasil|var m[iı]|goster|karsilastir/.test(t);
+  const hasBank =
+    banks.requested.length > 0 || Boolean(bankaBul(fuzzyAsciiFold(t)));
+  if (!hasBank) return false;
+  // "nasıl banka" oran sorusu değil
+  if (isBankInfoQuestion(t)) return false;
+  return (
+    /oran|kar\s*pay/.test(t) ||
+    /(oran[iı]?|kar\s*pay[iı]?)\s*(ne|nedir|kac|kaç)/.test(t) ||
+    /ne\s+(kadar\s+)?(oran|kar)/.test(t) ||
+    /finansman\s*icin.*oran|oran.*finansman/.test(t)
+  );
 }
 
 export function detectFollowUpFlags(text: string): {
@@ -547,6 +579,10 @@ export function classifyTurn(
 
   if (isMetaResultQuestion(t)) {
     return "meta_question";
+  }
+
+  if (isBankInfoQuestion(t)) {
+    return "general_question";
   }
 
   if (isBankRateQuestion(t)) {

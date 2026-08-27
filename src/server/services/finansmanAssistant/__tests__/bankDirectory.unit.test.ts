@@ -48,6 +48,13 @@ describe("banka rehberi niyet tespiti", () => {
     );
   });
 
+  it("banka tanıtım sorularını tanır", () => {
+    expect(rehberNiyetiTespit("albaraka nasıl banka")).toBe("banka_bilgi");
+    expect(rehberNiyetiTespit("albaraka iyi mi ismi hoşuma gitti")).toBe(
+      "banka_bilgi",
+    );
+  });
+
   it("tek başına listele banka listesi döner", () => {
     expect(rehberNiyetiTespit("listele")).toBe("banka_listesi");
     expect(rehberNiyetiTespit("Listele!")).toBe("banka_listesi");
@@ -70,6 +77,7 @@ describe("banka adı çözümleme", () => {
     expect(bankaBul("Kuveyt Türk kampanyaları")).toBe("kuveyt-turk");
     expect(bankaBul("vakıf katılım sitesi")).toBe("vakif-katilim");
     expect(bankaBul("ziraat katılım hakkında")).toBe("ziraat-katilim");
+    expect(bankaBul("zıraaat oranı kaç")).toBe("ziraat-katilim");
   });
 
   it("banka geçmiyorsa null döner", () => {

@@ -10,6 +10,7 @@ import {
   isThanksRequest,
   isFarewellRequest,
   isWellbeingReply,
+  isBankInfoQuestion,
   parseLimitInquiry,
   isPilgrimagePurpose,
   type LimitInquiryKind,
@@ -328,6 +329,39 @@ function buildNeedsInfoMessage(
   const parts: string[] = [];
   const quick: FinancingAssistantResponse["quickReplies"] = [];
 
+  const bankNames = state.selectedBankIds
+    .map((id) => BANKA_INDEKS[id]?.ad)
+    .filter((n): n is string => Boolean(n));
+  const askType = missing.includes("financingType");
+  const askTerm = missing.includes("preferredTermMonths");
+  const askAmount = missing.includes("requestedAmountTl");
+
+  // Tek banka seçili, amaç henüz yok → oran döngüsüne sokma; örnek iste
+  if (bankNames.length === 1 && askType) {
+    const bank = bankNames[0];
+    parts.push(
+      `**${bank}** finansman kâr payı kişiden kişiye ve ürüne göre değişir; sabit tek bir “oran” ilan edilmeyebilir.\n\n` +
+        `Canlı karşılaştırmak için tutar + amaç + vade yazın — örneğin:\n` +
+        `• “${bank} 100.000 TL ihtiyaç, 24 ay”\n` +
+        `• “${bank} 500.000 TL taşıt, 36 ay”\n\n` +
+        `Kampanyalarını da sorabilirsiniz: “${bank} kampanyaları”.`,
+    );
+    quick.push(
+      {
+        id: "bf-100-24",
+        label: "100 bin ihtiyaç, 24 ay",
+        value: `${bank} 100.000 TL ihtiyaç finansmanı, 24 ay`,
+      },
+      {
+        id: "bf-camp",
+        label: `${bank} kampanyaları`,
+        value: `${bank} kampanyaları`,
+      },
+      ...purposeQuickReplies().slice(0, 3),
+    );
+    return { message: parts.join("\n\n"), quickReplies: quick.slice(0, 12) };
+  }
+
   const ack = buildContextAck(state);
   if (ack) {
     parts.push(ack);
@@ -336,10 +370,6 @@ function buildNeedsInfoMessage(
       `${formatAmount(state.requestedAmountTl)} TL için seçeneklere bakabilirim.`,
     );
   }
-
-  const askType = missing.includes("financingType");
-  const askTerm = missing.includes("preferredTermMonths");
-  const askAmount = missing.includes("requestedAmountTl");
 
   if (askType && askTerm) {
     parts.push("Ne için kullanacaksınız ve kaç ay vade düşünüyorsunuz?");
@@ -452,13 +482,21 @@ function buildMetaQuestionMessage(
 ): string {
   const typeLabel = state.financingType
     ? FINANCING_TYPE_LABEL[state.financingType]
-    : "finansman";
+    : null;
+  const missing = missingRequiredFields(state);
+  if (missing.length > 0 || lastExactCount === 0) {
+    return (
+      `Aynı soruyu tekrarlamamak için netleştireyim: finansman karşılaştırması için **tutar + amaç + vade** lazım.\n\n` +
+      `Örnek: “100.000 TL ihtiyaç, 24 ay” veya “Ziraat Katılım 200 bin TL taşıt, 36 ay”.\n\n` +
+      `Banka hakkında genel bilgi için “Albaraka nasıl banka?”, kampanyalar için “Ziraat kampanyaları” yazmanız yeterli.`
+    );
+  }
   return (
     `Parametreler aynı kaldığı için aynı doğrulanmış sonucu gösteriyorum.\n\n` +
-    `10 katılım bankası içinde şu an koşullarınıza uyan ${lastExactCount || "sınırlı sayıda"} seçenek var; ` +
+    `10 katılım bankası içinde şu an koşullarınıza uyan ${lastExactCount} seçenek var; ` +
     `uygun olmayan bankaları tabloya eklemiyorum.\n\n` +
     `Daha fazla seçenek için tutarı, vadeyi (${state.preferredTermMonths ?? "?"} ay) veya amacı ` +
-    `(şu an: ${typeLabel}) değiştirebilir; ya da “Albaraka oranları ne?” gibi tek banka sorabilirsiniz.`
+    `(şu an: ${typeLabel || "finansman"}) değiştirebilir; ya da “Albaraka oranları ne?” gibi tek banka sorabilirsiniz.`
   );
 }
 
@@ -974,6 +1012,11 @@ export async function runFinansmanAssistantChat(
       kampanyaTemasi != null)
   ) {
     rehberNiyeti = "genel_kampanyalar";
+  }
+
+  // "Albaraka nasıl banka" — finansman slotuna düşmesin
+  if (!rehberNiyeti && isBankInfoQuestion(req.message)) {
+    rehberNiyeti = "banka_bilgi";
   }
 
   if (rehberNiyeti) {

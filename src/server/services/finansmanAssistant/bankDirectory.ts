@@ -78,7 +78,8 @@ const AYIRT_EDICI_OLMAYAN = new Set([
  * sorgusu yalnızca "Türk" ortaklığı yüzünden Albaraka'ya düşmez.
  */
 export function bankaBul(mesaj: string): string | null {
-  const t = asciiKatla(mesaj);
+  // ziraaat → ziraat gibi yazım hatalarını yumuşat
+  const t = asciiKatla(mesaj).replace(/(.)\1{2,}/g, "$1$1");
   let enIyi: { bankId: string; puan: number; uzunluk: number } | null = null;
 
   for (const cfg of BANK_SOURCE_CONFIGS) {
@@ -95,6 +96,13 @@ export function bankaBul(mesaj: string): string | null {
     if (t.includes(kimlik)) {
       puan += 1;
       uzunluk += kimlik.length;
+    }
+    // Kısa kök: "ziraat" ↔ "ziraaat"
+    for (const p of parcalar) {
+      if (p.length >= 5 && t.includes(p.slice(0, 5))) {
+        puan = Math.max(puan, 1);
+        uzunluk = Math.max(uzunluk, p.length);
+      }
     }
 
     if (!puan) continue;
@@ -115,6 +123,7 @@ export type RehberNiyeti =
   | "banka_sayisi"
   | "banka_sitesi"
   | "banka_kampanyalari"
+  | "banka_bilgi"
   | "ucret_karsilastir"
   | "yeni_musteri_avantaj"
   | "genel_kampanyalar"
@@ -167,6 +176,17 @@ export function rehberNiyetiTespit(mesaj: string): RehberNiyeti {
   }
 
   if (kampanya && bankaBul(mesaj)) return "banka_kampanyalari";
+
+  // "Albaraka nasıl banka / iyi mi" (banka adı sonraki turda preferredBankId ile gelir)
+  if (
+    /nasil\s*(bir\s*)?banka|ne\s*tur\s*banka|ismi\s*hos|hosuma\s*gitti/.test(t) ||
+    (bankaBul(mesaj) &&
+      /iyi\s*mi|guvenilir|hakkinda|tan[iı]t|nasil/.test(t) &&
+      !kampanya &&
+      !/oran|kar\s*pay|\btl\b/.test(t))
+  ) {
+    return "banka_bilgi";
+  }
 
   // "Üye olmak istiyorum" / "hesap açmak istiyorum" — yeni müşteri avantajlarıyla eşle
   if (
@@ -555,6 +575,27 @@ export function rehberYaniti(
     const url = anaSayfa(cfg.bankId);
     return {
       message: `${cfg.bankName} resmî web sitesi: ${url}`,
+      citations: [
+        {
+          id: 1,
+          bankName: cfg.bankName,
+          sourceUrl: url,
+          sourceCheckedAt: sonKontrol(cfg.bankId),
+          evidenceText: `${cfg.bankName} resmî web sitesi.`,
+        },
+      ],
+    };
+  }
+
+  if (niyet === "banka_bilgi") {
+    const url = anaSayfa(cfg.bankId);
+    const kisa = cfg.bankName.replace(/ Katılım Bankası A\.Ş\./, "");
+    return {
+      message:
+        `**${kisa}**, Türkiye’de faaliyet gösteren **katılım bankalarından** biridir (faizsiz bankacılık modeliyle çalışır).\n\n` +
+        `“İyi mi?” sorusunu tek cümlede puanlayamam; uygunluk ihtiyacınıza (finansman, kampanya, kâr payı) göre değişir. ` +
+        `Resmî bilgi ve güncel ürünler için: ${url}\n\n` +
+        `İsterseniz kampanyalarını sorun veya finansman oranı için tutar + vade yazın — örneğin “${kisa} 100 bin TL ihtiyaç, 24 ay”.`,
       citations: [
         {
           id: 1,

@@ -173,6 +173,9 @@ describe("finansman NLU", () => {
     expect(classifyTurn("niye hep aynı cevabı veriyorsun")).toBe("meta_question");
     expect(classifyTurn("albarakada oranlar ne")).toBe("bank_focus");
     expect(classifyTurn("ziraat katılım oranları ne")).toBe("bank_focus");
+    expect(classifyTurn("zıraaat oranı kaç")).toBe("bank_focus");
+    expect(classifyTurn("albaraka nasıl banka")).toBe("general_question");
+    expect(classifyTurn("niye tekrar ediyon")).toBe("meta_question");
   });
 
   it("kaç banka var → listele takip eder", async () => {
