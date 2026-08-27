@@ -67,7 +67,7 @@ function canliToSatir(t: CanliSonuc): Satir | null {
   };
 }
 
-/** Yalnızca doğrulanmış (canlı) satırlar üstte; diğer bankalar altta “Veri paylaşılmıyor”. */
+/** Yalnızca doğrulanmış canlı satırlar üstte; diğer bankalar altta canlı teklif alınamadı olarak gösterilir. */
 export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegisti }) => {
   const [secenek, setSecenek] = useState(
     () => FINANSMAN_SECENEKLERI.find((f) => f.temelTur === talep.tur)?.key ?? 'tasit_finansmani',
@@ -365,8 +365,9 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
 
       {!enUcuz && !yukleniyor && (
         <p className="rounded-lg border border-line bg-sunken/40 px-3 py-2.5 text-xs text-txt-secondary">
-          Bu koşullarda doğrulanmış canlı teklif yok. Altta listelenen bankalar şu an veri
-          paylaşmıyor veya erişilemiyor.
+          Bu koşullarda doğrulanmış canlı teklif yok. Alttaki bankalar için otomatik
+          teklif alınamadı; banka sitesinde bilgi olabilir ama bu ekranda henüz
+          hesaplanabilir canlı teklif olarak doğrulanmadı.
         </p>
       )}
 
@@ -397,7 +398,7 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
         >
           <table className="table-zebra w-full min-w-[46rem] border-collapse text-sm">
             <caption className="sr-only">
-              Doğrulanmış finansman teklifleri ve veri paylaşmayan bankalar.
+              Doğrulanmış finansman teklifleri ve canlı teklif alınamayan bankalar.
             </caption>
             <thead>
               <tr className="sticky top-0 z-10 bg-surface text-left text-xs text-txt-secondary">
@@ -451,7 +452,7 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
               {verisizSatirlar.length > 0 && (
                 <tr className="border-t border-line bg-sunken/30">
                   <td colSpan={6} className="px-3 py-2 text-[11px] font-medium tracking-wide text-txt-muted uppercase">
-                    Veri paylaşılmıyor
+                    Canlı teklif alınamadı
                   </td>
                 </tr>
               )}
@@ -464,7 +465,7 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
                     </span>
                   </th>
                   <td colSpan={5} className="px-3 py-3 text-xs text-txt-secondary">
-                    Veri paylaşılmıyor
+                    Bu talep için otomatik hesaplanabilir canlı teklif alınamadı.
                   </td>
                 </tr>
               ))}
@@ -476,8 +477,8 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
       <p className="flex items-start gap-2 px-1 text-xs leading-relaxed text-txt-muted">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         Üstte Vakıf Katılım, Ziraat Katılım ve Kuveyt Türk’ün kendi hesaplama
-        araçlarından gelen canlı teklifler gösterilir. Verisine ulaşılamayan bankalar
-        altta “Veri paylaşılmıyor” olarak listelenir; örnek rakam uydurulmaz.
+        araçlarından gelen canlı teklifler gösterilir. Diğer bankalar için otomatik
+        canlı teklif alınamazsa altta ayrıca belirtilir; örnek rakam uydurulmaz.
       </p>
     </div>
   );
