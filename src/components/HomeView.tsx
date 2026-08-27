@@ -23,6 +23,7 @@ import {
   VARSAYILAN_TUTAR,
 } from '../data/piyasa';
 import { aylikTaksit, oranBicim, sayiBicim, tlBicim } from '../lib/finansman';
+import { hesaplaOdemePlani } from '../lib/odemePlani';
 import { isDisplayableCampaignClient } from '../lib/kampanyaFiltre';
 import { kisaKampanyaAciklama } from '../lib/kampanyaOzet';
 import { KarsilastirmaOgesi } from '../lib/compare';
@@ -31,6 +32,13 @@ import { BankMark } from './BankMark';
 import { FxConverter } from './FxConverter';
 import { FxRateTicker } from './FxRateTicker';
 import { TabKey } from './nav';
+
+/** Ana sayfa canlı karşılaştırma: bankanın kendi API’si olan üç katılım bankası */
+const CANLI_BANKALAR: { id: string; path: string }[] = [
+  { id: 'vakif-katilim', path: '/api/calculators/vakif-katilim' },
+  { id: 'ziraat-katilim', path: '/api/calculators/ziraat-katilim' },
+  { id: 'kuveyt-turk', path: '/api/calculators/kuveyt-turk' },
+];
 
 type LiveCampaignOzet = {
   id?: string;
@@ -84,16 +92,44 @@ const TEMA_ETIKET: Record<string, string> = {
   general: 'GENEL',
 };
 
-/** /api/calculators/vakif-katilim yanıtı */
-type VakifCanliSonuc = {
-  profitRatePercent: number | null;
-  monthlyInstallmentTl: number | null;
+/** Canlı hesaplama / özel oran yedek satırı */
+type CanliBankaSonuc = {
+  bankaId: string;
+  bankaAdi: string;
+  profitRatePercent: number;
+  monthlyInstallmentTl: number;
   totalPaymentTl: number | null;
   appraisementFeeTl: number | null;
-  termMonths: number;
-  amountTl: number;
-  calculatedAt: string;
+  sourceLabel?: string;
 };
+
+function softtechCanliSatir(opts: {
+  bankaId: string;
+  amountTl: number;
+  termMonths: number;
+  profitRatePercent: number;
+  financingType: string;
+}): CanliBankaSonuc | null {
+  try {
+    const plan = hesaplaOdemePlani({
+      amountTl: opts.amountTl,
+      termMonths: opts.termMonths,
+      profitRatePercent: opts.profitRatePercent,
+      financingType: opts.financingType,
+    });
+    return {
+      bankaId: opts.bankaId,
+      bankaAdi: BANKA_INDEKS[opts.bankaId]?.ad || opts.bankaId,
+      profitRatePercent: opts.profitRatePercent,
+      monthlyInstallmentTl: plan.taksitTutari,
+      totalPaymentTl: plan.odenecekToplamTutar,
+      appraisementFeeTl: 0,
+      sourceLabel: 'Özel oran (yerel motor)',
+    };
+  } catch {
+    return null;
+  }
+}
 
 export const HomeView: React.FC<HomeViewProps> = ({
   setActiveTab,
@@ -119,10 +155,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [oranMetni, setOranMetni] = useState('3,99');
   /** 1 = finansman tutarından, 2 = taksit tutarından */
   const [hesapTipi, setHesapTipi] = useState<'1' | '2'>('1');
-  // Vakıf Katılım'ın kendi hesaplama servisinden gelen canlı sonuç.
-  const [vakifCanli, setVakifCanli] = useState<VakifCanliSonuc | null>(null);
-  const [vakifNotu, setVakifNotu] = useState<string | null>(null);
-  const [vakifYukleniyor, setVakifYukleniyor] = useState(false);
+  // Vakıf / Ziraat / Kuveyt canlı hesaplama (özel oranda yerel yedek).
+  const [canliBankalar, setCanliBankalar] = useState<CanliBankaSonuc[]>([]);
+  const [canliNotu, setCanliNotu] = useState<string | null>(null);
+  const [canliYukleniyor, setCanliYukleniyor] = useState(false);
 
   const tutar = useMemo(() => {
     const rakamlar = tutarMetni.replace(/[^\d]/g, '');
@@ -210,57 +246,111 @@ export const HomeView: React.FC<HomeViewProps> = ({
         }),
     [ogeler, talep],
   );
-  // Vakıf Katılım için bankanın kendi hesaplama servisinden canlı sonuç al.
-  // Kullanıcı yazarken her tuşta istek gitmesin diye kısa bir bekleme var.
+  // Üç bankanın canlı hesaplama servisinden sonuç al; özel oranda API
+  // başarısız olursa Softtech (yerel) formülle doldur.
   useEffect(() => {
     if (talep.tutar <= 0 || talep.vadeAy <= 0) {
-      setVakifCanli(null);
+      setCanliBankalar([]);
       return;
     }
     let iptal = false;
-    setVakifYukleniyor(true);
+    setCanliYukleniyor(true);
+    const finansmanTipi = aktifSecenek || talep.tur;
     const zamanlayici = setTimeout(() => {
-      fetch('/api/calculators/vakif-katilim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          financingType: aktifSecenek || talep.tur,
-          amountTl: talep.tutar,
-          termMonths: talep.vadeAy,
-          calculateType: hesapTipi,
-          ...(ozelOranYuzde != null ? { profitRatePercent: ozelOranYuzde } : {}),
-        }),
-      })
-        .then((r) => (r.ok ? r.json() : Promise.reject(new Error('yanıt yok'))))
-        .then((d: VakifCanliSonuc & { available?: boolean; reason?: string }) => {
-          if (iptal) return;
-          if (d.available === false) {
-            // Bankanın kendi kısıtı (tutar/vade limiti) — kullanıcıya gösterilir.
-            setVakifCanli(null);
-            setVakifNotu(d.reason || null);
-            return;
+      const govde = {
+        financingType: finansmanTipi,
+        amountTl: talep.tutar,
+        termMonths: talep.vadeAy,
+        calculateType: hesapTipi,
+        ...(ozelOranYuzde != null ? { profitRatePercent: ozelOranYuzde } : {}),
+      };
+      void Promise.all(
+        CANLI_BANKALAR.map(async ({ id, path }) => {
+          try {
+            const r = await fetch(path, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(govde),
+            });
+            if (!r.ok) return { id, reason: null as string | null, sonuc: null };
+            const d = (await r.json()) as {
+              available?: boolean;
+              reason?: string;
+              bankId?: string;
+              profitRatePercent?: number | null;
+              monthlyInstallmentTl?: number | null;
+              totalPaymentTl?: number | null;
+              appraisementFeeTl?: number | null;
+              allocationFeeTl?: number | null;
+            };
+            if (d.available === false) {
+              return { id, reason: d.reason || null, sonuc: null };
+            }
+            if (
+              d.monthlyInstallmentTl == null ||
+              d.profitRatePercent == null ||
+              !(d.profitRatePercent > 0)
+            ) {
+              return { id, reason: null, sonuc: null };
+            }
+            return {
+              id,
+              reason: null as string | null,
+              sonuc: {
+                bankaId: d.bankId || id,
+                bankaAdi: BANKA_INDEKS[d.bankId || id]?.ad || id,
+                profitRatePercent: d.profitRatePercent,
+                monthlyInstallmentTl: d.monthlyInstallmentTl,
+                totalPaymentTl: d.totalPaymentTl ?? null,
+                appraisementFeeTl:
+                  (d.allocationFeeTl ?? 0) > 0
+                    ? d.allocationFeeTl!
+                    : (d.appraisementFeeTl ?? null),
+                sourceLabel: 'Canlı banka hesabı',
+              } satisfies CanliBankaSonuc,
+            };
+          } catch {
+            return { id, reason: null as string | null, sonuc: null };
           }
-          setVakifCanli(d);
-          setVakifNotu(null);
-          if (d.profitRatePercent != null && !oranOzel) {
+        }),
+      ).then((sonuclar) => {
+        if (iptal) return;
+        const dolu: CanliBankaSonuc[] = [];
+        const notlar: string[] = [];
+        for (const s of sonuclar) {
+          if (s.sonuc) {
+            dolu.push(s.sonuc);
+            continue;
+          }
+          if (s.reason) notlar.push(s.reason);
+          // Özel oran seçiliyse API olmayan bankayı yerel motorla tamamla.
+          if (ozelOranYuzde != null) {
+            const yedek = softtechCanliSatir({
+              bankaId: s.id,
+              amountTl: talep.tutar,
+              termMonths: talep.vadeAy,
+              profitRatePercent: ozelOranYuzde,
+              financingType: finansmanTipi,
+            });
+            if (yedek) dolu.push(yedek);
+          }
+        }
+        setCanliBankalar(dolu);
+        setCanliNotu(notlar[0] ?? null);
+        if (!oranOzel) {
+          const referans =
+            dolu.find((x) => x.bankaId === 'vakif-katilim') ?? dolu[0];
+          if (referans?.profitRatePercent != null) {
             setOranMetni(
-              d.profitRatePercent.toLocaleString('tr-TR', {
+              referans.profitRatePercent.toLocaleString('tr-TR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               }),
             );
           }
-        })
-        .catch(() => {
-          // Banka servisi ulaşılamazsa tablo mevcut verisiyle çalışmaya devam eder.
-          if (!iptal) {
-            setVakifCanli(null);
-            setVakifNotu(null);
-          }
-        })
-        .finally(() => {
-          if (!iptal) setVakifYukleniyor(false);
-        });
+        }
+        setCanliYukleniyor(false);
+      });
     }, 350);
     return () => {
       iptal = true;
@@ -271,33 +361,44 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const canliVeriAktif = canliSatirlar.length > 0;
   const temelSatirlar = canliSatirlar;
 
-  // Vakıf Katılım satırı, bankanın ilan ettiği güncel rakamlarla değiştirilir.
+  // Canlı (veya özel oran yedek) satırları scrape satırlarının üzerine yazar.
   const tabloSatirlari = useMemo(() => {
-    const t = vakifCanli;
-    if (!t || t.monthlyInstallmentTl == null || t.profitRatePercent == null) {
-      return temelSatirlar;
+    if (canliBankalar.length === 0) return temelSatirlar;
+
+    const canliSatirMapped = canliBankalar.map((t) => {
+      const toplamOdeme =
+        t.totalPaymentTl ?? t.monthlyInstallmentTl * talep.vadeAy;
+      const tahsisUcreti = t.appraisementFeeTl ?? 0;
+      return {
+        id: `${t.bankaId}-canli`,
+        bankaId: t.bankaId,
+        bankaAdi: t.bankaAdi,
+        aylikKarPayi: t.profitRatePercent / 100,
+        taksit: t.monthlyInstallmentTl,
+        toplamOdeme,
+        tahsisUcreti,
+        toplamMaliyet: toplamOdeme + tahsisUcreti,
+        kampanyaliMi: false,
+        uygunMu: true,
+        canli: true as const,
+      };
+    });
+
+    // Özel oran: yalnızca aynı oranla hesaplanan üç bankayı göster (karışık scrape oranı olmasın).
+    if (ozelOranYuzde != null) {
+      return [...canliSatirMapped].sort((a, b) => {
+        if (a.uygunMu !== b.uygunMu) return a.uygunMu ? -1 : 1;
+        return a.toplamMaliyet - b.toplamMaliyet;
+      });
     }
-    const toplamOdeme = t.totalPaymentTl ?? t.monthlyInstallmentTl * t.termMonths;
-    const tahsisUcreti = t.appraisementFeeTl ?? 0;
-    const vakifSatir = {
-      id: 'vakif-katilim-canli',
-      bankaId: 'vakif-katilim',
-      bankaAdi: 'Vakıf Katılım',
-      aylikKarPayi: t.profitRatePercent / 100,
-      taksit: t.monthlyInstallmentTl,
-      toplamOdeme,
-      tahsisUcreti,
-      toplamMaliyet: toplamOdeme + tahsisUcreti,
-      kampanyaliMi: false,
-      uygunMu: true,
-      canli: true as const,
-    };
-    const digerleri = temelSatirlar.filter((s) => s.bankaId !== 'vakif-katilim');
-    return [...digerleri, vakifSatir].sort((a, b) => {
+
+    const canliIds = new Set(canliBankalar.map((t) => t.bankaId));
+    const digerleri = temelSatirlar.filter((s) => !s.bankaId || !canliIds.has(s.bankaId));
+    return [...digerleri, ...canliSatirMapped].sort((a, b) => {
       if (a.uygunMu !== b.uygunMu) return a.uygunMu ? -1 : 1;
       return a.toplamMaliyet - b.toplamMaliyet;
     });
-  }, [temelSatirlar, vakifCanli]);
+  }, [temelSatirlar, canliBankalar, ozelOranYuzde, talep.vadeAy]);
 
   const gecerliSatirlar = tabloSatirlari.filter((s) => s.uygunMu);
   const oneCikanKampanyalar = canliKampanyalar.slice(0, 3);
@@ -593,21 +694,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   canlı scrape
                 </span>
               )}
-              {vakifYukleniyor && (
+              {canliYukleniyor && (
                 <span className="ml-1 text-[0.625rem] text-txt-muted">
-                  Vakıf Katılım hesaplanıyor…
+                  Canlı hesaplanıyor…
                 </span>
               )}
-              {vakifCanli && !vakifYukleniyor && (
+              {canliBankalar.length > 0 && !canliYukleniyor && (
                 <span className="ml-1 rounded border border-brand-200 bg-brand-50 px-1.5 py-0.5 text-[0.625rem] text-brand-700 dark:border-brand-800 dark:bg-brand-950 dark:text-brand-300">
-                  Vakıf Katılım: bankanın kendi hesaplaması
+                  {canliBankalar.length} banka canlı hesap
                 </span>
               )}
             </p>
 
-            {vakifNotu && (
+            {canliNotu && (
               <p className="px-4 pb-1 text-xs text-warn-800 dark:text-warn-200">
-                Vakıf Katılım bu koşullarda hesaplama sunmuyor: {vakifNotu}
+                Bazı bankalar bu koşullarda hesaplama sunmuyor: {canliNotu}
               </p>
             )}
 
@@ -698,7 +799,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   {gecerliSatirlar.length === 0 && (
                     <tr className="border-t border-line">
                       <td colSpan={7} className="px-3 py-8 text-center text-sm text-txt-secondary">
-                        {canliVeriAktif || vakifCanli
+                        {canliVeriAktif || canliBankalar.length > 0
                           ? 'Seçilen vade, bu üründeki bankaların azami vadesini aşıyor. Daha kısa bir vade deneyin.'
                           : 'Bu koşullarda gösterilecek canlı oran yok. Karşılaştır’a basarak banka hesaplama servislerinden sonuç alın veya scrape ürünleri bekleyin — uydurma oran gösterilmez.'}
                       </td>

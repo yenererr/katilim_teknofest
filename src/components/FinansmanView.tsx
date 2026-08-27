@@ -254,24 +254,61 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
         if (iptal) return;
         const dolu: CanliSonuc[] = [];
         const notlar: string[] = [];
+        const gelenIds = new Set<string>();
         for (const s of sonuclar) {
           if (!s) continue;
           if (s.sonuc && s.sonuc.monthlyInstallmentTl != null) {
             dolu.push(s.sonuc);
+            gelenIds.add(s.sonuc.bankaId);
           } else if (s.reason) {
             notlar.push(s.reason);
           }
         }
+        // Özel oran: API dönmeyen canlı bankaları Softtech formülüyle tamamla.
+        if (ozelOranYuzde != null) {
+          for (const { id } of CANLI_BANKALAR) {
+            if (gelenIds.has(id)) continue;
+            try {
+              const plan = hesaplaOdemePlani({
+                amountTl: tutar,
+                termMonths: talep.vadeAy,
+                profitRatePercent: ozelOranYuzde,
+                financingType: secenek,
+              });
+              dolu.push({
+                bankaId: id,
+                profitRatePercent: ozelOranYuzde,
+                monthlyInstallmentTl: plan.taksitTutari,
+                totalPaymentTl: plan.odenecekToplamTutar,
+                appraisementFeeTl: null,
+                mortgageReleaseFeeTl: null,
+                allocationFeeTl: null,
+                termMonths: talep.vadeAy,
+                amountTl: tutar,
+                sourceLabel: 'Özel oran (yerel motor)',
+              });
+              gelenIds.add(id);
+            } catch {
+              /* yoksay */
+            }
+          }
+        }
         const temelTur =
           FINANSMAN_SECENEKLERI.find((f) => f.key === secenek)?.temelTur ?? talep.tur;
-        for (const row of dogrulanmisUrunler) {
-          const canli = verifiedProductToCanli(row, {
-            secenek,
-            temelTur,
-            tutar,
-            vadeAy: talep.vadeAy,
-          });
-          if (canli) dolu.push(canli);
+        // Özel oran varken scrape/resmî oranları karıştırma.
+        if (ozelOranYuzde == null) {
+          for (const row of dogrulanmisUrunler) {
+            const canli = verifiedProductToCanli(row, {
+              secenek,
+              temelTur,
+              tutar,
+              vadeAy: talep.vadeAy,
+            });
+            if (canli && !gelenIds.has(canli.bankaId)) {
+              dolu.push(canli);
+              gelenIds.add(canli.bankaId);
+            }
+          }
         }
         setCanliListe(dolu);
         setHesapNotu(notlar[0] ?? null);

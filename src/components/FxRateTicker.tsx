@@ -30,7 +30,6 @@ type Chip = {
 };
 
 const ORDER: FxTickerCode[] = ["USD", "EUR", "GBP", "XAU"];
-const SLIDE_MS = 3200;
 
 function fmtRate(n: number, code: FxTickerCode): string {
   const digits = code === "XAU" ? 2 : 4;
@@ -52,7 +51,7 @@ function CurrencyGlyph({ code }: { code: FxTickerCode }) {
   if (code === "XAU") {
     return (
       <span
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-amber-50 ring-1 ring-amber-200/80 dark:bg-amber-950/40 dark:ring-amber-800/50"
+        className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-amber-50 ring-1 ring-amber-200/80 dark:bg-amber-950/40 dark:ring-amber-800/50"
         aria-hidden
       >
         <svg viewBox="0 0 32 32" className="h-5 w-5">
@@ -75,7 +74,7 @@ function CurrencyGlyph({ code }: { code: FxTickerCode }) {
 
   return (
     <span
-      className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-bold ring-1 ${tone}`}
+      className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold ring-1 ${tone}`}
       aria-hidden
     >
       {glyph}
@@ -83,55 +82,50 @@ function CurrencyGlyph({ code }: { code: FxTickerCode }) {
   );
 }
 
-function RateSlide({ chip }: { chip: Chip }) {
+function RateChip({ chip }: { chip: Chip }) {
   const up = chip.change != null && chip.change > 0;
   const down = chip.change != null && chip.change < 0;
   return (
-    <div className="flex items-center justify-center gap-3 px-4 py-2.5 sm:gap-4">
+    <div className="flex shrink-0 items-center gap-2.5 px-4 py-2.5">
       <CurrencyGlyph code={chip.code} />
-      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-bold tracking-wide text-[#1e3a5f] dark:text-txt">
-            {chip.code}
+      <div className="flex items-center gap-2 whitespace-nowrap">
+        <span className="text-sm font-bold tracking-wide text-[#1e3a5f] dark:text-txt">
+          {chip.code}
+        </span>
+        {chip.change != null ? (
+          <span
+            className={`inline-flex items-center gap-0.5 text-xs font-semibold tabular-nums ${
+              up
+                ? "text-emerald-600 dark:text-emerald-400"
+                : down
+                  ? "text-red-600 dark:text-red-400"
+                  : "text-txt-muted"
+            }`}
+          >
+            <span aria-hidden>{up ? "▲" : down ? "▼" : "•"}</span>
+            {fmtChange(chip.change)}
           </span>
-          {chip.change != null ? (
-            <span
-              className={`inline-flex items-center gap-0.5 text-xs font-semibold tabular-nums ${
-                up
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : down
-                    ? "text-red-600 dark:text-red-400"
-                    : "text-txt-muted"
-              }`}
-            >
-              <span aria-hidden>{up ? "▲" : down ? "▼" : "•"}</span>
-              {fmtChange(chip.change)}
-            </span>
-          ) : null}
-        </div>
-        <div className="flex items-center gap-3 text-xs text-txt-secondary sm:text-[0.8125rem]">
-          <span>
-            Alış{" "}
-            <span className="tnum font-semibold text-[#1e3a5f] dark:text-txt">
-              {chip.buy}
-            </span>
+        ) : null}
+        <span className="text-xs text-txt-secondary sm:text-[0.8125rem]">
+          Alış{" "}
+          <span className="tnum font-semibold text-[#1e3a5f] dark:text-txt">
+            {chip.buy}
           </span>
-          <span>
-            Satış{" "}
-            <span className="tnum font-semibold text-[#1e3a5f] dark:text-txt">
-              {chip.sell}
-            </span>
+        </span>
+        <span className="text-xs text-txt-secondary sm:text-[0.8125rem]">
+          Satış{" "}
+          <span className="tnum font-semibold text-[#1e3a5f] dark:text-txt">
+            {chip.sell}
           </span>
-        </div>
+        </span>
       </div>
     </div>
   );
 }
 
-/** Ana sayfa — TCMB döviz + gram altın; yalnızca otomatik kayan slide. */
+/** Ana sayfa — TCMB döviz + gram altın; sola sürekli kayan şerit. */
 export const FxRateTicker: React.FC = () => {
   const [snapshot, setSnapshot] = useState<FxSnapshot | null>(null);
-  const [index, setIndex] = useState(0);
 
   useEffect(() => {
     let iptal = false;
@@ -170,54 +164,55 @@ export const FxRateTicker: React.FC = () => {
     return list;
   }, [snapshot]);
 
-  useEffect(() => {
-    if (chips.length < 2) return;
-    const id = window.setInterval(() => {
-      setIndex((i) => (i + 1) % chips.length);
-    }, SLIDE_MS);
-    return () => window.clearInterval(id);
-  }, [chips.length]);
-
-  useEffect(() => {
-    if (index >= chips.length && chips.length > 0) setIndex(0);
-  }, [chips.length, index]);
-
   if (chips.length === 0) return null;
 
   const updated =
     snapshot?.updatedLabel || snapshot?.bulletinDate || "—";
-  const aktif = chips[index] ?? chips[0];
-  const n = chips.length;
+  // Kesintisiz döngü için iki kez tekrarla
+  const track = [...chips, ...chips];
+  const durationSec = Math.max(18, chips.length * 6);
 
   return (
     <section
       aria-label="Güncel döviz ve altın kurları"
-      aria-roledescription="carousel"
       className="overflow-hidden rounded-xl border border-line bg-[#F7F9FC] shadow-flat dark:bg-surface"
     >
+      <style>{`
+        @keyframes fx-ticker-scroll {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        .fx-ticker-track {
+          animation: fx-ticker-scroll ${durationSec}s linear infinite;
+          width: max-content;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .fx-ticker-track { animation: none; }
+        }
+        .fx-ticker-mask:hover .fx-ticker-track {
+          animation-play-state: paused;
+        }
+      `}</style>
+
       <div className="flex items-stretch border-t-2 border-[#1e3a5f]">
-        <div className="relative min-w-0 flex-1 overflow-hidden">
+        <div className="fx-ticker-mask relative min-w-0 flex-1 overflow-hidden">
           <div
-            className="flex transition-transform duration-500 ease-out"
-            style={{
-              width: `${n * 100}%`,
-              transform: `translateX(-${(index * 100) / n}%)`,
-            }}
+            className="fx-ticker-track flex items-center"
+            role="list"
           >
-            {chips.map((c) => (
+            {track.map((c, i) => (
               <div
-                key={c.code}
-                className="shrink-0"
-                style={{ width: `${100 / n}%` }}
-                aria-hidden={c.code !== aktif.code}
+                key={`${c.code}-${i}`}
+                role="listitem"
+                className="flex items-center after:mx-1 after:h-5 after:w-px after:bg-line after:content-['']"
               >
-                <RateSlide chip={c} />
+                <RateChip chip={c} />
               </div>
             ))}
           </div>
         </div>
 
-        <div className="hidden shrink-0 flex-col items-end justify-center gap-0.5 border-l border-line px-3 py-2 sm:flex">
+        <div className="relative z-10 hidden shrink-0 flex-col items-end justify-center gap-0.5 border-l border-line bg-[#F7F9FC] px-3 py-2 sm:flex dark:bg-surface">
           <p className="text-[0.5625rem] leading-tight text-txt-muted">
             Son Güncelleme
           </p>
@@ -234,26 +229,16 @@ export const FxRateTicker: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 border-t border-line px-3 py-1.5 sm:justify-center">
-        <div className="flex min-w-0 flex-col sm:hidden">
+      <div className="flex items-center justify-between gap-2 border-t border-line bg-[#F7F9FC] px-3 py-1.5 sm:hidden dark:bg-surface">
+        <div className="flex min-w-0 flex-col">
           <span className="text-[0.5625rem] text-txt-muted">Son Güncelleme</span>
           <span className="truncate text-[0.625rem] font-medium text-[#1e3a5f] dark:text-txt">
             {updated}
           </span>
         </div>
-        <div className="flex items-center gap-1.5" aria-hidden>
-          {chips.map((c, i) => (
-            <span
-              key={c.code}
-              className={`h-1.5 rounded-full transition-all ${
-                i === index ? "w-4 bg-[#1e3a5f]" : "w-1.5 bg-line-strong"
-              }`}
-            />
-          ))}
-        </div>
         <a
           href="#kurlar"
-          className="inline-flex items-center gap-0.5 text-[0.6875rem] font-bold text-[#1e3a5f] sm:hidden dark:text-brand-300"
+          className="inline-flex items-center gap-0.5 text-[0.6875rem] font-bold text-[#1e3a5f] dark:text-brand-300"
         >
           Tümü
           <ChevronRight className="h-3 w-3" aria-hidden />
