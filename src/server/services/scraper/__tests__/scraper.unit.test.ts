@@ -87,7 +87,7 @@ describe("classification", () => {
   it("kart kampanyasını finansman olarak sınıflandırmaz", () => {
     expect(
       classifyByUrlAndText(
-        "https://www.ziraatkatilim.com.tr/bireysel/kampanyalar/kart-kampanyalari",
+        "https://www.ziraatkatilim.com.tr/kart-kampanyalari",
         "Bankkart puan kampanyası",
       ),
     ).toBe("card_campaign");

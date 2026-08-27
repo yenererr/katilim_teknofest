@@ -59,7 +59,6 @@ export const BANK_SOURCE_CONFIGS: BankSourceConfig[] = [
         sourceType: "product_listing",
         parserMode: "static",
       },
-      { url: "https://www.adilkatilim.com.tr/kampanyalar", sourceType: "campaign_listing", parserMode: "static" },
       { url: "https://www.adilkatilim.com.tr/finansman", sourceType: "discovery_only", parserMode: "static" },
       {
         url: "https://www.adilkatilim.com.tr/hesaplama-araclari",
@@ -67,8 +66,8 @@ export const BANK_SOURCE_CONFIGS: BankSourceConfig[] = [
         parserMode: "static",
       },
     ],
-    allowedPathPrefixes: ["/", "/katilim-bankaciligi", "/kampanyalar", "/finansman", "/urun"],
-    detailLinkPatterns: ["/kampanyalar/", "/finansman/", "/urun"],
+    allowedPathPrefixes: ["/", "/katilim-bankaciligi", "/finansman", "/urun"],
+    detailLinkPatterns: ["/finansman/", "/urun"],
     excludedPathPatterns: ["/giris", "/login", "/internet-subesi", "/kariyer", "/kvkk", "/cerez"],
   },
   {
@@ -156,6 +155,11 @@ export const BANK_SOURCE_CONFIGS: BankSourceConfig[] = [
     enabled: true,
     allowedDomains: ["kuveytturk.com.tr", "www.kuveytturk.com.tr"],
     seedUrls: [
+      {
+        url: "https://www.kuveytturk.com.tr/kampanyalar/kendim-icin",
+        sourceType: "campaign_listing",
+        parserMode: "static",
+      },
       {
         url: "https://www.kuveytturk.com.tr/kampanyalar/kendim-icin/finansman-kampanyalari",
         sourceType: "campaign_listing",
@@ -393,7 +397,7 @@ export const BANK_SOURCE_CONFIGS: BankSourceConfig[] = [
         parserMode: "static",
       },
       {
-        url: "https://www.ziraatkatilim.com.tr/bireysel/kampanyalar/kart-kampanyalari",
+        url: "https://www.ziraatkatilim.com.tr/kart-kampanyalari",
         sourceType: "campaign_listing",
         parserMode: "static",
       },

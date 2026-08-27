@@ -6,11 +6,9 @@
  *   npx tsx scripts/scrape-campaigns.ts --bank=ziraat-katilim,vakif-katilim
  *
  * Gereken: .env içinde EVREN_* (çıkarım) ve tercihen DATABASE_URL.
- * DATABASE_URL yoksa kayıtlar bellek + data/scraped-campaigns.json'a düşer.
+ * DATABASE_URL yoksa kayıtlar yalnızca süreç belleğinde raporlanır.
  */
 import "dotenv/config";
-import fs from "fs";
-import path from "path";
 import { runOfficialScrapeJob } from "../src/server/services/scraper/orchestrator";
 import {
   countCampaignsInDb,
@@ -38,7 +36,7 @@ async function main() {
   process.env.SCRAPER_RULES_ONLY = "1";
   process.env.SCRAPER_SKIP_INDEX = "1";
 
-  console.log("PostgreSQL:", isPostgresConfigured() ? "açık" : "yok (bellek + JSON)");
+  console.log("PostgreSQL:", isPostgresConfigured() ? "açık" : "yok (yalnızca bellek)");
   const schema = await ensureSchema();
   console.log("Şema:", schema.message);
 
@@ -62,31 +60,11 @@ async function main() {
     return acc;
   }, {});
 
-  const outDir = path.join(process.cwd(), "data");
-  fs.mkdirSync(outDir, { recursive: true });
-  const outFile = path.join(outDir, "scraped-campaigns.json");
-  fs.writeFileSync(
-    outFile,
-    JSON.stringify(
-      {
-        scrapedAt: new Date().toISOString(),
-        jobId: job.jobId,
-        stats: job.stats,
-        byBank,
-        campaigns: memory,
-      },
-      null,
-      2,
-    ),
-    "utf8",
-  );
-
   const dbCounts = await countCampaignsInDb();
   console.log("\n--- Özet ---");
   console.log("Job:", job.status, job.stats);
   console.log("Bellek kampanya:", memory.length, byBank);
   console.log("DB kampanya (banka):", dbCounts);
-  console.log("JSON:", outFile);
   if (!isPostgresConfigured()) {
     console.log(
       "\nUyarı: DATABASE_URL yok. Dokploy DB’ye yazmak için .env’e erişilebilir DATABASE_URL ekleyip scripti yeniden çalıştırın.",
