@@ -158,7 +158,7 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
   return (
     <div className="space-y-8">
       {/* Banner / Header */}
-      <div className="relative overflow-hidden rounded-2xl border border-brand-500/20 bg-gradient-to-br from-brand-900/30 via-surface to-brand-950/20 p-6 shadow-flat dark:from-brand-950/50 dark:via-surface sm:p-8">
+      <div className="findeks-ai-hero relative overflow-hidden rounded-2xl border p-6 shadow-flat sm:p-8">
         <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-3 py-1 text-xs font-semibold text-brand-600 dark:text-brand-400">
@@ -300,7 +300,7 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="rounded-2xl border border-brand-500/30 bg-gradient-to-r from-brand-950/40 via-surface to-brand-900/20 p-6 shadow-raised dark:from-brand-950/70"
+          className="findeks-ai-report rounded-2xl border p-6 shadow-raised"
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-4">
             <div className="flex items-center gap-3">

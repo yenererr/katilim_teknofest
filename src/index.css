@@ -218,6 +218,36 @@
   color-scheme: dark;
 }
 
+.findeks-ai-hero {
+  border-color: color-mix(in srgb, var(--color-brand-500) 26%, transparent);
+  background:
+    radial-gradient(circle at 12% 8%, rgb(22 166 160 / 0.18), transparent 34%),
+    radial-gradient(circle at 88% 22%, rgb(63 174 114 / 0.16), transparent 30%),
+    linear-gradient(135deg, #f0fffa 0%, #ffffff 54%, #e5fbf2 100%);
+}
+
+.findeks-ai-report {
+  border-color: color-mix(in srgb, var(--color-brand-500) 34%, transparent);
+  background:
+    radial-gradient(circle at 8% 18%, rgb(22 166 160 / 0.16), transparent 32%),
+    radial-gradient(circle at 92% 58%, rgb(63 174 114 / 0.14), transparent 34%),
+    linear-gradient(135deg, #edfff8 0%, #ffffff 48%, #e1f8ef 100%);
+}
+
+.dark .findeks-ai-hero {
+  background:
+    radial-gradient(circle at 12% 8%, rgb(96 217 210 / 0.16), transparent 34%),
+    radial-gradient(circle at 88% 22%, rgb(85 197 141 / 0.12), transparent 30%),
+    linear-gradient(135deg, #0b2828 0%, #102224 52%, #0d2419 100%);
+}
+
+.dark .findeks-ai-report {
+  background:
+    radial-gradient(circle at 8% 18%, rgb(96 217 210 / 0.16), transparent 32%),
+    radial-gradient(circle at 92% 58%, rgb(85 197 141 / 0.12), transparent 34%),
+    linear-gradient(135deg, #0b2828 0%, #102224 48%, #0d2419 100%);
+}
+
 /* ==========================================================================
    Temel katman
    ========================================================================== */
