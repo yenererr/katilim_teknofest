@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Award, Info, Loader2 } from 'lucide-react';
+import { Award, Info, Loader2, Sparkles, Bot, ArrowRight, CheckCircle2, TrendingUp, RefreshCw, Zap } from 'lucide-react';
 import {
   BANKALAR,
   BANKA_INDEKS,
@@ -53,7 +53,6 @@ type StructuredProduct = {
 
 type Satir = {
   bankaId: string;
-  /** Canlı / doğrulanmış veri var mı */
   veriVar: boolean;
   aylikKarPayi: number | null;
   taksit: number | null;
@@ -158,7 +157,6 @@ function verifiedProductToCanli(
   };
 }
 
-/** Yalnızca doğrulanmış canlı satırlar üstte; diğer bankalar altta canlı teklif alınamadı olarak gösterilir. */
 export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegisti }) => {
   const [secenek, setSecenek] = useState(
     () => FINANSMAN_SECENEKLERI.find((f) => f.temelTur === talep.tur)?.key ?? 'tasit_finansmani',
@@ -171,6 +169,10 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
   const [canliListe, setCanliListe] = useState<CanliSonuc[]>([]);
   const [hesapNotu, setHesapNotu] = useState<string | null>(null);
   const [yukleniyor, setYukleniyor] = useState(false);
+  
+  // Seçilen bankaların karşılaştırılması için state
+  const [secilenBankalar, setSecilenBankalar] = useState<string[]>([]);
+  const [aiKarsilastirmaAktif, setAiKarsilastirmaAktif] = useState(false);
 
   const turNotu = FINANSMAN_NOTLARI_BY_KEY[secenek] ?? null;
 
@@ -192,7 +194,6 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
     if (eslesen && !FINANSMAN_SECENEKLERI.find((f) => f.key === secenek && f.temelTur === talep.tur)) {
       setSecenek(eslesen.key);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [talep.tur, talep.tutar, talep.vadeAy]);
 
   useEffect(() => {
@@ -264,7 +265,6 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
             notlar.push(s.reason);
           }
         }
-        // Özel oran: API dönmeyen canlı bankaları Softtech formülüyle tamamla.
         if (ozelOranYuzde != null) {
           for (const { id } of CANLI_BANKALAR) {
             if (gelenIds.has(id)) continue;
@@ -295,7 +295,6 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
         }
         const temelTur =
           FINANSMAN_SECENEKLERI.find((f) => f.key === secenek)?.temelTur ?? talep.tur;
-        // Özel oran varken scrape/resmî oranları karıştırma.
         if (ozelOranYuzde == null) {
           for (const row of dogrulanmisUrunler) {
             const canli = verifiedProductToCanli(row, {
@@ -356,7 +355,22 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
     }));
   }, [dogrulanmisSatirlar]);
 
+  const tumSatirlar = useMemo(() => [...dogrulanmisSatirlar, ...verisizSatirlar], [dogrulanmisSatirlar, verisizSatirlar]);
+
+  const secilenSatirlar = useMemo(() => {
+    return tumSatirlar.filter((s) => secilenBankalar.includes(s.bankaId));
+  }, [tumSatirlar, secilenBankalar]);
+
   const enUcuz = dogrulanmisSatirlar[0] ?? null;
+
+  const toggleBankaSecim = (bankaId: string) => {
+    setSecilenBankalar((prev) => {
+      if (prev.includes(bankaId)) {
+        return prev.filter((id) => id !== bankaId);
+      }
+      return [...prev, bankaId];
+    });
+  };
 
   const tutarUygula = () => {
     const yeni = tutar;
@@ -380,7 +394,6 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
     const yeni = FINANSMAN_SECENEKLERI.find((f) => f.key === yeniKey);
     if (!yeni) return;
     const tutarYeni = VARSAYILAN_TUTAR[yeni.temelTur];
-    // Kullanıcının yazdığı vade korunur; yoksa türün ortanca önerisi.
     const vadeler = VADELER[yeni.temelTur];
     const vadeAy =
       talep.vadeAy >= 1 && talep.vadeAy <= 360
@@ -535,32 +548,21 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
         </section>
       )}
 
-      {!enUcuz && !yukleniyor && (
-        <p className="rounded-lg border border-line bg-sunken/40 px-3 py-2.5 text-xs text-txt-secondary">
-          Bu koşullarda doğrulanmış canlı teklif yok. Alttaki bankalar için otomatik
-          teklif alınamadı; banka sitesinde bilgi olabilir ama bu ekranda henüz
-          hesaplanabilir canlı teklif olarak doğrulanmadı.
-        </p>
-      )}
-
-      {hesapNotu && (
-        <p className="rounded-lg border border-warn-200 bg-warn-50 px-3 py-2 text-xs text-warn-800 dark:border-warn-800 dark:bg-warn-950 dark:text-warn-200">
-          {hesapNotu}
-        </p>
-      )}
-
-      {yukleniyor && !enUcuz && (
-        <p className="inline-flex items-center gap-2 px-1 text-xs text-txt-muted">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Vakıf, Ziraat ve Kuveyt Türk hesaplanıyor…
-        </p>
-      )}
-
       <section aria-labelledby="finansman-sonuc-baslik" className="rounded-xl border border-line bg-surface">
-        <div className="border-b border-line px-4 py-3">
-          <h2 id="finansman-sonuc-baslik" className="text-base font-semibold tracking-tight text-txt">
-            Teklifler
-          </h2>
+        <div className="flex items-center justify-between border-b border-line px-4 py-3">
+          <div>
+            <h2 id="finansman-sonuc-baslik" className="text-base font-semibold tracking-tight text-txt">
+              Teklifler
+            </h2>
+            <p className="text-xs text-txt-secondary">
+              Karşılaştırmak istediğiniz bankaların yanındaki kutucuğu işaretleyin.
+            </p>
+          </div>
+          {secilenBankalar.length > 0 && (
+            <span className="rounded-full bg-brand-100 px-3 py-1 text-xs font-medium text-brand-700 dark:bg-brand-900/60 dark:text-brand-300">
+              {secilenBankalar.length} Banka Seçildi
+            </span>
+          )}
         </div>
         <div
           className="overflow-x-auto p-2"
@@ -568,12 +570,13 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
           role="region"
           aria-label="Finansman teklifleri tablosu"
         >
-          <table className="table-zebra w-full min-w-[46rem] border-collapse text-sm">
+          <table className="table-zebra w-full min-w-[48rem] border-collapse text-sm">
             <caption className="sr-only">
               Doğrulanmış finansman teklifleri ve canlı teklif alınamayan bankalar.
             </caption>
             <thead>
               <tr className="sticky top-0 z-10 bg-surface text-left text-xs text-txt-secondary">
+                <th scope="col" className="px-3 py-2.5 font-medium text-center w-24">Karşılaştır</th>
                 <th scope="col" className="px-3 py-2.5 font-medium">Banka</th>
                 <th scope="col" className="px-3 py-2.5 font-medium">
                   {hesapTipi === '2' ? 'Finansman / Taksit' : 'Aylık Taksit'}
@@ -587,71 +590,265 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
             <tbody>
               {dogrulanmisSatirlar.length > 0 && (
                 <tr className="border-t border-line bg-sunken/30">
-                  <td colSpan={6} className="px-3 py-2 text-[11px] font-medium tracking-wide text-txt-muted uppercase">
+                  <td colSpan={7} className="px-3 py-2 text-[11px] font-medium tracking-wide text-txt-muted uppercase">
                     Doğrulanmış teklifler
                   </td>
                 </tr>
               )}
-              {dogrulanmisSatirlar.map((s) => (
-                <tr key={`${s.bankaId}-${s.urunAdi || s.kaynakEtiket || 'teklif'}`} className="border-t border-line hover:bg-sunken">
-                  <th scope="row" className="px-3 py-3 text-left font-medium">
-                    <span className="flex items-center gap-2.5">
-                      <BankMark bankaId={s.bankaId} size="sm" />
-                      <span className="min-w-0 text-txt">
-                        <span className="block">
-                          {BANKA_INDEKS[s.bankaId]?.ad}
-                          {s.kaynakEtiket && (
-                            <span className="ml-1.5 text-[0.625rem] font-normal text-txt-muted">
-                              ({s.kaynakEtiket})
+              {dogrulanmisSatirlar.map((s) => {
+                const secili = secilenBankalar.includes(s.bankaId);
+                return (
+                  <tr
+                    key={`${s.bankaId}-${s.urunAdi || s.kaynakEtiket || 'teklif'}`}
+                    className={`border-t border-line transition-colors hover:bg-sunken ${secili ? 'bg-brand-50/50 dark:bg-brand-950/30' : ''}`}
+                  >
+                    <td className="px-3 py-3 text-center">
+                      <button
+                        type="button"
+                        onClick={() => toggleBankaSecim(s.bankaId)}
+                        className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
+                          secili
+                            ? 'bg-brand-600 text-white shadow-sm hover:bg-brand-700'
+                            : 'border border-line bg-surface text-txt-secondary hover:border-brand-500 hover:text-brand-600'
+                        }`}
+                      >
+                        {secili ? (
+                          <>
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Seçildi
+                          </>
+                        ) : (
+                          'Ekle'
+                        )}
+                      </button>
+                    </td>
+                    <th scope="row" className="px-3 py-3 text-left font-medium">
+                      <span className="flex items-center gap-2.5">
+                        <BankMark bankaId={s.bankaId} size="sm" />
+                        <span className="min-w-0 text-txt">
+                          <span className="block">
+                            {BANKA_INDEKS[s.bankaId]?.ad}
+                            {s.kaynakEtiket && (
+                              <span className="ml-1.5 text-[0.625rem] font-normal text-txt-muted">
+                                ({s.kaynakEtiket})
+                              </span>
+                            )}
+                          </span>
+                          {s.urunAdi && (
+                            <span className="mt-0.5 block max-w-60 truncate text-xs font-normal text-txt-muted">
+                              {s.urunAdi}
                             </span>
                           )}
                         </span>
-                        {s.urunAdi && (
-                          <span className="mt-0.5 block max-w-60 truncate text-xs font-normal text-txt-muted">
-                            {s.urunAdi}
-                          </span>
-                        )}
                       </span>
-                    </span>
-                  </th>
-                  <td className="tnum px-3 py-3 font-mono">{tlBicim(s.taksit!)}</td>
-                  <td className="tnum px-3 py-3 font-mono text-txt-secondary">
-                    {oranBicim(s.aylikKarPayi!)}
-                  </td>
-                  <td className="tnum px-3 py-3 font-mono">{tlBicim(s.toplamOdeme!)}</td>
-                  <td className="tnum px-3 py-3 font-mono text-txt-secondary">
-                    {(s.tahsisUcreti ?? 0) > 0 ? tlBicim(s.tahsisUcreti!) : 'Yok'}
-                  </td>
-                  <td className="tnum px-3 py-3 font-mono font-medium">
-                    {tlBicim(s.toplamMaliyet!)}
-                  </td>
-                </tr>
-              ))}
+                    </th>
+                    <td className="tnum px-3 py-3 font-mono">{tlBicim(s.taksit!)}</td>
+                    <td className="tnum px-3 py-3 font-mono text-txt-secondary">
+                      {oranBicim(s.aylikKarPayi!)}
+                    </td>
+                    <td className="tnum px-3 py-3 font-mono">{tlBicim(s.toplamOdeme!)}</td>
+                    <td className="tnum px-3 py-3 font-mono text-txt-secondary">
+                      {(s.tahsisUcreti ?? 0) > 0 ? tlBicim(s.tahsisUcreti!) : 'Yok'}
+                    </td>
+                    <td className="tnum px-3 py-3 font-mono font-medium">
+                      {tlBicim(s.toplamMaliyet!)}
+                    </td>
+                  </tr>
+                );
+              })}
 
               {verisizSatirlar.length > 0 && (
                 <tr className="border-t border-line bg-sunken/30">
-                  <td colSpan={6} className="px-3 py-2 text-[11px] font-medium tracking-wide text-txt-muted uppercase">
+                  <td colSpan={7} className="px-3 py-2 text-[11px] font-medium tracking-wide text-txt-muted uppercase">
                     Canlı teklif alınamadı
                   </td>
                 </tr>
               )}
-              {verisizSatirlar.map((s) => (
-                <tr key={s.bankaId} className="border-t border-line opacity-80">
-                  <th scope="row" className="px-3 py-3 text-left font-medium">
-                    <span className="flex items-center gap-2.5">
-                      <BankMark bankaId={s.bankaId} size="sm" />
-                      <span className="text-txt">{BANKA_INDEKS[s.bankaId]?.ad}</span>
-                    </span>
-                  </th>
-                  <td colSpan={5} className="px-3 py-3 text-xs text-txt-secondary">
-                    Bu talep için otomatik hesaplanabilir canlı teklif alınamadı.
-                  </td>
-                </tr>
-              ))}
+              {verisizSatirlar.map((s) => {
+                const secili = secilenBankalar.includes(s.bankaId);
+                return (
+                  <tr key={s.bankaId} className="border-t border-line opacity-80 hover:bg-sunken">
+                    <td className="px-3 py-3 text-center">
+                      <button
+                        type="button"
+                        onClick={() => toggleBankaSecim(s.bankaId)}
+                        className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium ${
+                          secili
+                            ? 'bg-slate-700 text-white'
+                            : 'border border-line text-txt-muted hover:border-slate-400'
+                        }`}
+                      >
+                        {secili ? 'Eklendi' : 'Ekle'}
+                      </button>
+                    </td>
+                    <th scope="row" className="px-3 py-3 text-left font-medium">
+                      <span className="flex items-center gap-2.5">
+                        <BankMark bankaId={s.bankaId} size="sm" />
+                        <span className="text-txt">{BANKA_INDEKS[s.bankaId]?.ad}</span>
+                      </span>
+                    </th>
+                    <td colSpan={5} className="px-3 py-3 text-xs text-txt-secondary">
+                      Bu talep için otomatik hesaplanabilir canlı teklif alınamadı.
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </section>
+
+      {/* SEÇİLEN BANKALARIN YAPAY ZEKÂ KARŞILAŞTIRMA ALANI */}
+      {secilenBankalar.length > 0 && (
+        <section aria-label="Yapay zekâ karşılaştırma alanı" className="space-y-4 rounded-xl border-2 border-brand-500 bg-surface p-5 shadow-lg">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-100 text-brand-600 dark:bg-brand-900/50 dark:text-brand-400">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-txt">
+                  Yapay Zekâ Finansman Karşılaştırma Paneli
+                </h3>
+                <p className="text-xs text-txt-secondary">
+                  Karşılaştırılmak üzere seçilen {secilenBankalar.length} katılım bankasının detaylı maliyet analizi.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSecilenBankalar([])}
+                className="rounded-lg border border-line px-3 py-1.5 text-xs text-txt-secondary hover:bg-sunken"
+              >
+                Seçimleri Temizle
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAiKarsilastirmaAktif(true)}
+                className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-md transition-all hover:bg-brand-700 active:scale-95"
+              >
+                <Bot className="h-4 w-4" />
+                Yapay Zekâ İle Analiz Et
+              </button>
+            </div>
+          </div>
+
+          {/* SEÇİLEN KARTLAR IZGARASI */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {secilenSatirlar.map((s) => (
+              <div
+                key={s.bankaId}
+                className="relative rounded-lg border border-line bg-sunken/40 p-4 transition-all hover:border-brand-300"
+              >
+                <div className="flex items-center justify-between pb-2 border-b border-line">
+                  <div className="flex items-center gap-2">
+                    <BankMark bankaId={s.bankaId} size="sm" />
+                    <span className="font-semibold text-sm text-txt">
+                      {BANKA_INDEKS[s.bankaId]?.ad}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleBankaSecim(s.bankaId)}
+                    className="text-xs text-txt-muted hover:text-red-500"
+                  >
+                    Kaldır
+                  </button>
+                </div>
+                
+                {s.veriVar ? (
+                  <div className="mt-3 space-y-1.5 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-txt-secondary">Aylık Taksit:</span>
+                      <span className="font-mono font-bold text-txt">{tlBicim(s.taksit!)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-txt-secondary">Kâr Payı Oranı:</span>
+                      <span className="font-mono font-medium text-txt">{oranBicim(s.aylikKarPayi!)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-txt-secondary">Toplam Ödeme:</span>
+                      <span className="font-mono text-txt">{tlBicim(s.toplamOdeme!)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-txt-secondary">Tahsis Ücreti:</span>
+                      <span className="font-mono text-txt">{(s.tahsisUcreti ?? 0) > 0 ? tlBicim(s.tahsisUcreti!) : 'Yok'}</span>
+                    </div>
+                    <div className="flex justify-between pt-1 border-t border-line font-bold">
+                      <span className="text-brand-600 dark:text-brand-400">Toplam Maliyet:</span>
+                      <span className="font-mono text-brand-600 dark:text-brand-400">{tlBicim(s.toplamMaliyet!)}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-3 text-xs text-txt-muted">
+                    Bu talep için otomatik canlı teklif verisi yok.
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* YAPAY ZEKÂ ANALİZ RAPOR KARTI */}
+          {aiKarsilastirmaAktif && secilenSatirlar.length > 0 && (
+            <div className="mt-4 space-y-3 rounded-xl border border-brand-300 bg-brand-50/60 p-4 dark:border-brand-800 dark:bg-brand-950/40">
+              <div className="flex items-center gap-2 text-brand-700 dark:text-brand-300 font-semibold text-sm">
+                <Bot className="h-5 w-5" />
+                <span>Yapay Zekâ Finansman Değerlendirme Raporu</span>
+              </div>
+
+              {secilenSatirlar.filter((s) => s.veriVar).length >= 2 ? (
+                (() => {
+                  const teklifli = secilenSatirlar.filter((s) => s.veriVar).sort((a, b) => (a.toplamMaliyet || 0) - (b.toplamMaliyet || 0));
+                  const enUygun = teklifli[0];
+                  const ikincil = teklifli[1];
+                  const maliyetFarki = (ikincil.toplamMaliyet || 0) - (enUygun.toplamMaliyet || 0);
+                  const taksitFarki = (ikincil.taksit || 0) - (enUygun.taksit || 0);
+
+                  return (
+                    <div className="space-y-2.5 text-xs text-txt leading-relaxed">
+                      <p className="font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <strong>En Avantajlı Seçenek:</strong> {BANKA_INDEKS[enUygun.bankaId]?.ad} — Toplam maliyet: <span className="font-mono font-bold">{tlBicim(enUygun.toplamMaliyet!)}</span>
+                      </p>
+                      
+                      <div className="rounded-lg bg-surface p-3 border border-line space-y-1">
+                        <p>
+                          💡 <strong>Maliyet Analizi:</strong> {BANKA_INDEKS[enUygun.bankaId]?.ad}, {BANKA_INDEKS[ikincil.bankaId]?.ad} bankasına göre ayda <strong className="font-mono text-emerald-600">{tlBicim(taksitFarki)}</strong> daha az taksit ödemesi sağlar. Toplam geri ödemede net <strong className="font-mono text-emerald-600">{tlBicim(maliyetFarki)}</strong> tasarruf edersiniz.
+                        </p>
+                        <p>
+                          📌 <strong>Tahsis & Masraf Kıyaslaması:</strong> {enUygun.tahsisUcreti === 0 ? `${BANKA_INDEKS[enUygun.bankaId]?.ad} masrafsız / tahsis ücretsiz finansman sunmaktadır.` : `Tahsis ücreti ${tlBicim(enUygun.tahsisUcreti!)} seviyesindedir.`}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-txt-muted text-[11px]">
+                          Tüm hesaplamalar Katılım Bankacılığı kâr payı standartlarına uygundur.
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const mesaj = `Bana ${secilenSatirlar.map(s => BANKA_INDEKS[s.bankaId]?.ad).join(' ve ')} finansmanlarını detaylı karşılaştır.`;
+                            window.dispatchEvent(new CustomEvent('open-ai-chat', { detail: { prompt: mesaj } }));
+                          }}
+                          className="inline-flex items-center gap-1 text-xs text-brand-600 hover:underline font-semibold"
+                        >
+                          Asistana Detaylı Sor <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : (
+                <p className="text-xs text-txt-secondary">
+                  Lütfen yapay zekâ maliyet kıyaslaması için en az 2 doğrulanmış canlı teklifi seçin.
+                </p>
+              )}
+            </div>
+          )}
+        </section>
+      )}
 
       <p className="flex items-start gap-2 px-1 text-xs leading-relaxed text-txt-muted">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
