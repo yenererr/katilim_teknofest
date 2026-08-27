@@ -91,8 +91,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [heroSekme, setHeroSekme] = useState<'finansman' | 'kampanya' | 'ucret' | 'asistan'>(
     'finansman',
   );
-  // Seçim kullanıcıya bırakılır: form boş bir değerle başlar.
-  const [secenek, setSecenek] = useState<string>('');
+  const [secenek, setSecenek] = useState<string>('tasit_finansmani');
   // Karşılaştırılan ayrıntılı tür — canlı hesaplama servisine bu gönderilir.
   const [aktifSecenek, setAktifSecenek] = useState<string>('');
   const secilen = FINANSMAN_SECENEKLERI.find((f) => f.key === secenek) || null;
@@ -309,24 +308,26 @@ export const HomeView: React.FC<HomeViewProps> = ({
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* ---------- Kahraman alanı ---------- */}
-      <section className="overflow-hidden rounded-2xl border border-line bg-gradient-to-b from-brand-50/80 to-surface dark:from-brand-950/60 dark:to-surface">
-        <div className="px-4 py-8 text-center sm:px-8 sm:py-10">
-          <p className="text-sm font-semibold tracking-wide text-brand-700 dark:text-brand-300">
-            KatılımFinans
+      <section className="mx-auto max-w-3xl py-6 text-center sm:py-8">
+        <div>
+          <p className="flex items-center justify-center gap-2 text-sm font-semibold text-brand-700 dark:text-brand-300">
+            Bağımsız karşılaştırma
+            <span className="text-line-strong" aria-hidden="true">•</span>
+            Güncel banka verileri
           </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-balance text-txt sm:text-3xl">
-            En doğru finansal karar için
-            <br className="hidden sm:block" /> katılım bankalarını karşılaştırın.
+          <h1 className="mx-auto mt-3 max-w-2xl text-3xl font-extrabold text-balance text-txt sm:text-[48px] sm:leading-[56px]">
+            Size en uygun katılım finansmanını bulun.
           </h1>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-txt-secondary">
-            Aynı koşullarda taksit, kâr oranı ve toplam maliyeti yan yana görün.
+          <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-txt-secondary sm:text-lg">
+            Katılım bankalarının güncel kâr oranlarını, aylık taksitlerini ve toplam maliyetlerini
+            sade bir tabloda karşılaştırın.
           </p>
 
           <nav
             aria-label="Hızlı geçiş"
-            className="mx-auto mt-6 max-w-3xl rounded-xl border border-line bg-surface p-1.5"
+            className="mx-auto mt-7 max-w-3xl rounded-lg border border-line bg-surface p-1.5 shadow-flat"
           >
             <div className="flex items-center gap-1 overflow-x-auto">
               {HERO_SEKMELERI.map((s) => {
@@ -345,7 +346,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     }}
                     className={`relative flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                       isActive
-                        ? 'font-semibold text-brand-800 dark:text-brand-200'
+                        ? 'font-semibold text-brand-700 dark:text-brand-200'
                         : 'text-txt-secondary hover:bg-sunken/80 hover:text-txt'
                     }`}
                   >
@@ -354,7 +355,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     {isActive && (
                       <motion.span
                         layoutId="hero-nav"
-                        className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-brand-600 dark:bg-brand-400"
+                        className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-brand-500 dark:bg-brand-400"
                         aria-hidden="true"
                       />
                     )}
@@ -364,17 +365,22 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
           </nav>
 
-          <form
-            onSubmit={karsilastirGonder}
-            className="mx-auto mt-3 max-w-3xl space-y-3 rounded-xl border border-line bg-surface p-3 text-left sm:p-4"
-          >
+        </div>
+      </section>
+
+      <form
+        onSubmit={karsilastirGonder}
+        className="mx-auto max-w-5xl space-y-3 rounded-xl border border-line bg-surface p-4 text-left shadow-raised sm:p-5"
+      >
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.1fr_1fr_0.9fr_auto]">
               <label className="block">
-                <span className="mb-1 block text-xs text-txt-secondary">Finansman Türü</span>
+                <span className="mb-1 block text-xs font-medium text-txt-muted">
+                  Finansman Türü
+                </span>
                 <select
                   value={secenek}
                   onChange={(e) => secenekDegistir(e.target.value)}
-                  className={`h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm ${
+                  className={`h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-100 ${
                     secenek ? 'text-txt' : 'text-txt-muted'
                   }`}
                 >
@@ -397,7 +403,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     value={tutarMetni}
                     onChange={(e) => setTutarMetni(e.target.value)}
                     onBlur={() => setTutarMetni(tutar ? sayiBicim(tutar) : '')}
-                    className="tnum h-11 w-full rounded-lg border border-line bg-surface px-3 pr-10 font-mono text-sm text-txt"
+                    className="tnum h-11 w-full rounded-lg border border-line bg-surface px-3 pr-10 font-mono text-sm text-txt transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
                   />
                   <span className="absolute inset-y-0 right-3 grid place-items-center text-xs text-txt-muted">
                     TL
@@ -406,11 +412,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </label>
 
               <label className="block">
-                <span className="mb-1 block text-xs text-txt-secondary">Vade</span>
+                <span className="mb-1 block text-xs font-medium text-txt-muted">Vade</span>
                 <select
                   value={vadeAy}
                   onChange={(e) => setVadeAy(Number(e.target.value))}
-                  className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-txt"
+                  className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-txt transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
                 >
                   {VADELER[tur].map((v) => (
                     <option key={v} value={v}>
@@ -423,7 +429,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <button
                 type="submit"
                 disabled={!secilen || tutar <= 0}
-                className="mt-auto inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-6 text-sm font-medium text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 disabled:opacity-50 dark:ring-offset-surface"
+                className="mt-auto inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-brand-500 px-6 text-sm font-semibold text-white shadow-raised transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 disabled:opacity-50 dark:ring-offset-surface"
               >
                 Karşılaştır
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -482,15 +488,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </fieldset>
             </div>
 
-            {turNotu && (
-              <p className="text-[11px] leading-relaxed text-txt-muted">{turNotu.metin}</p>
-            )}
-          </form>
-        </div>
-      </section>
+        {turNotu && (
+          <p className="text-[11px] leading-relaxed text-txt-muted">{turNotu.metin}</p>
+        )}
+      </form>
 
       {/* ---------- Güven şeridi ---------- */}
-      <section className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line shadow-flat lg:grid-cols-4">
         {[
           { icon: CalendarDays, ust: 'Canlı kaynak', alt: 'Banka siteleri' },
           { icon: Users, ust: `${BANKALAR.length} Katılım Bankası`, alt: 'Kapsamda' },
@@ -523,8 +527,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-3">
         <div className="space-y-5 xl:col-span-2">
           {/* Sonuç tablosu */}
-          <section className="rounded-xl border border-line bg-surface">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3.5">
+          <section className="overflow-hidden rounded-xl border border-line bg-surface shadow-raised">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-brand-50/80 px-4 py-3.5 dark:bg-brand-950/40">
               <h2 className="text-base font-semibold tracking-tight text-txt">
                 Finansman Karşılaştırma Sonuçları
               </h2>
@@ -573,7 +577,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   ve tahsis ücreti.
                 </caption>
                 <thead>
-                  <tr className="sticky top-0 z-10 bg-surface text-left text-xs text-txt-secondary">
+                  <tr className="sticky top-0 z-10 bg-[#eff8f7] text-left text-xs text-txt-secondary dark:bg-brand-950">
                     <th scope="col" className="px-3 py-2.5 font-medium">Banka</th>
                     <th scope="col" className="px-3 py-2.5 font-medium">Aylık Taksit</th>
                     <th scope="col" className="px-3 py-2.5 font-medium">Kâr Oranı</th>
@@ -593,7 +597,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     return (
                       <tr
                         key={rowKey}
-                        className="border-t border-line transition-colors hover:bg-sunken"
+                        className={`border-t border-line transition-colors hover:bg-sunken ${
+                          i === 0 ? 'bg-brand-50/70 dark:bg-brand-950/35' : ''
+                        }`}
                       >
                         <th scope="row" className="px-3 py-3 text-left font-medium">
                           <span className="flex items-center gap-2.5">
@@ -605,11 +611,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
                             >
                               {rowBankaAdi}
                             </span>
+                            {i === 0 && (
+                              <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[0.625rem] font-semibold text-brand-800 dark:bg-brand-900 dark:text-brand-100">
+                                En uygun seçenek
+                              </span>
+                            )}
                           </span>
                         </th>
                         {/* Aylik taksit, tablodaki karar verdirici sayi:
                             bankanin kendi hesaplama aracindaki gibi vurgulanir. */}
-                        <td className="tnum px-3 py-3 font-mono font-medium text-accent-700 dark:text-accent-400">
+                        <td className="tnum px-3 py-3 font-mono font-semibold text-accent-700 dark:text-accent-400">
                           {tlBicim(s.taksit)}
                         </td>
                         <td className="tnum px-3 py-3 font-mono text-txt-secondary">
@@ -669,7 +680,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </section>
 
           {/* Ücret — statik tarife yok */}
-          <section className="rounded-xl border border-line bg-surface p-4">
+          <section className="rounded-xl border border-line bg-surface p-4 shadow-flat">
             <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
               <h2 className="text-base font-semibold tracking-tight text-txt">
                 Ücret Karşılaştırması
@@ -693,8 +704,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
         {/* Sağ sütun */}
         <div className="space-y-5">
-          <section className="rounded-xl border border-line bg-surface">
-            <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3.5">
+          <section className="overflow-hidden rounded-xl border border-line bg-surface shadow-raised">
+            <div className="flex items-center justify-between gap-2 border-b border-line bg-brand-50/80 px-4 py-3.5 dark:bg-brand-950/40">
               <h2 className="text-base font-semibold tracking-tight text-txt">
                 Popüler Kampanyalar
               </h2>
@@ -716,7 +727,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 return (
                   <li
                     key={`${k.bankId}|${k.sourceUrl || k.id || baslik}`}
-                    className="rounded-xl border border-line p-3 transition-colors hover:bg-sunken"
+                    className="rounded-lg border border-line bg-surface p-3 transition-colors hover:border-brand-200 hover:bg-[#f7fafa] dark:hover:border-brand-800 dark:hover:bg-sunken"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex min-w-0 items-center gap-2">
@@ -778,7 +789,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
           </section>
 
-          <section className="rounded-xl border border-line bg-surface p-4">
+          <section className="rounded-xl border border-line bg-surface p-4 shadow-flat">
             <div className="flex items-center justify-between gap-2 pb-2">
               <h2 className="text-base font-semibold tracking-tight text-txt">Asistana Sor</h2>
               <span className="inline-flex items-center gap-1 text-xs text-txt-muted">

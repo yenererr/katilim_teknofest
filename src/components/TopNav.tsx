@@ -45,24 +45,24 @@ export const TopNav: React.FC<TopNavProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur-md">
-      <div className="flex items-center gap-4 px-4 py-2.5 sm:px-6">
+    <header className="sticky top-0 z-40 border-b border-line bg-canvas/95 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-6 px-4 sm:px-6 lg:px-8">
         {/* Marka */}
         <button
           type="button"
           onClick={() => setActiveTab('home')}
-          className="flex shrink-0 items-center gap-2.5 rounded-lg pr-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:ring-offset-canvas"
+          className="flex shrink-0 items-center gap-3 rounded-lg pr-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:ring-offset-canvas"
         >
           <img
             src="/logos/katilim-agent.png"
             alt="Katılım Bankası Agent"
-            className="h-10 w-10 rounded-xl object-contain"
+            className="h-10 w-10 rounded-lg object-contain"
           />
           <span className="hidden min-w-0 sm:block">
-            <span className="block text-base leading-tight font-semibold tracking-tight text-txt">
+            <span className="block text-lg leading-tight font-extrabold text-txt">
               Katılım<span className="text-brand-600 dark:text-brand-400">Finans</span>
             </span>
-            <span className="block text-xs leading-tight text-txt-muted">Asistanı</span>
+            <span className="block text-xs leading-tight text-txt-muted">Sakin finans uzmanı</span>
           </span>
         </button>
 
@@ -70,7 +70,7 @@ export const TopNav: React.FC<TopNavProps> = ({
         <nav
           role="tablist"
           aria-label="Ana bölümler"
-          className="mx-auto hidden items-center gap-1 lg:flex"
+          className="mx-auto hidden items-center gap-1.5 lg:flex"
         >
           {ANA_NAV.map((item, index) => {
             const isActive = activeTab === item.key;
@@ -90,15 +90,15 @@ export const TopNav: React.FC<TopNavProps> = ({
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 className={`relative flex min-h-11 items-center rounded-lg px-3.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:ring-offset-canvas ${
                   isActive
-                    ? 'font-semibold text-brand-800 dark:text-brand-300'
-                    : 'text-txt-secondary hover:bg-sunken/80 hover:text-txt'
+                    ? 'font-semibold text-brand-700 dark:text-brand-300'
+                    : 'text-txt-secondary hover:bg-sunken hover:text-txt'
                 }`}
               >
                 {item.label}
                 {isActive && (
                   <motion.span
                     layoutId="topnav-indicator"
-                    className="absolute inset-x-2 -bottom-2.5 h-0.5 rounded-full bg-brand-600 dark:bg-brand-400"
+                    className="absolute inset-x-2 -bottom-2.5 h-0.5 rounded-full bg-brand-500 dark:bg-brand-400"
                     transition={
                       reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 34 }
                     }
@@ -115,12 +115,12 @@ export const TopNav: React.FC<TopNavProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('kampanyalar')}
-            className="hidden min-h-11 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm text-txt-secondary transition-colors hover:bg-sunken hover:text-txt md:inline-flex"
+            className="hidden min-h-11 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm text-txt-secondary transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700 md:inline-flex dark:hover:border-brand-800 dark:hover:bg-brand-950 dark:hover:text-brand-300"
           >
             <Bookmark className="h-4 w-4" aria-hidden="true" />
             Kaydedilenler
             {kaydedilenSayisi > 0 && (
-              <span className="tnum rounded-full bg-brand-600 px-1.5 font-mono text-[0.625rem] text-white">
+              <span className="tnum rounded-full bg-brand-500 px-1.5 font-mono text-[0.625rem] text-white">
                 {kaydedilenSayisi}
               </span>
             )}
@@ -162,9 +162,9 @@ export const TopNav: React.FC<TopNavProps> = ({
             )}
           </button>
 
-          <span className="hidden min-h-11 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm text-txt-secondary sm:inline-flex">
+          <span className="hidden min-h-11 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-semibold text-white shadow-raised sm:inline-flex">
             Giriş Yap
-            <ChevronDown className="h-4 w-4 text-txt-muted" aria-hidden="true" />
+            <ChevronDown className="h-4 w-4 text-white/80" aria-hidden="true" />
           </span>
         </div>
       </div>

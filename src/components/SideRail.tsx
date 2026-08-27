@@ -69,7 +69,12 @@ export const SideRail: React.FC<SideRailProps> = ({
   sonIslemler,
   onSonIslemSec,
 }) => (
-  <aside className="sticky top-[4.25rem] hidden h-[calc(100dvh-4.25rem)] w-70 shrink-0 flex-col gap-4 overflow-y-auto border-r border-line bg-surface px-3 py-4 lg:flex">
+  <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-72 shrink-0 flex-col gap-5 overflow-y-auto border-r border-line bg-sunken/55 px-4 py-5 lg:flex">
+    <section className="px-1">
+      <p className="text-lg font-extrabold text-brand-700 dark:text-brand-300">KatılımFinans</p>
+      <p className="mt-0.5 text-xs text-txt-muted">Sakin Uzman</p>
+    </section>
+
     <section>
       <h2 className="px-1 pb-1.5 text-xs font-semibold tracking-wide text-txt-secondary uppercase">
         İhtiyacını Seç
@@ -85,15 +90,15 @@ export const SideRail: React.FC<SideRailProps> = ({
                 onClick={() => setActiveTab(item.key)}
                 aria-current={isActive ? 'page' : undefined}
                 title={item.tooltip || item.baslik}
-                className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:ring-offset-surface ${
+                className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:ring-offset-surface ${
                   isActive
-                    ? 'bg-brand-50 ring-1 ring-brand-200 dark:bg-brand-950 dark:ring-brand-800'
+                    ? 'bg-info-200 text-info-800 ring-1 ring-info-300 dark:bg-brand-950 dark:text-brand-200 dark:ring-brand-800'
                     : 'hover:bg-sunken'
                 }`}
               >
                 <Icon
                   className={`h-4.5 w-4.5 shrink-0 ${
-                    isActive ? 'text-brand-600 dark:text-brand-400' : 'text-txt-muted'
+                    isActive ? 'text-brand-700 dark:text-brand-400' : 'text-txt-muted'
                   }`}
                   aria-hidden="true"
                 />
@@ -123,7 +128,7 @@ export const SideRail: React.FC<SideRailProps> = ({
               <button
                 type="button"
                 onClick={() => onSonIslemSec(islem.id)}
-                className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
               >
                 <BankMark ad={islem.bankaAdi ?? islem.baslik} bankaId={undefined} size="sm" />
                 <span className="min-w-0">
@@ -153,8 +158,8 @@ export const SideRail: React.FC<SideRailProps> = ({
                 aria-current={isActive ? 'page' : undefined}
                 className={`flex min-h-11 w-full items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors ${
                   isActive
-                    ? 'bg-sunken font-medium text-txt'
-                    : 'text-txt-secondary hover:bg-sunken hover:text-txt'
+                    ? 'bg-surface font-medium text-txt'
+                    : 'text-txt-secondary hover:bg-surface hover:text-txt'
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0 text-txt-muted" aria-hidden="true" />

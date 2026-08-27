@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 /* ==========================================================================
@@ -59,7 +60,7 @@
 
 @theme {
   /* --- Tipografi aileleri --- */
-  --font-sans: "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto,
+  --font-sans: "Manrope", "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto,
     "Noto Sans", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", "SF Mono",
     Consolas, monospace;
@@ -82,36 +83,31 @@
   --text-hero: 2.75rem; /* 44px — kart kahraman metriği */
   --text-hero--line-height: 1;
 
-  /* --- Marka: lacivert ---
-     Vakıf Katılım kurumsal kimliğinden türetildi: birincil #25477b,
-     ikincil #325892, açık zemin #ecf4ff. 700 tonu bankanın kendi
-     birincil rengidir. --- */
-  --color-brand-50: #eff4fb;
-  --color-brand-100: #dbe7f5;
-  --color-brand-200: #b9cfea;
-  --color-brand-300: #8db0db;
-  --color-brand-400: #5d8ac7;
-  --color-brand-500: #3d6bae;
-  --color-brand-600: #325892;
-  --color-brand-700: #25477b;
-  --color-brand-800: #1f3a63;
-  --color-brand-900: #1b3153;
-  --color-brand-950: #101d31;
+  /* --- Marka: premium fintech turkuazı --- */
+  --color-brand-50: #eff8f7;
+  --color-brand-100: #d9f1ef;
+  --color-brand-200: #aee5e0;
+  --color-brand-300: #7bd7d0;
+  --color-brand-400: #42c2bb;
+  --color-brand-500: #16a6a0;
+  --color-brand-600: #006a66;
+  --color-brand-700: #087b78;
+  --color-brand-800: #00504d;
+  --color-brand-900: #003432;
+  --color-brand-950: #00201e;
 
-  /* --- Vurgu: magenta ---
-     Bankanın hesaplama aracında taksit/toplam gibi kritik sayılar bu
-     renkle veriliyor (#e70695). Aynı işlevde kullanılır. --- */
-  --color-accent-50: #fdf2f9;
-  --color-accent-100: #fce7f4;
-  --color-accent-200: #fbcfe9;
-  --color-accent-300: #f9a8d5;
-  --color-accent-400: #f472b8;
-  --color-accent-500: #ea3a9b;
-  --color-accent-600: #e70695;
-  --color-accent-700: #c2067e;
-  --color-accent-800: #9d0b68;
-  --color-accent-900: #820f57;
-  --color-accent-950: #500233;
+  /* --- Vurgu: pozitif finansal gösterge yeşili --- */
+  --color-accent-50: #eefbf4;
+  --color-accent-100: #d8f5e5;
+  --color-accent-200: #b4ebcf;
+  --color-accent-300: #82ddb0;
+  --color-accent-400: #55c58d;
+  --color-accent-500: #3fae72;
+  --color-accent-600: #2f8d5a;
+  --color-accent-700: #247247;
+  --color-accent-800: #1e5b3b;
+  --color-accent-900: #194b32;
+  --color-accent-950: #082a19;
 
   /* --- Uyarı: amber --- */
   --color-warn-50: #fffbeb;
@@ -139,18 +135,18 @@
   --color-risk-900: #841a35;
   --color-risk-950: #4c0519;
 
-  /* --- Bilgi: teal (terim dönüşümü rozetleri) --- */
-  --color-info-50: #eff8fb;
-  --color-info-100: #d6edf5;
-  --color-info-200: #b0dcec;
-  --color-info-300: #79c2dc;
-  --color-info-400: #3fa1c4;
-  --color-info-500: #2384a9;
-  --color-info-600: #1d6b8e;
-  --color-info-700: #1c5673;
-  --color-info-800: #1d485f;
-  --color-info-900: #1c3d51;
-  --color-info-950: #0e2635;
+  /* --- Bilgi: serin kurumsal mavi --- */
+  --color-info-50: #f0f7fd;
+  --color-info-100: #dceefa;
+  --color-info-200: #c4e4fd;
+  --color-info-300: #abcae3;
+  --color-info-400: #7fa6c0;
+  --color-info-500: #5d8198;
+  --color-info-600: #446277;
+  --color-info-700: #2c4a5f;
+  --color-info-800: #21333c;
+  --color-info-900: #16364a;
+  --color-info-950: #102a43;
 
   /* --- Nötr: hafif yeşile çalan soğuk gri --- */
   --color-ink-50: #f7f9f8;
@@ -166,16 +162,16 @@
   --color-ink-950: #171c1b;
 
   /* --- Semantik yüzey / metin (açık tema varsayılanı) --- */
-  --color-canvas: #f4f6fa;
+  --color-canvas: #f5faff;
   --color-surface: #ffffff;
   --color-raised: #ffffff;
-  --color-sunken: #f4f6fa;
-  --color-line: #e3e8f0;
-  --color-line-strong: #c4cddb;
-  --color-txt: #16191f;
-  --color-txt-secondary: #3f4854;
-  --color-txt-muted: #5a6470;
-  --color-focus: #3d6bae;
+  --color-sunken: #e8f5ff;
+  --color-line: #dce8e7;
+  --color-line-strong: #bcc9c7;
+  --color-txt: #0b1e27;
+  --color-txt-secondary: #3d4948;
+  --color-txt-muted: #657782;
+  --color-focus: #16a6a0;
 
   /* --- Yarıçap --- */
   --radius-xs: 0.25rem;
@@ -186,10 +182,10 @@
   --radius-2xl: 1.25rem;
 
   /* --- Gölge: iki katmanlı yumuşak derinlik --- */
-  --shadow-flat: 0 1px 1px rgb(23 28 27 / 0.04);
-  --shadow-raised: 0 1px 2px rgb(23 28 27 / 0.06), 0 8px 24px -16px rgb(23 28 27 / 0.24);
-  --shadow-float: 0 2px 4px rgb(23 28 27 / 0.06), 0 16px 40px -20px rgb(23 28 27 / 0.32);
-  --shadow-pop: 0 4px 8px rgb(23 28 27 / 0.08), 0 24px 56px -24px rgb(23 28 27 / 0.4);
+  --shadow-flat: 0 1px 1px rgb(16 42 67 / 0.03);
+  --shadow-raised: 0 10px 30px rgb(16 42 67 / 0.04);
+  --shadow-float: 0 14px 40px rgb(16 42 67 / 0.08);
+  --shadow-pop: 0 22px 56px rgb(16 42 67 / 0.12);
 
   /* --- Hareket --- */
   --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
@@ -203,16 +199,16 @@
 /* Karanlık tema: aynı semantik isimler, ayrı tonal değerler (ters çevirme yok)
  */
 .dark {
-  --color-canvas: #0f1319;
-  --color-surface: #161b23;
-  --color-raised: #1d2430;
-  --color-sunken: #12161d;
-  --color-line: #29313d;
-  --color-line-strong: #3b4655;
-  --color-txt: #eef0f4;
-  --color-txt-secondary: #b3bac6;
-  --color-txt-muted: #8d95a3;
-  --color-focus: #8db0db;
+  --color-canvas: #0b1718;
+  --color-surface: #102224;
+  --color-raised: #132a2c;
+  --color-sunken: #0e1d1f;
+  --color-line: #254144;
+  --color-line-strong: #3d5d60;
+  --color-txt: #e8f5ff;
+  --color-txt-secondary: #c3d4d6;
+  --color-txt-muted: #93a7aa;
+  --color-focus: #60d9d2;
 
   --shadow-flat: 0 1px 1px rgb(0 0 0 / 0.4);
   --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 8px 24px -16px rgb(0 0 0 / 0.8);

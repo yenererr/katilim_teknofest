@@ -44,7 +44,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   if (hidden) return null;
 
   return (
-    <div className="pointer-events-none fixed right-4 bottom-4 z-50 flex flex-col items-end gap-3 sm:right-6 sm:bottom-6">
+    <div className="pointer-events-none fixed right-4 bottom-4 z-50 hidden flex-col items-end gap-3 sm:right-6 sm:bottom-6 sm:flex">
       <AnimatePresence>
         {open && (
           <motion.div

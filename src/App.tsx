@@ -392,7 +392,10 @@ function AppInner() {
         />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <main id="main-content" className="flex-1 px-4 pt-5 pb-10 sm:px-6">
+          <main
+            id="main-content"
+            className="mx-auto w-full max-w-[1280px] flex-1 px-4 pt-7 pb-12 sm:px-6 lg:px-8"
+          >
             {activeTab !== 'home' &&
               activeTab !== 'finansman-asistani' &&
               activeTab !== 'hesaplama' && (
