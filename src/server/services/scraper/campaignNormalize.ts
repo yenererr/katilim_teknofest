@@ -76,7 +76,6 @@ export function inferCampaignTheme(opts: {
     `${opts.title || ""} ${opts.productName || ""} ${opts.sourceUrl || ""} ${opts.category || ""}`,
   );
   if (opts.category === "card_campaign" || /kart.?kampanya|card_campaign/.test(haystack)) {
-    // Eğitim + kart birlikteyse eğitim öncelikli (okula dönüş kart kampanyası)
     if (THEME_PATTERNS.find((p) => p.theme === "education")!.re.test(haystack)) {
       return "education";
     }
@@ -97,7 +96,6 @@ export function parseCampaignThemeFromMessage(mesaj: string): CampaignTheme | nu
       t,
     );
 
-  // "konut finansmanı istiyorum" / "ev kredisi almak" → kampanya değil
   if (
     !hasKampanyaSignal &&
     /(finansman|kredi)/.test(t) &&
@@ -115,7 +113,6 @@ export function parseCampaignThemeFromMessage(mesaj: string): CampaignTheme | nu
 
   for (const { theme, re } of THEME_PATTERNS) {
     if (!re.test(t)) continue;
-    // "eğitim kampanyaları" veya "kırtasiye için var mı" / "hacca özel bir şey"
     if (hasKampanyaSignal || hasThemeAsk) return theme;
   }
   return null;
@@ -148,10 +145,6 @@ export function extractCampaignKeywordHint(mesaj: string): string | null {
   return m ? m[1].replace(/\s+/g, " ") : null;
 }
 
-/**
- * Kampanyaları mesajdaki ürün/kategori kelimelerine göre daraltır.
- * Alışveriş/teknoloji veya seyahat/bilet sorularında ilgili satırları tutar.
- */
 export function filterCampaignsByMessageKeywords<
   T extends {
     title?: unknown;
@@ -230,6 +223,21 @@ export function isLikelyCampaignUrl(url: string): boolean {
   return isLikelyCampaignUrlClient(url);
 }
 
+/** Bitiş tarihine göre kampanya durumunu (active / expired) belirler. */
+export function inferCampaignStatus(campaignEnd?: string | null): "active" | "expired" {
+  if (!campaignEnd) return "active";
+  const m = String(campaignEnd).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return "active";
+  const end = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const today = new Date();
+  const now = Date.UTC(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+  return end < now ? "expired" : "active";
+}
+
 /** Canlı listede gösterilebilir kampanya mı? */
 export function isDisplayableCampaign(row: {
   sourceUrl?: unknown;
@@ -238,13 +246,17 @@ export function isDisplayableCampaign(row: {
   campaignEnd?: unknown;
   campaignStatus?: unknown;
 }): boolean {
+  const status =
+    row.campaignStatus != null
+      ? String(row.campaignStatus)
+      : inferCampaignStatus(row.campaignEnd != null ? String(row.campaignEnd) : null);
+
   return isDisplayableCampaignClient({
     sourceUrl: row.sourceUrl != null ? String(row.sourceUrl) : null,
     title: row.title != null ? String(row.title) : null,
     productName: row.productName != null ? String(row.productName) : null,
     campaignEnd: row.campaignEnd != null ? String(row.campaignEnd) : null,
-    campaignStatus:
-      row.campaignStatus != null ? String(row.campaignStatus) : null,
+    campaignStatus: status,
   });
 }
 
@@ -307,7 +319,7 @@ export function dedupeCampaignRecords<
   T extends { sourceUrl?: unknown; title?: unknown; productName?: unknown },
 >(rows: T[]): T[] {
   const byUrl = new Map<string, T>();
-  const byTitle = new Map<string, string>(); // title key -> url key
+  const byTitle = new Map<string, string>();
 
   for (const r of rows) {
     const url = String(r.sourceUrl || "").trim();
@@ -319,7 +331,6 @@ export function dedupeCampaignRecords<
     const titleKey = asciiKatla(titleRaw).replace(/\s+/g, " ");
     const prevUrl = byUrl.get(urlKey);
     if (!prevUrl) {
-      // Aynı başlık farklı URL'de varsa daha "detay" URL'sini tercih et
       const existingUrlKey = byTitle.get(titleKey);
       if (existingUrlKey && existingUrlKey !== urlKey) {
         const existing = byUrl.get(existingUrlKey);

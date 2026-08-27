@@ -534,6 +534,29 @@ function approvalBand(chance: number): string {
   return "Düşük / dikkatli değerlendirme";
 }
 
+function isFindeksFollowUpQuestion(message: string): boolean {
+  const t = asciiKatla(message).trim();
+  if (!t) return false;
+  return (
+    /findeks|rapor|kredi not|notum|skor|risk|onay|uygunluk|durumum|borc gelir|limit/.test(
+      t,
+    ) ||
+    /^(iyi mi|guzel mi|kotu mu|nasıl|nasil|ne durumda|durum nasil|durumum nasil)(\b|[?.!])/.test(
+      t,
+    ) ||
+    /(iyi|guzel|kotu|riskli|uygun).{0,30}(mi|mu|m[iı]|m[uü])/.test(t)
+  );
+}
+
+function hasFindeksSimulationRequest(state: FinancingConversationState): boolean {
+  return Boolean(
+    state.findeksProfile &&
+      state.financingType &&
+      state.requestedAmountTl != null &&
+      state.preferredTermMonths != null,
+  );
+}
+
 function buildFindeksPreApprovalResponse(
   conversationId: string,
   state: FinancingConversationState,
@@ -559,7 +582,8 @@ function buildFindeksPreApprovalResponse(
     return {
       conversationId,
       assistantMessage:
-        `Raporu aldım ve konuşmaya bağladım.\n\n${scoreLine} ${debtLine} ${delayLine}\n\n` +
+        `Genel olarak iyi görünüyor.\n\n${scoreLine} ${debtLine} ${delayLine} ` +
+        "Bu tablo ön değerlendirme açısından güçlü; yine de kesin onay değildir, banka gelir belgesi, teminat ve ürün koşullarını ayrıca kontrol eder.\n\n" +
         "Finansman Ön Uygunluk Simülatörü için finansman türü, tutar ve vade yazın. " +
         "Örneğin: “Konut için 1.2 milyon TL istiyorum, 120 ay” veya “200 bin TL taşıt, 24 ay”.",
       status: "needs_information",
@@ -1169,6 +1193,17 @@ export async function runFinansmanAssistantChat(
         warnings: [tip],
         citations: [],
       };
+    }
+  }
+
+  if (
+    state.findeksProfile &&
+    (isFindeksFollowUpQuestion(req.message) || hasFindeksSimulationRequest(state))
+  ) {
+    const findeksPreApproval = buildFindeksPreApprovalResponse(conversationId, state);
+    if (findeksPreApproval) {
+      conversations.set(conversationId, state);
+      return findeksPreApproval;
     }
   }
 

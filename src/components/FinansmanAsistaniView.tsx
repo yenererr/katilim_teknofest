@@ -551,12 +551,14 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
 
     const text = (selectedQuickReply || message).trim();
     if (!text || loading) return;
+    const isHiddenContext = /^FINDEKS_RAPOR_BAGLAMI\b/.test(text);
+    const visibleText = isHiddenContext ? "Findeks raporumu yorumla" : text;
 
     setError(null);
     setInput("");
     setTurns((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), role: "user", text },
+      { id: crypto.randomUUID(), role: "user", text: visibleText },
     ]);
     setLoading(true);
 
