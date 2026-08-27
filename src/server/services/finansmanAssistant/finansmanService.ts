@@ -783,6 +783,57 @@ export async function runFinansmanAssistantChat(
     };
   }
 
+  // Para yatırma / katılma hesabı / kâr payı getirisi — finansman eşleştirmesine düşmesin
+  if (turn === "deposit_inquiry") {
+    const cleared = {
+      ...state,
+      financingType: null as FinancingType | null,
+      requestedAmountTl: null as number | null,
+      preferredTermMonths: null as number | null,
+      lastResultIds: [] as string[],
+      pendingFollowUp: null,
+      intent: "general_question" as const,
+    };
+    conversations.set(conversationId, cleared);
+    return {
+      conversationId,
+      assistantMessage:
+        "Anladım — finansman (borç) değil, **para yatırıp kâr payı / getiri** tarafına bakıyorsunuz.\n\n" +
+        "Katılım bankalarında bu genellikle **katılma hesabı** ile olur; faiz değil, dönem sonu kâr payı dağıtılır. Oranlar bankaya ve vadeye göre değişir.\n\n" +
+        "Karşılaştırmak için soldaki **Kâr Payı** ekranını açabilir veya “100.000 TL katılma hesabı, 3 ay” gibi tutar + vade yazabilirsiniz. " +
+        "Terim için “katılma hesabı nedir” diye de sorabilirsiniz.",
+      status: "general_answer",
+      missingFields: [],
+      quickReplies: [
+        {
+          id: "dep-kar",
+          label: "Kâr Payı hesaplamayı aç",
+          value: "__navigate__:#/kar-payi",
+        },
+        {
+          id: "dep-nedir",
+          label: "Katılma hesabı nedir?",
+          value: "Katılma hesabı nedir?",
+        },
+        {
+          id: "dep-ornek",
+          label: "100 bin TL, 3 ay kâr payı",
+          value: "100.000 TL katılma hesabı kâr payı 3 ay",
+        },
+        ...purposeQuickReplies().slice(0, 2),
+      ],
+      query: cleared,
+      exactMatches: [],
+      flexibleMatches: [],
+      summary: emptySummary(),
+      warnings: [],
+      citations: [],
+      actions: [
+        { type: "navigate", href: "#/kar-payi", label: "Kâr Payı hesaplamayı aç" },
+      ],
+    };
+  }
+
   // Terminoloji soruları doğrulanmış sözlükten anında yanıtlanır.
   const sozluk = sozluktenYanitla(req.message);
   if (sozluk) {

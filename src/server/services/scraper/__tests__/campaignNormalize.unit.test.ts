@@ -89,6 +89,12 @@ describe("campaignNormalize", () => {
     expect(
       parseCampaignThemeFromMessage("ev alcam kendime ne kampanyalar var"),
     ).toBe("housing");
+    expect(
+      parseCampaignThemeFromMessage("bilgisayarla alakalı kampanya var mı"),
+    ).toBe("shopping");
+    expect(parseCampaignThemeFromMessage("kampanya var mı bilgisayar alcam")).toBe(
+      "shopping",
+    );
   });
 
   it("başlıktan eğitim temasını çıkarır", () => {

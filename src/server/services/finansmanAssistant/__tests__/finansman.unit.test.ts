@@ -150,6 +150,16 @@ describe("finansman NLU", () => {
     expect(classifyTurn("Neler yapabilirsin?")).toBe("greeting");
     expect(classifyTurn("kimsin")).toBe("greeting");
     expect(classifyTurn("teşekkürler")).toBe("greeting");
+    expect(classifyTurn("selamın aleykum")).toBe("greeting");
+    expect(classifyTurn("selamün aleyküm")).toBe("greeting");
+    expect(classifyTurn("aleyküm selam")).toBe("greeting");
+    expect(classifyTurn("kar payı yatırmak istiyorum")).toBe("deposit_inquiry");
+    expect(classifyTurn("ben para yatırmak istiyom faizını yicem")).toBe(
+      "deposit_inquiry",
+    );
+    expect(classifyTurn("kampanya var mı bilgisayar alcam")).toBe(
+      "campaign_search",
+    );
     expect(classifyTurn("baska banka yok mu")).toBe("meta_question");
     expect(classifyTurn("niye hep aynı cevabı veriyorsun")).toBe("meta_question");
     expect(classifyTurn("albarakada oranlar ne")).toBe("bank_focus");

@@ -80,6 +80,7 @@ const TEMA_ETIKET: Record<string, string> = {
   housing: 'KONUT',
   vehicle: 'TAŞIT',
   new_customer: 'YENİ MÜŞTERİ',
+  shopping: 'ALIŞVERİŞ',
   general: 'GENEL',
 };
 

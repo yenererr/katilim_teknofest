@@ -18,6 +18,8 @@ import {
 import {
   CAMPAIGN_THEME_LABEL,
   campaignMatchesTheme,
+  extractCampaignKeywordHint,
+  filterCampaignsByMessageKeywords,
   parseCampaignThemeFromMessage,
   prettifyCampaignTitle,
 } from "../scraper/campaignNormalize";
@@ -405,19 +407,34 @@ function genelKampanyaYaniti(mesaj?: string): RehberSonucu {
     tema ? campaignMatchesTheme(c, tema) : true,
   );
 
-  // Tema filtresi boşsa tüm aktif kampanyaları göster (haberdar olsun)
-  let temaBosFallback = false;
-  if (tema && !tumKampanyalar.length && tumAktif.length) {
-    tumKampanyalar = tumAktif;
-    temaBosFallback = true;
+  // Ek anahtar kelime süzgeci (bilgisayar, xiaomi…) — tema yoksa veya temayı daraltmak için
+  if (mesaj) {
+    const keywordFiltered = filterCampaignsByMessageKeywords(tumKampanyalar, mesaj);
+    if (keywordFiltered.length) {
+      tumKampanyalar = keywordFiltered;
+    } else if (tema) {
+      // Tema var ama anahtar kelime daraltması boşsa temalı listeyi koru
+    } else {
+      // Tema yok, anahtar kelime de eşleşmedi → tümünü dökmeyelim
+      const hint = extractCampaignKeywordHint(mesaj);
+      if (hint) {
+        return {
+          message:
+            `“${hint}” ile doğrudan eşleşen aktif kampanya bulamadım.\n\n` +
+            `E-ticaret, teknoloji veya alışveriş finansmanı kampanyalarını “alışveriş kampanyaları” diye sorabilirsiniz; ` +
+            `ya da kırtasiye / kart / yeni müşteri diye daraltabilirsiniz.`,
+          citations: [],
+        };
+      }
+    }
   }
 
   if (!tumKampanyalar.length) {
     const temaEtiket = tema ? CAMPAIGN_THEME_LABEL[tema] : null;
     return {
       message: temaEtiket
-        ? `Şu anda başlığında veya kategorisinde “${temaEtiket.toLocaleLowerCase("tr-TR")}” geçen aktif kampanya bulamadım.\n\n` +
-          `Başka bir kategori deneyebilir veya banka adı yazarak o bankanın tüm kampanyalarına bakabilirsiniz.`
+        ? `Şu anda “${temaEtiket.toLocaleLowerCase("tr-TR")}” ile uyumlu aktif kampanya bulamadım.\n\n` +
+          `Başka bir kategori deneyebilir veya banka adı yazarak o bankanın kampanyalarına bakabilirsiniz.`
         : "Şu anda kayıtlı aktif kampanya bulunamadı. Banka sayfaları henüz taranmamış olabilir.\n\n" +
           "Belirli bir bankanın kampanyalarını sorabilirsiniz; yenileme tetiklenir.",
       citations: [],
@@ -446,19 +463,17 @@ function genelKampanyaYaniti(mesaj?: string): RehberSonucu {
   }
 
   const temaEtiket = tema ? CAMPAIGN_THEME_LABEL[tema] : null;
-  const baslik = temaBosFallback
-    ? `Tam eşleşen “${temaEtiket?.toLocaleLowerCase("tr-TR")}” kampanyası bulamadım; kayıtlı ${tumKampanyalar.length} aktif kampanyayı paylaşıyorum`
-    : temaEtiket
-      ? `${bankaGrup.size} bankada ${tumKampanyalar.length} ${temaEtiket.toLocaleLowerCase("tr-TR")} kampanyası buldum`
-      : `${bankaGrup.size} katılım bankasında toplam ${tumKampanyalar.length} aktif kampanya var`;
+  const baslik = temaEtiket
+    ? `${bankaGrup.size} bankada ${tumKampanyalar.length} ${temaEtiket.toLocaleLowerCase("tr-TR")} kampanyası buldum`
+    : `${bankaGrup.size} katılım bankasında toplam ${tumKampanyalar.length} aktif kampanya var`;
 
   return {
     message:
       `${baslik}:\n\n` +
       satirlar.join("\n").trim() +
-      (tema && !temaBosFallback
+      (tema
         ? `\n\nBaşka kategori için “kart kampanyaları”, “kırtasiye kampanyaları” veya banka adı yazabilirsiniz.`
-        : `\n\nBelirli bir bankanın kampanyalarını detaylı görmek isterseniz banka adını yazın. Kırtasiye, eğitim, kart veya yeni müşteri diye de daraltabilirsiniz.`),
+        : `\n\nBelirli bir bankanın kampanyalarını detaylı görmek isterseniz banka adını yazın. Kırtasiye, eğitim, kart, alışveriş veya yeni müşteri diye de daraltabilirsiniz.`),
     citations: tumKampanyalar.slice(0, 10).map((c: Record<string, unknown>, i: number) => ({
       id: i + 1,
       bankName: prettifyCampaignTitle(String(c.title || c.productName || c.bankName || "")),

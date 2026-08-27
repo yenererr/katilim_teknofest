@@ -14,6 +14,7 @@ export type CampaignTheme =
   | "vehicle"
   | "new_customer"
   | "pilgrimage"
+  | "shopping"
   | "general";
 
 export const CAMPAIGN_THEME_LABEL: Record<CampaignTheme, string> = {
@@ -23,6 +24,7 @@ export const CAMPAIGN_THEME_LABEL: Record<CampaignTheme, string> = {
   vehicle: "Taşıt",
   new_customer: "Yeni müşteri",
   pilgrimage: "Hac / Umre",
+  shopping: "Alışveriş / Teknoloji",
   general: "Genel",
 };
 
@@ -38,6 +40,10 @@ const THEME_PATTERNS: Array<{ theme: CampaignTheme; re: RegExp }> = [
   {
     theme: "new_customer",
     re: /yeni\s*musteri|hosgeldin|ilk\s*kez|yeni\s*uyelik|yeni\s*hesap|ilk\s*kart/,
+  },
+  {
+    theme: "shopping",
+    re: /bilgisayar|\bpc\b|laptop|notebook|tablet|telefon|elektronik|teknoloji|xiaomi|e[\s-]?ticaret|eticaret|alisveris|magaza|mouse|klavye|monitor|televizyon|\btv\b|beyaz\s*esya/,
   },
   {
     theme: "card",
@@ -123,6 +129,49 @@ export function campaignMatchesTheme(
       category: String(c.category || ""),
     }) === theme
   );
+}
+
+/** Mesajdan kampanya arama ipuçları (tema dışı serbest metin). */
+export function extractCampaignKeywordHint(mesaj: string): string | null {
+  const t = asciiKatla(mesaj);
+  const m = t.match(
+    /\b(bilgisayar|\bpc\b|laptop|notebook|tablet|telefon|elektronik|teknoloji|xiaomi|mouse|klavye|monitor|televizyon|\btv\b|beyaz\s*esya|e[\s-]?ticaret|eticaret|alisveris)\b/,
+  );
+  return m ? m[1].replace(/\s+/g, " ") : null;
+}
+
+/**
+ * Kampanyaları mesajdaki ürün/kategori kelimelerine göre daraltır.
+ * Alışveriş/teknoloji sorularında e-ticaret, xiaomi, alışveriş vb. satırları tutar.
+ */
+export function filterCampaignsByMessageKeywords<
+  T extends {
+    title?: unknown;
+    productName?: unknown;
+    sourceUrl?: unknown;
+    category?: unknown;
+    conditions?: unknown;
+    campaignTheme?: unknown;
+  },
+>(campaigns: T[], mesaj: string): T[] {
+  const t = asciiKatla(mesaj);
+  const wantsTech =
+    /bilgisayar|\bpc\b|laptop|notebook|tablet|telefon|elektronik|teknoloji|xiaomi|mouse|klavye|monitor|televizyon|\btv\b|beyaz\s*esya/.test(
+      t,
+    );
+  const wantsShopping =
+    wantsTech || /alisveris|e[\s-]?ticaret|eticaret|magaza/.test(t);
+  if (!wantsShopping) return [];
+
+  return campaigns.filter((c) => {
+    if (campaignMatchesTheme(c, "shopping")) return true;
+    const hay = asciiKatla(
+      `${c.title || ""} ${c.productName || ""} ${c.sourceUrl || ""} ${c.category || ""} ${Array.isArray(c.conditions) ? c.conditions.join(" ") : ""}`,
+    );
+    return /e[\s-]?ticaret|eticaret|alisveris|xiaomi|elektronik|teknoloji|laptop|telefon|bilgisayar|magaza|taksitlio|vivense|techno|teknosa|media\s*markt|n11|trendyol|hepsiburada/.test(
+      hay,
+    );
+  });
 }
 
 /** Karşılaştırma / ID için URL'yi normalize eder. */

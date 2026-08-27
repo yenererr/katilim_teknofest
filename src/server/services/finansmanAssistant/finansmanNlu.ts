@@ -322,7 +322,8 @@ export type TurnKind =
   | "general_question"
   | "sort_only"
   | "payment_plan"
-  | "limit_inquiry";
+  | "limit_inquiry"
+  | "deposit_inquiry";
 
 /** “En fazla kaç ay / ne kadar tutar” — azami vade veya tutar sorusu */
 export type LimitInquiryKind = "term" | "amount" | "both";
@@ -383,11 +384,59 @@ export function isGreetingOrHelpRequest(text: string): boolean {
     /^(merhaba|selam|selamlar|hey|hi|hello|iyi gunler|gunaydin|iyi aksamlar|iyi geceler)\b/.test(
       t,
     ) ||
+    // selamün aleyküm / selamin aleykum / aleyküm selam (yazım hataları dahil)
+    /^(selam[uüiın]*\s*aleyk[uüiım]*|aleyk[uüiım]*\s*selam|sealm[iın]*\s*aleyk|slm|s\.a\.?|sa\b)/.test(
+      t,
+    ) ||
     /yardim(a|iniz)?\s+ihtiyac|bana yardim|yardim eder misin|nasil (calisir|kullan)/.test(
       t,
     ) ||
     /^(merhaba|selam).{0,80}(yardim|nasil)/.test(t)
   );
+}
+
+/**
+ * Para yatırma / katılma hesabı / kâr payı kazanma niyeti
+ * (finansman borcu almak değil).
+ */
+export function isDepositOrProfitShareIntent(text: string): boolean {
+  const t = asciiKatla(text).trim();
+  if (!t) return false;
+  // Finansman / kredi talebi baskınsa yatırım niyeti sayma
+  if (
+    /(finansman|kredi)\b/.test(t) &&
+    /(alcam|almak|istiyorum|basvur|karsilastir)/.test(t)
+  ) {
+    return false;
+  }
+  if (
+    /para\s*yatir|yatirim\s*yap|parami\s*yatir|mevduat|vadeli\s*hesap|katilma\s*hesab|katilim\s*hesab|biriktir|birikim/.test(
+      t,
+    )
+  ) {
+    return true;
+  }
+  // "kar payı yatırmak / almak / yemek / kazanmak / vereceğim" — getiri tarafı
+  if (
+    /kar\s*pay/.test(t) &&
+    /(yatir|almak|alcam|kazan|yemek|yicem|vercem|vereceg|getiri|hesap)/.test(t)
+  ) {
+    return true;
+  }
+  // "faizini yiyeceğim" (günlük dil; katılımda kâr payı)
+  if (/faiz(ini|in)?\s*(yi|ye|kazan)/.test(t) && /para|yatir|hesap/.test(t)) {
+    return true;
+  }
+  if (/faiz(ini|in)?\s*(yi|ye|kazan)/.test(t) && /para\s*yatir|yatirmak/.test(t)) {
+    return true;
+  }
+  if (
+    /ben\s+para\s+yatir|para\s+yatirmak\s+ist|faizini\s+yi|oh+\b/.test(t) &&
+    /para|faiz|kar\s*pay|yatir/.test(t)
+  ) {
+    return true;
+  }
+  return false;
 }
 
 /** “Neler yapabilirsin / kimsin / yeteneklerin” */
@@ -460,6 +509,10 @@ export function classifyTurn(
 
   if (isGreetingOrHelpRequest(t)) {
     return "greeting";
+  }
+
+  if (isDepositOrProfitShareIntent(t)) {
+    return "deposit_inquiry";
   }
 
   if (parseLimitInquiry(t)) {
@@ -594,6 +647,21 @@ export function mergeMessageIntoState(
   }
   if (turn === "greeting" || turn === "meta_question") {
     next.intent = "general_question";
+    return next;
+  }
+  if (turn === "deposit_inquiry") {
+    next.intent = "general_question";
+    next.financingType = null;
+    next.requestedAmountTl = null;
+    next.preferredTermMonths = null;
+    next.lastResultIds = [];
+    next.pendingFollowUp = null;
+    return next;
+  }
+  if (turn === "campaign_search") {
+    next.intent = "campaign_search";
+    const cs = parseCustomerStatus(text);
+    if (cs !== "unknown") next.customerStatus = cs;
     return next;
   }
   if (turn === "limit_inquiry") {
