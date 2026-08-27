@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import path from "path";
 import fs from "fs";
 import os from "os";
@@ -26,20 +26,30 @@ function calculateFallbackAnalysis(score: number, income: number) {
     approvalChance = 15;
   }
 
-  const estMonthlyDebt = 12500;
-  const dtiPercent = Number(((estMonthlyDebt / (income || 60000)) * 100).toFixed(1));
-
   return {
+    isPdfExtracted: false,
+    isScoreExtracted: true,
+    parsingStatus: "manual",
+    extractionMethod: "manual_score",
+    pageCount: 0,
+    textLength: 0,
+    reportDate: null,
+    referenceCode: null,
     score,
     riskGroup,
-    totalLimitTl: 180000,
-    totalDebtTl: 42000,
-    pastDueDebtTl: 0,
+    totalLimitTl: null,
+    availableLimitTl: null,
+    totalDebtTl: null,
+    pastDueDebtTl: null,
     delayCount: 0,
+    followupCount: 0,
+    followupDebtTl: null,
+    debtLimitRatioPercent: null,
+    worstPaymentStatus: null,
     approvalChancePercent: approvalChance,
     monthlyIncomeTl: income || 60000,
-    dtiPercent,
-    dtiStatus: dtiPercent <= 50 ? "Uygun" : "Riskli (BDDK %50 Limitini Aşıyor)",
+    dtiPercent: 0,
+    dtiStatus: "Rapor yüklenmediği için borç/gelir hesaplanmadı",
     bankOffers: [
       {
         bankId: "kuveyt-turk",
@@ -77,8 +87,51 @@ function calculateFallbackAnalysis(score: number, income: number) {
         note: "Ziraat şubelerinden hızlı kredi kullandırımı."
       }
     ],
-    summaryMessage: `Findeks Notunuz **${score} (${riskGroup})**. Tahmini Finansman Onay İhtimaliniz **%${approvalChance}**.`
+    summaryMessage: `Findeks Notunuz **${score} (${riskGroup})** manuel girişten alındı. Tahmini finansman onay ihtimali **%${approvalChance}**.`,
+    warnings: ["Manuel skor girildiği için rapordan limit, borç, gecikme ve takip alanları okunmadı."],
+    evidence: [],
   };
+}
+
+function resolvePythonCandidates(): string[] {
+  const candidates = [
+    process.env.FINDEKS_PYTHON,
+    path.join(process.cwd(), "speech-service", "venv", "Scripts", "python.exe"),
+    "python",
+    "python3",
+    "py",
+  ].filter(Boolean) as string[];
+
+  return [...new Set(candidates)];
+}
+
+function parseFindeksPdfWithPython(tempPdfPath: string, income: number) {
+  const cliPath = path.join(process.cwd(), "speech-service", "parse_findeks_cli.py");
+  const errors: string[] = [];
+
+  for (const pythonExe of resolvePythonCandidates()) {
+    if (pythonExe.includes(path.sep) && !fs.existsSync(pythonExe)) continue;
+
+    try {
+      const output = execFileSync(pythonExe, [cliPath, tempPdfPath, String(income)], {
+        encoding: "utf-8",
+        maxBuffer: 20 * 1024 * 1024,
+        timeout: 60_000,
+        windowsHide: true,
+      });
+      const trimmed = output.trim();
+      if (!trimmed) {
+        errors.push(`${pythonExe}: boş çıktı`);
+        continue;
+      }
+      return JSON.parse(trimmed);
+    } catch (err) {
+      errors.push(`${pythonExe}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  const detail = errors.length > 0 ? errors.join(" | ") : "Python çalıştırıcısı bulunamadı.";
+  throw new Error(`Findeks PDF parser çalıştırılamadı. ${detail}`);
 }
 
 router.post("/analyze-pdf", async (req, res) => {
@@ -94,52 +147,25 @@ router.post("/analyze-pdf", async (req, res) => {
     if (pdfBase64 && typeof pdfBase64 === "string") {
       const cleanB64 = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
       const buffer = Buffer.from(cleanB64, "base64");
+      if (!buffer.length || buffer.subarray(0, 4).toString("utf-8") !== "%PDF") {
+        return res.status(400).json({ error: "Yüklenen dosya geçerli bir PDF değil." });
+      }
 
-      // Write to temp PDF file for CLI parsing
       const tempPdfPath = path.join(os.tmpdir(), `findeks_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`);
       fs.writeFileSync(tempPdfPath, buffer);
 
       try {
-        const cliPath = path.join(process.cwd(), "speech-service", "parse_findeks_cli.py");
-        const pythonExe = fs.existsSync(path.join(process.cwd(), "speech-service", "venv", "Scripts", "python.exe"))
-          ? path.join(process.cwd(), "speech-service", "venv", "Scripts", "python.exe")
-          : "python";
-
-        const output = execSync(`"${pythonExe}" "${cliPath}" "${tempPdfPath}" "${income}"`, {
-          encoding: "utf-8",
-          maxBuffer: 20 * 1024 * 1024,
-        });
-
-        // Clean up temp file
-        if (fs.existsSync(tempPdfPath)) {
-          try { fs.unlinkSync(tempPdfPath); } catch {}
-        }
-
-        if (output && output.trim()) {
-          const parsed = JSON.parse(output.trim());
-          return res.json(parsed);
-        }
-      } catch (cliErr) {
-        console.warn("[FindeksCLI] Python parsing error:", cliErr);
-        if (fs.existsSync(tempPdfPath)) {
-          try { fs.unlinkSync(tempPdfPath); } catch {}
-        }
+        const parsed = parseFindeksPdfWithPython(tempPdfPath, income);
+        return res.json(parsed);
+      } finally {
+        if (fs.existsSync(tempPdfPath)) try { fs.unlinkSync(tempPdfPath); } catch {}
       }
-
-      // Regex fallback on PDF buffer
-      const rawText = buffer.toString("binary");
-      let extractedScore = 1450;
-      const match = rawText.match(/(?:Findeks|Kredi\s*Notu|Notu)[\s:]*(\d{3,4})/i);
-      if (match) {
-        const val = parseInt(match[1], 10);
-        if (val >= 1 && val <= 1900) extractedScore = val;
-      }
-      return res.json(calculateFallbackAnalysis(extractedScore, income));
     }
 
-    return res.json(calculateFallbackAnalysis(1450, income));
+    return res.status(400).json({ error: "Analiz için Findeks PDF raporu veya manuel skor girilmelidir." });
   } catch (err) {
-    return res.status(500).json({ error: "Findeks PDF analizi başarısız oldu." });
+    const message = err instanceof Error ? err.message : "Findeks PDF analizi başarısız oldu.";
+    return res.status(500).json({ error: message });
   }
 });
 
