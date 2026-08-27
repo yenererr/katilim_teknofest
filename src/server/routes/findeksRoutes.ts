@@ -1,4 +1,8 @@
 import { Router } from "express";
+import { execSync } from "child_process";
+import path from "path";
+import fs from "fs";
+import os from "os";
 
 const router = Router();
 
@@ -88,33 +92,44 @@ router.post("/analyze-pdf", async (req, res) => {
     }
 
     if (pdfBase64 && typeof pdfBase64 === "string") {
-      const buffer = Buffer.from(pdfBase64.replace(/^data:application\/pdf;base64,/, ""), "base64");
-      
-      // Try proxying to Python speech-service at port 8001 using native fetch & FormData
-      try {
-        const Blob = (globalThis as any).Blob || (await import("node:buffer")).Blob;
-        const blob = new Blob([buffer], { type: "application/pdf" });
-        const formData = new (globalThis as any).FormData();
-        formData.append("file", blob, "findeks_report.pdf");
-        formData.append("monthly_income", String(income));
+      const cleanB64 = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
+      const buffer = Buffer.from(cleanB64, "base64");
 
-        const pyRes = await fetch("http://localhost:8001/findeks/analyze-pdf", {
-          method: "POST",
-          body: formData,
+      // Write to temp PDF file for CLI parsing
+      const tempPdfPath = path.join(os.tmpdir(), `findeks_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`);
+      fs.writeFileSync(tempPdfPath, buffer);
+
+      try {
+        const cliPath = path.join(process.cwd(), "speech-service", "parse_findeks_cli.py");
+        const pythonExe = fs.existsSync(path.join(process.cwd(), "speech-service", "venv", "Scripts", "python.exe"))
+          ? path.join(process.cwd(), "speech-service", "venv", "Scripts", "python.exe")
+          : "python";
+
+        const output = execSync(`"${pythonExe}" "${cliPath}" "${tempPdfPath}" "${income}"`, {
+          encoding: "utf-8",
+          maxBuffer: 20 * 1024 * 1024,
         });
 
-        if (pyRes.ok) {
-          const data = await pyRes.json();
-          return res.json(data);
+        // Clean up temp file
+        if (fs.existsSync(tempPdfPath)) {
+          try { fs.unlinkSync(tempPdfPath); } catch {}
         }
-      } catch {
-        // Fallback to text parsing
+
+        if (output && output.trim()) {
+          const parsed = JSON.parse(output.trim());
+          return res.json(parsed);
+        }
+      } catch (cliErr) {
+        console.warn("[FindeksCLI] Python parsing error:", cliErr);
+        if (fs.existsSync(tempPdfPath)) {
+          try { fs.unlinkSync(tempPdfPath); } catch {}
+        }
       }
 
       // Regex fallback on PDF buffer
       const rawText = buffer.toString("binary");
       let extractedScore = 1450;
-      const match = rawText.match(/(?:Findeks|Kredi\s*Notu)[\s:]*(\d{3,4})/i);
+      const match = rawText.match(/(?:Findeks|Kredi\s*Notu|Notu)[\s:]*(\d{3,4})/i);
       if (match) {
         const val = parseInt(match[1], 10);
         if (val >= 1 && val <= 1900) extractedScore = val;
