@@ -30,6 +30,7 @@ type Chip = {
 };
 
 const ORDER: FxTickerCode[] = ["USD", "EUR", "GBP", "XAU"];
+const LOOP_COPIES = 4;
 
 function fmtRate(n: number, code: FxTickerCode): string {
   const digits = code === "XAU" ? 2 : 4;
@@ -168,9 +169,14 @@ export const FxRateTicker: React.FC = () => {
 
   const updated =
     snapshot?.updatedLabel || snapshot?.bulletinDate || "—";
-  // Kesintisiz döngü için iki kez tekrarla
-  const track = [...chips, ...chips];
-  const durationSec = Math.max(18, chips.length * 6);
+  const durationSec = Math.max(16, chips.length * 4.5);
+  const tickerStyle = {
+    "--fx-duration": `${durationSec}s`,
+    "--fx-shift": `-${100 / LOOP_COPIES}%`,
+  } as React.CSSProperties;
+  const accessibleRates = chips
+    .map((c) => `${c.code}: alış ${c.buy}, satış ${c.sell}`)
+    .join("; ");
 
   return (
     <section
@@ -179,11 +185,12 @@ export const FxRateTicker: React.FC = () => {
     >
       <style>{`
         @keyframes fx-ticker-scroll {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
+          from { transform: translate3d(0, 0, 0); }
+          to { transform: translate3d(var(--fx-shift), 0, 0); }
         }
         .fx-ticker-track {
-          animation: fx-ticker-scroll ${durationSec}s linear infinite;
+          animation: fx-ticker-scroll var(--fx-duration) linear infinite;
+          will-change: transform;
           width: max-content;
         }
         @media (prefers-reduced-motion: reduce) {
@@ -195,18 +202,30 @@ export const FxRateTicker: React.FC = () => {
       `}</style>
 
       <div className="flex items-stretch border-t-2 border-[#1e3a5f]">
-        <div className="fx-ticker-mask relative min-w-0 flex-1 overflow-hidden">
+        <span className="sr-only">
+          {accessibleRates}. Son güncelleme: {updated}.
+        </span>
+        <div
+          className="fx-ticker-mask relative min-w-0 flex-1 overflow-hidden"
+          aria-hidden
+        >
           <div
             className="fx-ticker-track flex items-center"
-            role="list"
+            style={tickerStyle}
           >
-            {track.map((c, i) => (
+            {Array.from({ length: LOOP_COPIES }).map((_, copyIndex) => (
               <div
-                key={`${c.code}-${i}`}
-                role="listitem"
-                className="flex items-center after:mx-1 after:h-5 after:w-px after:bg-line after:content-['']"
+                key={copyIndex}
+                className="flex shrink-0 items-center"
               >
-                <RateChip chip={c} />
+                {chips.map((c) => (
+                  <div
+                    key={`${copyIndex}-${c.code}`}
+                    className="flex items-center after:mx-1 after:h-5 after:w-px after:bg-line after:content-['']"
+                  >
+                    <RateChip chip={c} />
+                  </div>
+                ))}
               </div>
             ))}
           </div>
