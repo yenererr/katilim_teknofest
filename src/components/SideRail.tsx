@@ -78,16 +78,13 @@ export const SideRail: React.FC<SideRailProps> = ({
   onSonIslemSec,
 }) => (
   <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-72 shrink-0 flex-col gap-5 overflow-y-auto border-r border-line bg-sunken/55 px-4 py-5 lg:flex">
-    <section className="flex items-center gap-3 px-1">
+    <section className="px-1">
       <img
         src={BRAND_LOGO}
         alt={BRAND_NAME}
-        className="h-10 w-10 shrink-0 object-contain"
+        className="h-12 w-auto max-w-full object-contain object-left"
       />
-      <div>
-        <h1 className="text-base font-bold tracking-tight text-txt">{BRAND_NAME}</h1>
-        <p className="text-[11px] text-txt-muted">{BRAND_TAGLINE}</p>
-      </div>
+      <p className="sr-only">{BRAND_TAGLINE}</p>
     </section>
 
     <section>
