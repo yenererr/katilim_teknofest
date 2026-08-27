@@ -161,6 +161,7 @@ export async function upsertExtractedRecords(
 
     if (recordType === "campaign") {
       if (isCampaignListingUrl(r.sourceUrl)) continue;
+      if (!isDisplayableCampaign(r)) continue;
       const title = prettifyCampaignTitle(
         String(r.title || r.productName || ""),
       );
@@ -379,7 +380,7 @@ export async function hydrateMemoryFromPostgres(): Promise<{
       memoryCampaigns.set(row.id, candidate);
     }
 
-    // Postgres’teki çöp kayıtları pasifleştir (yeniden hydrate’de gelmesin)
+    // Postgres’teki çöp / ürün / kurumsal kayıtları pasifleştir
     try {
       await p.query(
         `UPDATE campaigns
@@ -387,7 +388,9 @@ export async function hydrateMemoryFromPostgres(): Promise<{
          WHERE is_active = TRUE
            AND (
              source_url !~* 'kampanya'
-             OR source_url ~* '/(gizlilik|bize-ulasin|yatirimci|musteri-memnuniyet|katilim-bankaciligi|hakkimizda|kvkk|cerez)(/|$)'
+             OR source_url ~* '(gizlilik|bize-ulasin|yatirimci|musteri-memnuniyet|katilim-bankaciligi|hakkimizda|kvkk|cerez|finansmanlar/|finansman-urunleri/|index\\.html|urunlerimiz|bilgi-toplumu|sozlesme|kisisel-veri|mobil-sube|iletisim|hesaplama-arac|icazet|default\\.aspx|urun-hizmet-ucret|\\.pdf)'
+             OR source_url ~* '(biten-kampanyalar|kampanya-arsivi|finansman-kampanyalari\\.aspx|ticari-kampanyalar\\.aspx|/kampanyalar/?$)'
+             OR (campaign_end IS NOT NULL AND campaign_end::date < CURRENT_DATE)
            )`,
       );
     } catch (err) {

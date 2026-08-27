@@ -40,6 +40,19 @@ describe("campaignNormalize", () => {
       ),
     ).toBe(false);
     expect(
+      isLikelyCampaignUrl("https://tombank.com.tr/index.html"),
+    ).toBe(false);
+    expect(
+      isLikelyCampaignUrl(
+        "https://www.ziraatkatilim.com.tr/bireysel/finansman-urunleri/tasit-finansmani",
+      ),
+    ).toBe(false);
+    expect(
+      isLikelyCampaignUrl(
+        "https://www.turkiyefinans.com.tr/tr-tr/kampanyalar/sayfalar/ticari-kampanyalar.aspx",
+      ),
+    ).toBe(false);
+    expect(
       isLikelyCampaignUrl(
         "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/tamamla-kazan",
       ),
@@ -48,6 +61,14 @@ describe("campaignNormalize", () => {
       isDisplayableCampaign({
         title: "gizlilik ve guvenlik",
         sourceUrl: "https://www.adilkatilim.com.tr/gizlilik-ve-guvenlik",
+      }),
+    ).toBe(false);
+    expect(
+      isDisplayableCampaign({
+        title: "Süresi Dolmuş",
+        sourceUrl:
+          "https://www.albaraka.com.tr/tr/kampanyalar/detay/eski",
+        campaignEnd: "2025-01-01",
       }),
     ).toBe(false);
   });

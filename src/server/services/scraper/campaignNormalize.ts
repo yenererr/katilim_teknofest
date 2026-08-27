@@ -1,5 +1,6 @@
 import { asciiKatla } from "../../../nlp/normalize";
 import {
+  isCampaignListingPath,
   isDisplayableCampaignClient,
   isJunkCampaignTitleClient,
   isLikelyCampaignUrlClient,
@@ -140,17 +141,7 @@ export function normalizeCampaignUrl(url: string): string {
 
 /** Liste sayfası mı (detay değil)? */
 export function isCampaignListingUrl(url: string): boolean {
-  try {
-    const p = new URL(url).pathname.toLowerCase().replace(/\/+$/, "");
-    return (
-      /\/kampanyalar$/.test(p) ||
-      /\/kampanyalar\.html$/.test(p) ||
-      /\/kart-kampanyalari$/.test(p) ||
-      /\/kampanya$/.test(p)
-    );
-  } catch {
-    return false;
-  }
+  return isCampaignListingPath(url);
 }
 
 /** Kurumsal / yasal / iletişim sayfaları — kampanya değil. */
@@ -168,11 +159,16 @@ export function isDisplayableCampaign(row: {
   sourceUrl?: unknown;
   title?: unknown;
   productName?: unknown;
+  campaignEnd?: unknown;
+  campaignStatus?: unknown;
 }): boolean {
   return isDisplayableCampaignClient({
     sourceUrl: row.sourceUrl != null ? String(row.sourceUrl) : null,
     title: row.title != null ? String(row.title) : null,
     productName: row.productName != null ? String(row.productName) : null,
+    campaignEnd: row.campaignEnd != null ? String(row.campaignEnd) : null,
+    campaignStatus:
+      row.campaignStatus != null ? String(row.campaignStatus) : null,
   });
 }
 
