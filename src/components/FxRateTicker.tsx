@@ -181,7 +181,7 @@ export const FxRateTicker: React.FC = () => {
   return (
     <section
       aria-label="Güncel döviz ve altın kurları"
-      className="overflow-hidden rounded-xl border border-line bg-[#F7F9FC] shadow-flat dark:bg-surface"
+      className="fx-rate-ticker overflow-hidden rounded-xl border border-line bg-[#F7F9FC] shadow-flat dark:bg-surface"
     >
       <style>{`
         @keyframes fx-ticker-scroll {
@@ -192,12 +192,6 @@ export const FxRateTicker: React.FC = () => {
           animation: fx-ticker-scroll var(--fx-duration) linear infinite;
           will-change: transform;
           width: max-content;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .fx-ticker-track { animation: none; }
-        }
-        .fx-ticker-mask:hover .fx-ticker-track {
-          animation-play-state: paused;
         }
       `}</style>
 

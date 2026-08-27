@@ -407,3 +407,12 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Kur şeridi kullanıcı isteğiyle her ortamda sola doğru sürekli akar. */
+.fx-rate-ticker .fx-ticker-track {
+  animation-name: fx-ticker-scroll !important;
+  animation-duration: var(--fx-duration, 18s) !important;
+  animation-iteration-count: infinite !important;
+  animation-timing-function: linear !important;
+  animation-play-state: running !important;
+}
