@@ -21,7 +21,22 @@ const monogram = (ad: string) =>
  * yoksa marka renginde monogram rozetini gösterir.
  */
 export const BankMark: React.FC<BankMarkProps> = ({ bankaId, ad, size = 'md' }) => {
-  const banka = bankaId ? BANKA_INDEKS[bankaId] : undefined;
+  let banka = bankaId ? BANKA_INDEKS[bankaId] : undefined;
+
+  if (!banka && ad) {
+    const searchAd = ad.toLocaleLowerCase('tr-TR');
+    banka = BANKALAR.find((b) => {
+      const bAd = b.ad.toLocaleLowerCase('tr-TR');
+      const bKisa = b.kisa.toLocaleLowerCase('tr-TR');
+      return (
+        bAd === searchAd ||
+        searchAd.includes(bAd) ||
+        bAd.includes(searchAd) ||
+        (bKisa && searchAd.startsWith(bKisa))
+      );
+    });
+  }
+
   const isim = banka?.ad ?? ad ?? 'Banka';
   const kisa = banka?.kisa ?? monogram(isim);
   const renk = banka?.renk ?? '#25477b';

@@ -142,7 +142,7 @@ export const SideRail: React.FC<SideRailProps> = ({
                 onClick={() => onSonIslemSec(islem.id)}
                 className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
               >
-                <BankMark ad={islem.bankaAdi ?? islem.baslik} bankaId={undefined} size="sm" />
+                <BankMark ad={islem.bankaAdi ?? islem.baslik} bankaId={islem.bankaId} size="sm" />
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium text-txt">{islem.baslik}</span>
                   <span className="block truncate text-xs text-txt-secondary">
