@@ -702,15 +702,17 @@ async function startServer() {
           const hydrated = await hydrateMemoryFromPostgres();
           console.log(`[PostgreSQL] ${hydrated.message}`);
         } else {
-          const cached = await loadCampaignMemoryCache();
-          if (cached.loaded > 0) {
-            console.warn(
-              `[PostgreSQL] Hydrate yok; disk cache yüklendi (${cached.loaded} kampanya).`,
-            );
+          // Snapshot cache yalnızca bilinçli fallback — anlık canlı veri değildir
+          if (process.env.CAMPAIGN_CACHE_FALLBACK === "true") {
+            const cached = await loadCampaignMemoryCache();
+            if (cached.loaded > 0) {
+              console.warn(
+                `[PostgreSQL] Hydrate yok; CAMPAIGN_CACHE_FALLBACK ile ${cached.loaded} kampanya yüklendi (anlık değil).`,
+              );
+            }
           } else {
-            const pruned = pruneNonDisplayableCampaigns();
             console.warn(
-              `[PostgreSQL] Hydrate yok; bellek budandı (${pruned.removed} çöp silindi, ${pruned.after} kaldı).`,
+              "[PostgreSQL] DATABASE_URL çözülemiyor. Anlık canlı liste için Dokploy’dan External Connection URL’sini .env DATABASE_URL’e yazın veya LIVE_CAMPAIGNS_ORIGIN=https://canli-site-adresiniz ayarlayın.",
             );
           }
         }

@@ -111,7 +111,47 @@ export function createLiveDataRouter(): Router {
     });
   });
 
-  router.get("/campaigns", (_req, res) => {
+  router.get("/campaigns", async (_req, res) => {
+    // Anlık canlı kaynak: production API’ye proxy (mock değil)
+    const origin = (
+      process.env.LIVE_CAMPAIGNS_ORIGIN ||
+      process.env.LIVE_SYNC_URL ||
+      ""
+    ).trim().replace(/\/+$/, "");
+    const proxyEnabled =
+      process.env.LIVE_CAMPAIGNS_PROXY === "true" ||
+      Boolean(process.env.LIVE_CAMPAIGNS_ORIGIN?.trim());
+    if (origin && proxyEnabled) {
+      try {
+        const remote = await fetch(`${origin}/api/live/campaigns`, {
+          signal: AbortSignal.timeout(12_000),
+        });
+        if (remote.ok) {
+          const data = await remote.json();
+          return res.json(data);
+        }
+        console.warn(
+          "[live/campaigns] proxy HTTP",
+          remote.status,
+          origin,
+        );
+      } catch (err) {
+        console.warn(
+          "[live/campaigns] proxy failed:",
+          err instanceof Error ? err.message : err,
+        );
+      }
+    }
+
+    // Postgres erişilebiliyorsa her istekte tazele (local = canlı DB)
+    if (isPostgresConfigured()) {
+      try {
+        await hydrateMemoryFromPostgres();
+      } catch {
+        /* bellek ile devam */
+      }
+    }
+
     const campaigns = listMemoryCampaigns({ activeOnly: true });
     const cardLike = listMemoryCampaigns().filter((c) =>
       ["card_campaign", "discount_campaign"].includes(c.category),
