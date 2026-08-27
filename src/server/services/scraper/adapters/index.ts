@@ -38,6 +38,7 @@ function withDetailFilter(
         const normalizedPath = path.replace(/\/+$/, "");
         if (normalizedPath === currentPath) continue;
         if (GENERIC_NON_CAMPAIGN_PATHS.some((p) => path.includes(p))) continue;
+        if (!/kampanya/.test(path)) continue;
         if (patternIncludes.some((p) => path.includes(p.toLocaleLowerCase("tr-TR")))) {
           out.push(v.url.toString());
         }
@@ -64,7 +65,7 @@ export const hayatFinansAdapter = withDetailFilter(
 );
 export const kuveytTurkAdapter = withDetailFilter(
   createBaseAdapter("kuveyt-turk"),
-  ["/kampanyalar/", "/kendim-icin/finansmanlar/"],
+  ["/kampanyalar/"],
 );
 export const tomBankAdapter = withDetailFilter(createBaseAdapter("tom-katilim"), [
   "/kampanyalar",

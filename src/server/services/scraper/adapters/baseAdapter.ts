@@ -53,7 +53,7 @@ export function classifyByUrlAndText(
     return "financing_campaign";
   }
   if (/ücret|ucret|masraf|tahsis/.test(u + t)) return "financing_fee";
-  if (/kariyer|iş ilanı|kvkk|[cç]erez|blog|bas[iı]n|atm|[sş]ube/.test(u + t)) {
+  if (/kariyer|iş ilanı|kvkk|[cç]erez|blog|bas[iı]n|atm|[sş]ube|gizlilik|bize ula[sş]|yat[iı]r[iı]mc[iı]|m[uü][sş]teri memnuniyet|hakk[iı]m[iı]zda|kat[iı]l[iı]m bankac[iı]l[iı][gğ][iı]/.test(u + t)) {
     return "irrelevant";
   }
   return "general_announcement";

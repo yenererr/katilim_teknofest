@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 type FxTickerCode = "USD" | "EUR" | "GBP" | "XAU";
 
@@ -30,7 +30,7 @@ type Chip = {
 };
 
 const ORDER: FxTickerCode[] = ["USD", "EUR", "GBP", "XAU"];
-const SLIDE_MS = 3500;
+const SLIDE_MS = 3200;
 
 function fmtRate(n: number, code: FxTickerCode): string {
   const digits = code === "XAU" ? 2 : 4;
@@ -128,11 +128,10 @@ function RateSlide({ chip }: { chip: Chip }) {
   );
 }
 
-/** Ana sayfa — TCMB döviz + gram altın; tek tek kayan slide. */
+/** Ana sayfa — TCMB döviz + gram altın; yalnızca otomatik kayan slide. */
 export const FxRateTicker: React.FC = () => {
   const [snapshot, setSnapshot] = useState<FxSnapshot | null>(null);
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     let iptal = false;
@@ -172,12 +171,12 @@ export const FxRateTicker: React.FC = () => {
   }, [snapshot]);
 
   useEffect(() => {
-    if (chips.length < 2 || paused) return;
+    if (chips.length < 2) return;
     const id = window.setInterval(() => {
       setIndex((i) => (i + 1) % chips.length);
     }, SLIDE_MS);
     return () => window.clearInterval(id);
-  }, [chips.length, paused]);
+  }, [chips.length]);
 
   useEffect(() => {
     if (index >= chips.length && chips.length > 0) setIndex(0);
@@ -190,29 +189,13 @@ export const FxRateTicker: React.FC = () => {
   const aktif = chips[index] ?? chips[0];
   const n = chips.length;
 
-  const onceki = () => setIndex((i) => (i - 1 + n) % n);
-  const sonraki = () => setIndex((i) => (i + 1) % n);
-
   return (
     <section
       aria-label="Güncel döviz ve altın kurları"
       aria-roledescription="carousel"
       className="overflow-hidden rounded-xl border border-line bg-[#F7F9FC] shadow-flat dark:bg-surface"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onBlurCapture={() => setPaused(false)}
     >
       <div className="flex items-stretch border-t-2 border-[#1e3a5f]">
-        <button
-          type="button"
-          onClick={onceki}
-          aria-label="Önceki kur"
-          className="grid w-8 shrink-0 place-items-center text-txt-muted transition-colors hover:bg-white/70 hover:text-txt dark:hover:bg-sunken"
-        >
-          <ChevronLeft className="h-4 w-4" aria-hidden />
-        </button>
-
         <div className="relative min-w-0 flex-1 overflow-hidden">
           <div
             className="flex transition-transform duration-500 ease-out"
@@ -233,15 +216,6 @@ export const FxRateTicker: React.FC = () => {
             ))}
           </div>
         </div>
-
-        <button
-          type="button"
-          onClick={sonraki}
-          aria-label="Sonraki kur"
-          className="grid w-8 shrink-0 place-items-center text-txt-muted transition-colors hover:bg-white/70 hover:text-txt dark:hover:bg-sunken"
-        >
-          <ChevronRight className="h-4 w-4" aria-hidden />
-        </button>
 
         <div className="hidden shrink-0 flex-col items-end justify-center gap-0.5 border-l border-line px-3 py-2 sm:flex">
           <p className="text-[0.5625rem] leading-tight text-txt-muted">
@@ -267,18 +241,12 @@ export const FxRateTicker: React.FC = () => {
             {updated}
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5" aria-hidden>
           {chips.map((c, i) => (
-            <button
+            <span
               key={c.code}
-              type="button"
-              aria-label={`${c.code} kurunu göster`}
-              aria-current={i === index}
-              onClick={() => setIndex(i)}
               className={`h-1.5 rounded-full transition-all ${
-                i === index
-                  ? "w-4 bg-[#1e3a5f]"
-                  : "w-1.5 bg-line-strong hover:bg-txt-muted"
+                i === index ? "w-4 bg-[#1e3a5f]" : "w-1.5 bg-line-strong"
               }`}
             />
           ))}

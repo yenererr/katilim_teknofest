@@ -6,6 +6,7 @@ import {
   dedupeCampaignRecords,
   inferCampaignTheme,
   isCampaignListingUrl,
+  isDisplayableCampaign,
   isJunkCampaignTitle,
   normalizeCampaignUrl,
   prettifyCampaignTitle,
@@ -312,7 +313,7 @@ export function listMemoryCampaigns(filter?: { bankId?: string; activeOnly?: boo
   if (filter?.activeOnly) {
     rows = rows.filter((r) => r.campaignStatus === "active");
   }
-  return dedupeCampaignRecords(rows);
+  return dedupeCampaignRecords(rows.filter(isDisplayableCampaign));
 }
 
 /** Postgres'teki kampanya/ürünleri bellek Map'ine yükler (rehber + matcher için). */

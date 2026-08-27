@@ -506,6 +506,7 @@ function parseEvrenRecords(
 import {
   isCampaignListingUrl,
   isJunkCampaignTitle,
+  isLikelyCampaignUrl,
   normalizeCampaignUrl,
   prettifyCampaignTitle,
   inferCampaignTheme,
@@ -518,6 +519,7 @@ export function stubCampaignFromUrl(opts: {
   title?: string | null;
 }): ExtractedFinancialRecord | null {
   if (isCampaignListingUrl(opts.sourceUrl)) return null;
+  if (!isLikelyCampaignUrl(opts.sourceUrl)) return null;
 
   let title = opts.title?.trim() || "";
   if (!title) {

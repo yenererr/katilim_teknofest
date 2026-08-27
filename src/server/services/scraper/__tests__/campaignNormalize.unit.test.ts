@@ -3,7 +3,9 @@ import {
   dedupeCampaignRecords,
   inferCampaignTheme,
   isCampaignListingUrl,
+  isDisplayableCampaign,
   isJunkCampaignTitle,
+  isLikelyCampaignUrl,
   parseCampaignThemeFromMessage,
   prettifyCampaignTitle,
 } from "../campaignNormalize";
@@ -24,7 +26,30 @@ describe("campaignNormalize", () => {
 
   it("junk başlıkları eler", () => {
     expect(isJunkCampaignTitle("Kampanyalar")).toBe(true);
+    expect(isJunkCampaignTitle("gizlilik ve guvenlik")).toBe(true);
     expect(isJunkCampaignTitle("Tamamla Kazan")).toBe(false);
+  });
+
+  it("kurumsal / ürün URL’lerini kampanya saymaz", () => {
+    expect(
+      isLikelyCampaignUrl("https://www.adilkatilim.com.tr/gizlilik-ve-guvenlik"),
+    ).toBe(false);
+    expect(
+      isLikelyCampaignUrl(
+        "https://www.kuveytturk.com.tr/kendim-icin/finansmanlar/konut-finansmanlari",
+      ),
+    ).toBe(false);
+    expect(
+      isLikelyCampaignUrl(
+        "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/tamamla-kazan",
+      ),
+    ).toBe(true);
+    expect(
+      isDisplayableCampaign({
+        title: "gizlilik ve guvenlik",
+        sourceUrl: "https://www.adilkatilim.com.tr/gizlilik-ve-guvenlik",
+      }),
+    ).toBe(false);
   });
 
   it("slug başlığını güzelleştirir", () => {
