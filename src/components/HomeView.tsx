@@ -23,6 +23,7 @@ import {
   VARSAYILAN_TUTAR,
 } from '../data/piyasa';
 import { aylikTaksit, oranBicim, sayiBicim, tlBicim } from '../lib/finansman';
+import { isDisplayableCampaignClient } from '../lib/kampanyaFiltre';
 import { kisaKampanyaAciklama } from '../lib/kampanyaOzet';
 import { KarsilastirmaOgesi } from '../lib/compare';
 import { FINANSMAN_NOTLARI_BY_KEY } from '../data/finansmanNotlari';
@@ -149,7 +150,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           const hepsi = [
             ...(d.financingCampaigns || []),
             ...(d.cardAndDiscountCampaigns || []),
-          ];
+          ].filter(isDisplayableCampaignClient);
           const uniq = new Map<string, LiveCampaignOzet>();
           for (const c of hepsi) {
             const key = `${c.bankId}|${c.sourceUrl || c.id || c.title}`;

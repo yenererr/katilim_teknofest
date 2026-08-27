@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, ExternalLink, Loader2 } from 'lucide-react';
 import { BANKA_INDEKS } from '../data/piyasa';
+import { isDisplayableCampaignClient } from '../lib/kampanyaFiltre';
 import { kisaKampanyaAciklama } from '../lib/kampanyaOzet';
 import { BankMark } from './BankMark';
 
@@ -90,7 +91,7 @@ export const CampaignsView: React.FC = () => {
           const hepsi = [
             ...(d.financingCampaigns || []),
             ...(d.cardAndDiscountCampaigns || []),
-          ];
+          ].filter(isDisplayableCampaignClient);
           const uniq = new Map<string, LiveCampaign>();
           for (const c of hepsi) {
             const key = `${c.bankId}|${c.sourceUrl || c.id || c.title}`;

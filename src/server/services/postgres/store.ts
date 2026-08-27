@@ -352,7 +352,7 @@ export async function hydrateMemoryFromPostgres(): Promise<{
         typeof row.payload === "string"
           ? (JSON.parse(row.payload || "{}") as Record<string, unknown>)
           : row.payload || {};
-      memoryCampaigns.set(row.id, {
+      const candidate = {
         ...payload,
         id: row.id,
         bankId: row.bank_id,
@@ -364,7 +364,7 @@ export async function hydrateMemoryFromPostgres(): Promise<{
         campaignEnd: row.campaign_end,
         sourceUrl: row.source_url,
         sourceCheckedAt: row.source_checked_at,
-        recordType: "campaign",
+        recordType: "campaign" as const,
         campaignTheme:
           payload.campaignTheme ||
           inferCampaignTheme({
@@ -373,7 +373,28 @@ export async function hydrateMemoryFromPostgres(): Promise<{
             sourceUrl: row.source_url,
             category: row.category,
           }),
-      });
+      };
+      // Canlıdaki eski kurumsal/ürün URL’lerini belleğe alma
+      if (!isDisplayableCampaign(candidate)) continue;
+      memoryCampaigns.set(row.id, candidate);
+    }
+
+    // Postgres’teki çöp kayıtları pasifleştir (yeniden hydrate’de gelmesin)
+    try {
+      await p.query(
+        `UPDATE campaigns
+         SET is_active = FALSE, updated_at = NOW()
+         WHERE is_active = TRUE
+           AND (
+             source_url !~* 'kampanya'
+             OR source_url ~* '/(gizlilik|bize-ulasin|yatirimci|musteri-memnuniyet|katilim-bankaciligi|hakkimizda|kvkk|cerez)(/|$)'
+           )`,
+      );
+    } catch (err) {
+      console.warn(
+        "[postgres] junk campaign deactivate skipped:",
+        err instanceof Error ? err.message : err,
+      );
     }
 
     const prods = await p.query<{

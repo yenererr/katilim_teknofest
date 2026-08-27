@@ -121,7 +121,7 @@ export function createLiveDataRouter(): Router {
         (c) => !["card_campaign", "discount_campaign"].includes(c.category),
       ),
       cardAndDiscountCampaigns: cardLike,
-      note: "Kart kampanyaları finansman karşılaştırmasına dahil edilmez.",
+      note: "Kart kampanyaları finansman karşılaştırmasına dahil edilmez. Kurumsal sayfalar elenir.",
     });
   });
 

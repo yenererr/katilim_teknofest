@@ -1,4 +1,9 @@
 import { asciiKatla } from "../../../nlp/normalize";
+import {
+  isDisplayableCampaignClient,
+  isJunkCampaignTitleClient,
+  isLikelyCampaignUrlClient,
+} from "../../../lib/kampanyaFiltre";
 
 /** Kampanya konu kategorisi — finansman türünden bağımsız. */
 export type CampaignTheme =
@@ -149,38 +154,13 @@ export function isCampaignListingUrl(url: string): boolean {
 }
 
 /** Kurumsal / yasal / iletişim sayfaları — kampanya değil. */
-const NON_CAMPAIGN_PATH_RE =
-  /\/(gizlilik|guvenlik|kvkk|cerez|kisisel-veri|hakkimizda|hakkinda|bize-ulasin|iletisim|musteri-memnuniyeti|yatirimci-iliskileri|kariyer|basin|duyuru|haberler|atm|sube|internet-sube|giris|login|uye-ol|hesap-ac|sozlesme|politikas[iı]|surdurulebilirlik|insan-kaynaklari)(\/|$)/i;
-
 export function isJunkCampaignTitle(title: string): boolean {
-  const t = asciiKatla(title).trim();
-  if (!t) return true;
-  if (
-    /^(kampanya|kampanyalar|detay|finansmanlar|urunler|bireysel|kurumsal|genel)$/.test(
-      t,
-    )
-  ) {
-    return true;
-  }
-  // Slug’dan üretilmiş kurumsal başlıklar
-  return /^(gizlilik|guvenlik|gizlilik ve guvenlik|katilim bankaciligi|musteri memnuniyeti|musteri memnuniyeti politikasi|bize ulasin|yatirimci iliskileri|iletisim|kvkk|cerez politikasi|hakkimizda|kariyer)$/.test(
-    t,
-  );
+  return isJunkCampaignTitleClient(title);
 }
 
 /** URL kampanya detayı gibi görünüyor mu? (liste / kurumsal / ürün kataloğu değil) */
 export function isLikelyCampaignUrl(url: string): boolean {
-  if (!url || isCampaignListingUrl(url)) return false;
-  let path: string;
-  try {
-    path = new URL(url).pathname.toLowerCase();
-  } catch {
-    return false;
-  }
-  if (NON_CAMPAIGN_PATH_RE.test(path)) return false;
-  // Kampanya kelimesi yoksa ürün kataloğu / kurumsal sayfa
-  if (!/kampanya/.test(path)) return false;
-  return true;
+  return isLikelyCampaignUrlClient(url);
 }
 
 /** Canlı listede gösterilebilir kampanya mı? */
@@ -189,11 +169,11 @@ export function isDisplayableCampaign(row: {
   title?: unknown;
   productName?: unknown;
 }): boolean {
-  const url = String(row.sourceUrl || "").trim();
-  const title = String(row.title || row.productName || "").trim();
-  if (!url || !isLikelyCampaignUrl(url)) return false;
-  if (isJunkCampaignTitle(title)) return false;
-  return true;
+  return isDisplayableCampaignClient({
+    sourceUrl: row.sourceUrl != null ? String(row.sourceUrl) : null,
+    title: row.title != null ? String(row.title) : null,
+    productName: row.productName != null ? String(row.productName) : null,
+  });
 }
 
 /** Slug / düz metinden okunaklı başlık. */
