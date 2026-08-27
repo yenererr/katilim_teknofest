@@ -96,12 +96,3 @@ export interface LiveProductsResponse {
   banks: LiveBankState[];
   products: LiveBankProduct[];
 }
-
-export interface SampleBankText {
-  id: string;
-  bankName: string;
-  title: string;
-  category: string;
-  text: string;
-  badge: string;
-}

@@ -1,7 +1,6 @@
 import "dotenv/config";
 import crypto from "crypto";
 import express from "express";
-import { promises as fs } from "fs";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { asciiKatla, terimOzeti } from "./src/nlp";
@@ -16,7 +15,6 @@ import { bindOfficialScraperBridge, runOfficialScrapeJob } from "./src/server/se
 import {
   ensureSchema,
   hydrateMemoryFromPostgres,
-  seedCampaignsFromJsonIfEmpty,
 } from "./src/server/services/postgres/store";
 import {
   buildIndexDocumentsFromScrape,
@@ -41,7 +39,6 @@ const EVREN_TIMEOUT_MS = 1_800_000;
 const MAX_EVREN_ATTEMPTS = 3;
 const SCRAPER_ENABLED = process.env.SCRAPER_ENABLED !== "false";
 const SCRAPER_INTERVAL_MINUTES = Math.max(Number(process.env.SCRAPER_INTERVAL_MINUTES || 30), 5);
-const SCRAPER_CACHE_FILE = path.join(process.cwd(), ".scraper-cache", "katilim-bankalari.json");
 const SCRAPER_TEXT_LIMIT = 10_000;
 
 interface BankScrapeSource {
@@ -185,35 +182,6 @@ async function callEvren(
   }
 
   throw lastError ?? new Error("EVREN API çağrısı başarısız oldu.");
-}
-
-async function loadScrapeCache() {
-  try {
-    const raw = await fs.readFile(SCRAPER_CACHE_FILE, "utf8");
-    const parsed = JSON.parse(raw);
-    if (parsed?.banks && typeof parsed.banks === "object") {
-      scrapeStates = {
-        ...scrapeStates,
-        ...Object.fromEntries(
-          Object.entries(parsed.banks).map(([id, state]: [string, any]) => [
-            id,
-            { ...scrapeStates[id], ...state },
-          ]),
-        ),
-      };
-    }
-  } catch {
-    // İlk çalıştırmada cache dosyası olmayabilir.
-  }
-}
-
-async function saveScrapeCache() {
-  await fs.mkdir(path.dirname(SCRAPER_CACHE_FILE), { recursive: true });
-  await fs.writeFile(
-    SCRAPER_CACHE_FILE,
-    JSON.stringify({ updatedAt: new Date().toISOString(), banks: scrapeStates }, null, 2),
-    "utf8",
-  );
 }
 
 function htmlToPlainText(html: string): string {
@@ -379,7 +347,6 @@ async function refreshScrapeSources(force = false, bankIds?: string[]) {
       : BANK_SCRAPE_SOURCES;
     for (const source of sources) {
       await scrapeOneBank(source, force);
-      await saveScrapeCache();
     }
     return scrapeStates;
   } finally {
@@ -701,8 +668,6 @@ function fallbackRuleExtractor(text: string) {
 
 // Start server function with Vite middleware
 async function startServer() {
-  await loadScrapeCache();
-
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -727,10 +692,6 @@ async function startServer() {
         console.log(`[PostgreSQL] ${schema.message}`);
         const hydrated = await hydrateMemoryFromPostgres();
         console.log(`[PostgreSQL] ${hydrated.message}`);
-        if (hydrated.campaigns === 0) {
-          const seeded = await seedCampaignsFromJsonIfEmpty();
-          console.log(`[Kampanya seed] ${seeded.message}`);
-        }
       } catch (err) {
         console.warn(
           "[PostgreSQL]",

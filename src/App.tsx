@@ -16,7 +16,6 @@ import { FinansmanAsistaniView } from './components/FinansmanAsistaniView';
 import { ChatWidget } from './components/ChatWidget';
 import { VakifHesaplamaView } from './components/VakifHesaplamaView';
 import { ToastProvider, useToast } from './components/Toast';
-import { SAMPLE_BANK_TEXTS } from './data/samples';
 import { FINANSMAN_TURLERI } from './data/piyasa';
 import { sayiBicim } from './lib/finansman';
 import { ExtractionResponse, KatilimUrunu, LiveProductsResponse } from './types';
@@ -75,12 +74,6 @@ const useTheme = () => {
   return { theme, toggleTheme: () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')) };
 };
 
-/** Metni örnek şablonlarla eşleştirerek banka adını bulur. */
-const bankaAdiCoz = (text: string): string => {
-  const eslesen = SAMPLE_BANK_TEXTS.find((s) => s.text === text);
-  return eslesen?.bankName ?? 'Elle girilen metin';
-};
-
 const saatDamgasi = () =>
   new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 
@@ -112,10 +105,7 @@ function AppInner() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  const [text, setText] = useState<string>(SAMPLE_BANK_TEXTS[0].text);
-  const [selectedSampleId, setSelectedSampleId] = useState<string | undefined>(
-    SAMPLE_BANK_TEXTS[0].id,
-  );
+  const [text] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingStep, setLoadingStep] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
@@ -130,7 +120,7 @@ function AppInner() {
   const [liveProductCount, setLiveProductCount] = useState<number>(0);
   const [asistanSorusu, setAsistanSorusu] = useState<string | undefined>(undefined);
 
-  const lastAttemptRef = useRef<string>(SAMPLE_BANK_TEXTS[0].text);
+  const lastAttemptRef = useRef<string>('');
 
   const handleExtract = useCallback(
     async (textToExtract?: string) => {
@@ -169,7 +159,7 @@ function AppInner() {
               text: targetText,
               products: data.urunler,
               timestamp: saat,
-              bankName: bankaAdiCoz(targetText),
+              bankName: 'Elle girilen metin',
             },
             ...prev.filter((h) => h.text !== targetText),
           ]);
@@ -182,11 +172,6 @@ function AppInner() {
     },
     [text],
   );
-
-  useEffect(() => {
-    handleExtract(SAMPLE_BANK_TEXTS[0].text);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     let cancelled = false;

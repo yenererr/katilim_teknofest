@@ -32,12 +32,10 @@ export function createLiveDataRouter(): Router {
   });
 
   router.get("/products", (_req, res) => {
-    const allowDemo = process.env.ALLOW_DEMO_DATA === "true";
     const banks = getOfficialScrapeStates();
     const memory = listMemoryProducts({ primaryOnly: true });
     res.json({
       enabled: process.env.SCRAPER_ENABLED !== "false",
-      allowDemo,
       updated_at: new Date().toISOString(),
       banks,
       products: banks.flatMap((bank) =>
@@ -52,9 +50,6 @@ export function createLiveDataRouter(): Router {
         })),
       ),
       structuredMemoryCount: memory.length,
-      warning: allowDemo
-        ? "ÖRNEK VERİ modu açık olabilir; canlı yanıtlarla karıştırmayın."
-        : undefined,
     });
   });
 
@@ -145,7 +140,7 @@ export function createSystemRouter(): Router {
         enabled: process.env.SCRAPER_ENABLED !== "false",
         banks: BANK_SOURCE_CONFIGS.length,
       },
-      allowDemoData: process.env.ALLOW_DEMO_DATA === "true",
+      allowDemoData: false,
     });
   });
 

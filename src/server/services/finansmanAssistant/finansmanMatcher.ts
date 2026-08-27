@@ -204,7 +204,7 @@ function collectProductCandidates(
       freshness === "FAILED" ? ("STALE" as FreshnessStatus) : freshness;
     products.forEach((product, index) => {
       const p = product as Record<string, any>;
-      if (p.isDemo && !input.allowDemoData) return;
+      if (p.isDemo) return;
       out.push({
         bankId: bank.id,
         bankName: bank.bankName,
@@ -222,7 +222,7 @@ function collectProductCandidates(
   const mem = input.memoryProducts ?? listMemoryProducts({ primaryOnly: true });
   for (const row of mem) {
     if (!isAllowedParticipationBank(row.bankId, row.bankName)) continue;
-    if (row.isDemo && !input.allowDemoData) continue;
+    if (row.isDemo) continue;
     const mapped = row.payload
       ? typeof row.payload === "string"
         ? JSON.parse(row.payload)
@@ -414,10 +414,6 @@ export function runFinancingMatchEngine(
   input: MatchEngineInput,
 ): MatchEngineResult {
   const state = input.state;
-  const allowDemo =
-    input.allowDemoData ??
-    String(process.env.ALLOW_DEMO_DATA || "false").toLowerCase() === "true";
-
   const states = input.states ?? getLiveBankStates();
   const failedBanks = states
     .filter((s) => s.status === "hata" || s.error)
@@ -462,7 +458,7 @@ export function runFinancingMatchEngine(
     };
   }
 
-  const candidates = collectProductCandidates({ ...input, allowDemoData: allowDemo });
+  const candidates = collectProductCandidates({ ...input, allowDemoData: false });
   const hasVerifiedData = candidates.length > 0;
 
   const amount = state.requestedAmountTl;

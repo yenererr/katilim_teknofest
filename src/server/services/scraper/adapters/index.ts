@@ -3,6 +3,22 @@ import type { BankScraperAdapter, ScrapedPage } from "../scraperTypes";
 import { validateOfficialBankUrl } from "../urlGuard";
 import { extractLinks } from "../contentCleaner";
 
+const GENERIC_NON_CAMPAIGN_PATHS = [
+  "/hakkimizda",
+  "/hakkimizda/",
+  "/gizlilik",
+  "/gizlilik-ve-guvenlik",
+  "/kisisel-verilerin-korunmasi",
+  "/kvkk",
+  "/cerez",
+  "/bize-ulasin",
+  "/iletisim",
+  "/musteri-memnuniyeti",
+  "/yatirimci-iliskileri",
+  "/kariyer",
+  "/assets/pdfs",
+];
+
 function withDetailFilter(
   base: BankScraperAdapter,
   patternIncludes: string[],
@@ -12,10 +28,17 @@ function withDetailFilter(
     async discoverDetailUrls(page: ScrapedPage): Promise<string[]> {
       const links = extractLinks(page.html, page.finalUrl);
       const out: string[] = [];
+      const currentPath = new URL(page.finalUrl).pathname
+        .replace(/\/+$/, "")
+        .toLocaleLowerCase("tr-TR");
       for (const link of links) {
         const v = validateOfficialBankUrl(link, base.bankId);
         if (!v.ok) continue;
-        if (patternIncludes.some((p) => v.url.pathname.includes(p))) {
+        const path = v.url.pathname.toLocaleLowerCase("tr-TR");
+        const normalizedPath = path.replace(/\/+$/, "");
+        if (normalizedPath === currentPath) continue;
+        if (GENERIC_NON_CAMPAIGN_PATHS.some((p) => path.includes(p))) continue;
+        if (patternIncludes.some((p) => path.includes(p.toLocaleLowerCase("tr-TR")))) {
           out.push(v.url.toString());
         }
       }
@@ -24,7 +47,9 @@ function withDetailFilter(
   };
 }
 
-export const adilAdapter = createBaseAdapter("adil-katilim");
+export const adilAdapter = withDetailFilter(createBaseAdapter("adil-katilim"), [
+  "/kampanyalar/",
+]);
 export const albarakaAdapter = withDetailFilter(createBaseAdapter("albaraka"), [
   "/tr/kampanyalar/detay/",
   "/kampanyalar/detay/",

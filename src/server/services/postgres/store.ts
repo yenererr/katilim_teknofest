@@ -14,6 +14,13 @@ import crypto from "crypto";
 const { Pool } = pg;
 
 let pool: pg.Pool | null = null;
+let postgresWritePausedUntil = 0;
+
+function isTransientPostgresError(message: string): boolean {
+  return /ENOTFOUND|ECONNREFUSED|ETIMEDOUT|timeout|getaddrinfo|Connection terminated/i.test(
+    message,
+  );
+}
 
 export function isPostgresConfigured(
   env: NodeJS.ProcessEnv = process.env,
@@ -39,7 +46,7 @@ export async function ensureSchema(): Promise<{ ok: boolean; message: string }> 
     return {
       ok: false,
       message:
-        "DATABASE_URL tanımlı değil. PostgreSQL kapalı; bellek/JSON önbellek kullanılacak.",
+        "DATABASE_URL tanımlı değil. PostgreSQL kapalı; yalnızca canlı scrape belleği kullanılacak.",
     };
   }
   try {
@@ -130,7 +137,7 @@ export function setMemorySnapshot(
 export async function upsertExtractedRecords(
   records: ExtractedFinancialRecord[],
 ): Promise<number> {
-  const p = getPool();
+  let p = Date.now() < postgresWritePausedUntil ? null : getPool();
   let count = 0;
   for (const raw of records) {
     if (raw.category === "irrelevant" || raw.category === "general_announcement") {
@@ -241,12 +248,17 @@ export async function upsertExtractedRecords(
           );
         }
       } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
         console.warn(
           "[postgres] upsert failed",
           r.bankId,
           recordType,
-          err instanceof Error ? err.message : err,
+          message,
         );
+        if (isTransientPostgresError(message)) {
+          postgresWritePausedUntil = Date.now() + 5 * 60 * 1000;
+          p = null;
+        }
       }
     }
     count += 1;
@@ -390,41 +402,6 @@ export async function hydrateMemoryFromPostgres(): Promise<{
       campaigns: memoryCampaigns.size,
       products: memoryProducts.size,
       message: err instanceof Error ? err.message : "hydrate failed",
-    };
-  }
-}
-
-/**
- * DB/bellek boşsa data/scraped-campaigns.json ile doldurur
- * (imajda veya çalışma dizininde dosya varsa).
- */
-export async function seedCampaignsFromJsonIfEmpty(): Promise<{
-  seeded: number;
-  message: string;
-}> {
-  if (memoryCampaigns.size > 0) {
-    return { seeded: 0, message: `Bellekte zaten ${memoryCampaigns.size} kampanya var.` };
-  }
-  const fs = await import("fs");
-  const path = await import("path");
-  const file = path.join(process.cwd(), "data", "scraped-campaigns.json");
-  if (!fs.existsSync(file)) {
-    return { seeded: 0, message: "scraped-campaigns.json yok." };
-  }
-  try {
-    const raw = JSON.parse(fs.readFileSync(file, "utf8")) as {
-      campaigns?: ExtractedFinancialRecord[];
-    };
-    const rows = (raw.campaigns || []).filter(Boolean);
-    if (!rows.length) {
-      return { seeded: 0, message: "JSON boş." };
-    }
-    const n = await upsertExtractedRecords(rows);
-    return { seeded: n, message: `JSON'dan ${n} kampanya yüklendi.` };
-  } catch (err) {
-    return {
-      seeded: 0,
-      message: err instanceof Error ? err.message : "JSON seed failed",
     };
   }
 }

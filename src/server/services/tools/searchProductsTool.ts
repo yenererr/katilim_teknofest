@@ -15,7 +15,7 @@ function campaignActive(product: Record<string, unknown>): boolean | null {
 
 /**
  * Yapılandırılmış canlı ürün araması (scrape cache / EVREN çıkarımı).
- * Demo örnekleri isDemo=false — canlı kayıtlardır; örnek metinler burada yok.
+ * Örnek metin içermez; yalnızca çalışma anında çekilen canlı kayıtlara bakar.
  */
 export function searchStructuredProducts(
   plan: RagQueryPlan,

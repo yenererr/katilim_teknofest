@@ -173,7 +173,7 @@ export const TextInspector: React.FC<TextInspectorProps> = ({
             value={text}
             onChange={(e) => setText(e.target.value)}
             aria-label="Kampanya metni"
-            placeholder="Katılım bankası kampanya veya ürün metnini buraya yapıştırın; ya da yukarıdaki örnek şablonlardan birini seçin."
+            placeholder="Katılım bankası kampanya veya ürün metnini buraya yapıştırın."
             className="h-full min-h-60 w-full resize-none rounded-lg border border-line bg-sunken p-4 text-sm leading-relaxed text-txt outline-none transition-colors placeholder:text-txt-muted focus:border-brand-500"
           />
         ) : (
