@@ -379,7 +379,11 @@ function AppInner() {
         <div className="flex min-w-0 flex-1 flex-col">
           <main
             id="main-content"
-            className="mx-auto w-full max-w-[1280px] flex-1 px-4 pt-7 pb-12 sm:px-6 lg:px-8"
+            className={`mx-auto w-full max-w-[1280px] flex-1 px-4 sm:px-6 lg:px-8 ${
+              activeTab === 'finansman-asistani'
+                ? 'min-h-0 pt-5 pb-4'
+                : 'pt-7 pb-12'
+            }`}
           >
             {activeTab !== 'home' &&
               activeTab !== 'finansman-asistani' &&
@@ -532,7 +536,9 @@ function AppInner() {
             )}
           </main>
 
-          <TrustFooter lastUpdated={lastUpdated} liveProductCount={liveProductCount} />
+          {activeTab !== 'finansman-asistani' && (
+            <TrustFooter lastUpdated={lastUpdated} liveProductCount={liveProductCount} />
+          )}
         </div>
       </div>
 

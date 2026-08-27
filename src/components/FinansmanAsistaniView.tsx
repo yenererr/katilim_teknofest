@@ -594,7 +594,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
       className={
         isWidget
           ? "flex h-full min-h-0 flex-col overflow-hidden"
-          : "mx-auto flex h-[calc(100dvh-4rem)] max-w-4xl min-h-0 flex-col overflow-hidden"
+          : "mx-auto flex h-[calc(100dvh-7rem)] min-h-[28rem] max-w-4xl flex-col overflow-hidden"
       }
     >
       {/* Chat Area — alt paneller büyürken sohbet görünür kalsın */}
