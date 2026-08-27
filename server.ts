@@ -16,7 +16,6 @@ import {
   ensureSchema,
   hydrateMemoryFromPostgres,
   loadCampaignMemoryCache,
-  pruneNonDisplayableCampaigns,
   seedVerifiedResearchRecords,
 } from "./src/server/services/postgres/store";
 import {
