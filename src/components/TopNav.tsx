@@ -52,14 +52,14 @@ export const TopNav: React.FC<TopNavProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('home')}
-          className="flex shrink-0 items-center gap-3 rounded-lg pr-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:ring-offset-canvas"
+          className="flex shrink-0 items-center gap-2.5 rounded-lg pr-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:ring-offset-canvas"
         >
           <img
             src={BRAND_LOGO}
             alt={BRAND_NAME}
-            className="h-10 w-[min(14rem,52vw)] object-contain object-left"
+            className="h-9 w-9 shrink-0 object-contain"
           />
-          <span className="sr-only">{BRAND_TAGLINE}</span>
+          <span className="text-base font-bold tracking-tight text-txt">{BRAND_NAME}</span>
         </button>
 
         {/* Ana gezinme — masaüstü */}
