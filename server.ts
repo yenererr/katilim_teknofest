@@ -11,6 +11,7 @@ import {
   createLiveDataRouter,
   createSystemRouter,
 } from "./src/server/routes/liveDataRoutes";
+import findeksRoutes from "./src/server/routes/findeksRoutes";
 import { bindOfficialScraperBridge, runOfficialScrapeJob } from "./src/server/services/scraper/orchestrator";
 import {
   ensureSchema,
@@ -33,6 +34,7 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json({ limit: "5mb" }));
+app.use("/api/findeks", findeksRoutes);
 
 // SSB EVREN (OpenAI uyumlu) yapılandırması
 const EVREN_BASE_URL = process.env.EVREN_BASE_URL || "https://evren-llmapi.ssyz.org.tr/v1";

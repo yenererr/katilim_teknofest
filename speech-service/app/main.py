@@ -9,6 +9,7 @@ from app import config
 from app.stt_engine import transcribe_audio, get_stt_engine
 from app.tts_engine import synthesize_speech
 from app.normalizer import normalize_turkish_financial_text
+from app.findeks_parser import parse_findeks_pdf_bytes
 
 # Configure Logging
 logging.basicConfig(
@@ -18,8 +19,8 @@ logging.basicConfig(
 logger = logging.getLogger("speech_service")
 
 app = FastAPI(
-    title="KatılımFinans Local Speech Service",
-    description="Local Speech-to-Text (faster-whisper) and Text-to-Speech (Piper TTS) API service for Turkish language.",
+    title="KatılımFinans Local Speech & Findeks Service",
+    description="Local Speech-to-Text, Piper TTS, and Findeks PDF Risk Analysis API.",
     version="1.0.0"
 )
 
@@ -128,6 +129,26 @@ def synthesize_endpoint(req: TTSRequest):
     except Exception as e:
         logger.error(f"TTS synthesis error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Text-to-speech synthesis failed: {str(e)}")
+
+@app.post("/findeks/analyze-pdf")
+async def analyze_findeks_pdf_endpoint(
+    file: UploadFile = File(...),
+    monthly_income: Optional[float] = Form(60000.0)
+):
+    """Findeks PDF Raporunu ayrıştırıp risk analizi yapan endpoint."""
+    if not file:
+        raise HTTPException(status_code=400, detail="PDF dosyası yüklenmedi.")
+
+    pdf_bytes = await file.read()
+    if not pdf_bytes or len(pdf_bytes) == 0:
+        raise HTTPException(status_code=400, detail="Yüklenen PDF dosyası boş.")
+
+    try:
+        res = parse_findeks_pdf_bytes(pdf_bytes, monthly_income_tl=monthly_income)
+        return res
+    except Exception as e:
+        logger.error(f"Findeks PDF parsing error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Findeks PDF analizi başarısız: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

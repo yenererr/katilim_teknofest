@@ -15,6 +15,7 @@ import { TerminologyGuide } from './components/TerminologyGuide';
 import { FinansmanAsistaniView } from './components/FinansmanAsistaniView';
 import { ChatWidget } from './components/ChatWidget';
 import { VakifHesaplamaView } from './components/VakifHesaplamaView';
+import { FindeksAnalizView } from './components/FindeksAnalizView';
 import { ToastProvider, useToast } from './components/Toast';
 import { FINANSMAN_TURLERI } from './data/piyasa';
 import { sayiBicim } from './lib/finansman';
@@ -478,6 +479,12 @@ function AppInner() {
                   key={activeTab}
                   initialMode={activeTab === 'kar-payi' ? 'kar-payi' : 'finansman'}
                 />
+              </div>
+            )}
+
+            {activeTab === 'findeks' && (
+              <div {...panelProps('findeks')}>
+                <FindeksAnalizView onAsistanaSor={handleAsistanaSor} />
               </div>
             )}
 
