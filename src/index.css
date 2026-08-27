@@ -396,34 +396,6 @@
   }
 }
 
-/* TCMB döviz kuru kayan şerit */
-@keyframes fx-ticker-scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-25%);
-  }
-}
-
-.fx-ticker-viewport {
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    #000 1.25rem,
-    #000 calc(100% - 1.25rem),
-    transparent
-  );
-}
-
-.fx-ticker-track {
-  animation: fx-ticker-scroll 28s linear infinite;
-}
-
-.fx-ticker:hover .fx-ticker-track {
-  animation-play-state: paused;
-}
-
 /* Hareket azaltma tercihi: tüm süreler ihmal edilebilir seviyeye iner */
 @media (prefers-reduced-motion: reduce) {
   *,
