@@ -467,7 +467,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
   /** Kullanıcı sohbet dışına tıklayana kadar imleç kutuda kalsın. */
   const preferInputFocus = useRef(true);
   const inputId = useId();
-  const bootstrapped = useRef(false);
+  const lastInitialQuestion = useRef<string | null>(null);
 
   const {
     state: speechState,
@@ -522,10 +522,10 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
   }, [turns, loading, isWidget]);
 
   useEffect(() => {
-    if (bootstrapped.current) return;
     const soru = initialQuestion?.trim();
     if (!soru) return;
-    bootstrapped.current = true;
+    if (lastInitialQuestion.current === soru) return;
+    lastInitialQuestion.current = soru;
     void send(soru);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuestion]);

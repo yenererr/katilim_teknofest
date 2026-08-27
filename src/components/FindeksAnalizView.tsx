@@ -142,6 +142,25 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
     value == null ? 'Okunamadı' : `%${value.toLocaleString('tr-TR', { maximumFractionDigits: 1 })}`
   );
 
+  const buildFindeksAssistantPrompt = (analysis: FindeksAnalysisResult) => (
+    [
+      'FINDEKS_RAPOR_BAGLAMI',
+      `skor=${analysis.score ?? ''}`,
+      `riskGrubu=${analysis.riskGroup || ''}`,
+      `aylikGelirTl=${analysis.monthlyIncomeTl || ''}`,
+      `toplamBorcTl=${analysis.totalDebtTl ?? ''}`,
+      `toplamLimitTl=${analysis.totalLimitTl ?? ''}`,
+      `kullanilabilirLimitTl=${analysis.availableLimitTl ?? ''}`,
+      `gecikmeHesapSayisi=${analysis.delayCount ?? 0}`,
+      `takipKrediSayisi=${analysis.followupCount ?? 0}`,
+      `borcLimitOraniYuzde=${analysis.debtLimitRatioPercent ?? ''}`,
+      `odemeGecmisi=${analysis.worstPaymentStatus || ''}`,
+      `raporTarihi=${analysis.reportDate || ''}`,
+      `tahminiOnayYuzde=${analysis.approvalChancePercent ?? ''}`,
+      'Kullanıcı bu rapora göre finansman ön uygunluk analizi yapmak istiyor. Raporu kısa özetle; sonra finansman türü, tutar ve vade iste. Kullanıcı talep verirse ön uygunluk simülatörü üret.',
+    ].join('\n')
+  );
+
   const getScoreColor = (score: number | null) => {
     if (score == null) return 'text-txt-muted bg-sunken border-line';
     if (score >= 1700) return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30';
@@ -394,6 +413,17 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
               <p className="mt-1 text-xs text-txt-secondary">
                 Bu oran kesin onay değil; banka gelir, teminat, ürün ve başvuru koşullarını ayrıca değerlendirir. Tahmini onay ihtimali: {approvalText}.
               </p>
+              {onAsistanaSor && (
+                <button
+                  type="button"
+                  onClick={() => onAsistanaSor(buildFindeksAssistantPrompt(result))}
+                  className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 text-xs font-bold text-white shadow-flat transition-all hover:bg-brand-700 hover:-translate-y-0.5"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Raporu AI'a Sor</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
           </div>
         </motion.div>

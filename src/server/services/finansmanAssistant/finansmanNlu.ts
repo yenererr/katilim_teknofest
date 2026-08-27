@@ -132,6 +132,47 @@ export function parseProfitRatePercent(text: string): number | null {
   return null;
 }
 
+function parseContextNumber(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const normalized = value
+    .replace(/[^\d,.-]/g, "")
+    .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+    .replace(",", ".");
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : null;
+}
+
+function pickContextValue(text: string, key: string): string | null {
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const m = text.match(new RegExp(`${escaped}\\s*=\\s*([^;\\n]+)`, "i"));
+  return m?.[1]?.trim() || null;
+}
+
+export function parseFindeksProfileFromMessage(
+  message: string,
+): FinancingConversationState["findeksProfile"] | null {
+  if (!/FINDEKS_RAPOR_BAGLAMI/i.test(message)) return null;
+  return {
+    score: parseContextNumber(pickContextValue(message, "skor")),
+    riskGroup: pickContextValue(message, "riskGrubu"),
+    monthlyIncomeTl: parseContextNumber(pickContextValue(message, "aylikGelirTl")),
+    totalDebtTl: parseContextNumber(pickContextValue(message, "toplamBorcTl")),
+    totalLimitTl: parseContextNumber(pickContextValue(message, "toplamLimitTl")),
+    availableLimitTl: parseContextNumber(
+      pickContextValue(message, "kullanilabilirLimitTl"),
+    ),
+    delayCount: parseContextNumber(pickContextValue(message, "gecikmeHesapSayisi")),
+    followupCount: parseContextNumber(pickContextValue(message, "takipKrediSayisi")),
+    debtLimitRatioPercent: parseContextNumber(
+      pickContextValue(message, "borcLimitOraniYuzde"),
+    ),
+    reportDate: pickContextValue(message, "raporTarihi"),
+    approvalChancePercent: parseContextNumber(
+      pickContextValue(message, "tahminiOnayYuzde"),
+    ),
+  };
+}
+
 /** "ödeme planı", "odeme planini goster" */
 export function isPaymentPlanRequest(text: string): boolean {
   const t = asciiKatla(text);
@@ -691,6 +732,7 @@ export function createEmptyState(conversationId: string): FinancingConversationS
     lastResultIds: [],
     pendingFollowUp: null,
     recentUserMessages: [],
+    findeksProfile: null,
   };
 }
 
@@ -701,6 +743,12 @@ export function mergeMessageIntoState(
 ): FinancingConversationState {
   const text = [message, selectedQuickReply].filter(Boolean).join(" ");
   const next = { ...prev };
+  const findeksProfile = parseFindeksProfileFromMessage(message);
+  if (findeksProfile) {
+    next.findeksProfile = findeksProfile;
+    next.intent = "follow_up";
+    return next;
+  }
   const turn = classifyTurn(message, selectedQuickReply);
 
   if (turn === "unsupported") {
@@ -869,6 +917,9 @@ export function stateFingerprint(state: FinancingConversationState): string {
     state.selectedBankIds.join(","),
     state.excludedBankIds.join(","),
     state.intent,
+    state.findeksProfile?.score ?? "",
+    state.findeksProfile?.monthlyIncomeTl ?? "",
+    state.findeksProfile?.totalDebtTl ?? "",
   ].join("|");
 }
 

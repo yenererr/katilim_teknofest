@@ -44,6 +44,22 @@ export type FinancingConversationState = {
   pendingFollowUp: "banka_listesi" | "banka_kampanyalari" | "capabilities" | null;
   /** Son birkaç kullanıcı mesajı — kısa takip için bağlam */
   recentUserMessages: string[];
+  /** Findeks raporundan çıkarılan değerler; finansman tutarı gibi yorumlanmaz. */
+  findeksProfile: FindeksProfile | null;
+};
+
+export type FindeksProfile = {
+  score: number | null;
+  riskGroup: string | null;
+  monthlyIncomeTl: number | null;
+  totalDebtTl: number | null;
+  totalLimitTl: number | null;
+  availableLimitTl: number | null;
+  delayCount: number | null;
+  followupCount: number | null;
+  debtLimitRatioPercent: number | null;
+  reportDate: string | null;
+  approvalChancePercent: number | null;
 };
 
 export type FinancingMatch = {

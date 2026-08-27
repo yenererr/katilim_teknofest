@@ -6,7 +6,7 @@ import { sanitizeEvrenError } from "../services/evren/evrenChat";
 import { runFinansmanAssistantChat } from "../services/finansmanAssistant";
 
 const chatBodySchema = z.object({
-  message: z.string().min(1).max(2000),
+  message: z.string().min(1).max(4000),
   conversationId: z.string().min(1).max(120).optional(),
   forceRefresh: z.boolean().optional(),
   selectedQuickReply: z.string().min(1).max(200).optional(),

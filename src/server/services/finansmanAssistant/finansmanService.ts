@@ -520,6 +520,182 @@ function emptySummary(): FinancingAssistantResponse["summary"] {
   };
 }
 
+function defaultFindeksRate(financingType: FinancingType): number {
+  if (financingType === "housing") return 3.5;
+  if (financingType === "vehicle") return 3.8;
+  if (financingType === "education") return 3;
+  if (financingType === "commercial") return 4.2;
+  return 4;
+}
+
+function approvalBand(chance: number): string {
+  if (chance >= 75) return "Yüksek onay beklentisi";
+  if (chance >= 50) return "Orta düzey ön uygunluk";
+  return "Düşük / dikkatli değerlendirme";
+}
+
+function buildFindeksPreApprovalResponse(
+  conversationId: string,
+  state: FinancingConversationState,
+): FinancingAssistantResponse | null {
+  const profile = state.findeksProfile;
+  if (!profile || state.intent === "campaign_search") return null;
+
+  const missing = missingRequiredFields(state);
+  const scoreLine =
+    profile.score == null
+      ? "Findeks notu raporda net okunamadı."
+      : `Findeks notunuz ${profile.score}${profile.riskGroup ? ` (${profile.riskGroup})` : ""}.`;
+  const debtLine =
+    profile.totalDebtTl == null
+      ? "Toplam borç rapordan net çıkarılamadı."
+      : `Okunan toplam borç ${formatAmount(profile.totalDebtTl)} TL.`;
+  const delayLine =
+    (profile.delayCount || 0) > 0 || (profile.followupCount || 0) > 0
+      ? `Gecikmeli hesap: ${profile.delayCount ?? 0}, takipteki kredi: ${profile.followupCount ?? 0}.`
+      : "Raporda gecikme/takip sinyali görünmüyor.";
+
+  if (missing.length > 0) {
+    return {
+      conversationId,
+      assistantMessage:
+        `Raporu aldım ve konuşmaya bağladım.\n\n${scoreLine} ${debtLine} ${delayLine}\n\n` +
+        "Finansman Ön Uygunluk Simülatörü için finansman türü, tutar ve vade yazın. " +
+        "Örneğin: “Konut için 1.2 milyon TL istiyorum, 120 ay” veya “200 bin TL taşıt, 24 ay”.",
+      status: "needs_information",
+      missingFields: missing,
+      quickReplies: [
+        {
+          id: "fx-konut",
+          label: "Konut 1.2 milyon, 120 ay",
+          value: "Konut için 1.2 milyon TL istiyorum, 120 ay",
+        },
+        {
+          id: "fx-tasit",
+          label: "Taşıt 500 bin, 24 ay",
+          value: "Taşıt için 500 bin TL istiyorum, 24 ay",
+        },
+        {
+          id: "fx-ihtiyac",
+          label: "İhtiyaç 200 bin, 24 ay",
+          value: "İhtiyaç için 200 bin TL istiyorum, 24 ay",
+        },
+      ],
+      query: state,
+      exactMatches: [],
+      flexibleMatches: [],
+      summary: emptySummary(),
+      warnings: [],
+      citations: [],
+    };
+  }
+
+  if (!state.financingType || !state.requestedAmountTl || !state.preferredTermMonths) {
+    return null;
+  }
+
+  const financingTypeKey =
+    PRODUCT_TYPE_MAP[state.financingType]?.[0] || "ihtiyac_finansmani";
+  const rate = state.customProfitRatePercent ?? defaultFindeksRate(state.financingType);
+  const plan = hesaplaOdemePlani({
+    amountTl: state.requestedAmountTl,
+    termMonths: state.preferredTermMonths,
+    profitRatePercent: rate,
+    financingType: financingTypeKey,
+  });
+  const income = profile.monthlyIncomeTl || 0;
+  const estimatedExistingMonthlyDebt =
+    profile.totalDebtTl && profile.totalDebtTl > 0
+      ? Math.round(profile.totalDebtTl * 0.05)
+      : 0;
+  const maxReasonableInstallment =
+    income > 0 ? Math.max(0, Math.round(income * 0.5 - estimatedExistingMonthlyDebt)) : null;
+  const projectedDti =
+    income > 0
+      ? Math.round(((estimatedExistingMonthlyDebt + plan.taksitTutari) / income) * 100)
+      : null;
+
+  const reasons: string[] = [];
+  if (profile.score != null && profile.score >= 1500) {
+    reasons.push("Findeks notu iyi bantta.");
+  } else if (profile.score != null && profile.score < 1100) {
+    reasons.push("Findeks notu zayıf bantta olduğu için risk artıyor.");
+  }
+  if ((profile.delayCount || 0) > 0) reasons.push("Raporda gecikmeli hesap var.");
+  if ((profile.followupCount || 0) > 0) reasons.push("Raporda takip kaydı var.");
+  if (projectedDti != null && projectedDti > 50) {
+    reasons.push("Tahmini borç/gelir oranı %50 eşiğini aşıyor.");
+  } else if (projectedDti != null) {
+    reasons.push("Tahmini borç/gelir oranı makul aralıkta.");
+  }
+  if (maxReasonableInstallment != null && plan.taksitTutari > maxReasonableInstallment) {
+    reasons.push("Tahmini taksit rapordaki gelir bilgisine göre makul taksit sınırının üstünde.");
+  }
+  if (reasons.length === 0) reasons.push("Banka koşulları, gelir belgesi ve teminat ayrıca değerlendirilir.");
+
+  let chance = profile.approvalChancePercent ?? 50;
+  if (projectedDti != null) {
+    if (projectedDti > 65) chance -= 30;
+    else if (projectedDti > 50) chance -= 18;
+    else if (projectedDti <= 35) chance += 8;
+  }
+  if ((profile.delayCount || 0) > 0) chance -= 15;
+  if ((profile.followupCount || 0) > 0) chance -= 25;
+  chance = Math.max(5, Math.min(95, Math.round(chance)));
+
+  const typeLabel = FINANCING_TYPE_LABEL[state.financingType];
+  const href = buildHesaplamaHref({
+    ...state,
+    customProfitRatePercent: state.customProfitRatePercent ?? rate,
+  });
+
+  return {
+    conversationId,
+    assistantMessage:
+      `**Finansman Ön Uygunluk Simülatörü**\n\n` +
+      `Talep: ${formatAmount(state.requestedAmountTl)} TL ${typeLabel.toLowerCase()}, ${state.preferredTermMonths} ay.\n\n` +
+      `Rapor: ${scoreLine} ${debtLine} ${delayLine}\n\n` +
+      `Tahmini aylık taksit: ${formatAmount(Math.round(plan.taksitTutari))} TL. ` +
+      `Maksimum makul taksit: ${maxReasonableInstallment == null ? "gelir bilgisi olmadığı için hesaplanamadı" : `${formatAmount(maxReasonableInstallment)} TL`}. ` +
+      `Tahmini borç/gelir oranı: ${projectedDti == null ? "hesaplanamadı" : `%${projectedDti}`}.\n\n` +
+      `Ön uygunluk: **${approvalBand(chance)}**. Tahmini ihtimal: **%${chance}**.\n\n` +
+      `Risk nedeni: ${reasons.join(" ")}`,
+    status: "general_answer",
+    missingFields: [],
+    quickReplies: [
+      {
+        id: "fx-plan",
+        label: "Ödeme Planını Aç",
+        value: `__navigate__:${href}`,
+      },
+      {
+        id: "fx-rate-3",
+        label: "Oranı %3 yap",
+        value: "Oranı %3 yap",
+      },
+      {
+        id: "fx-less",
+        label: "Tutarı azalt",
+        value: `${Math.round(state.requestedAmountTl * 0.8)} TL ${typeLabel}, ${state.preferredTermMonths} ay`,
+      },
+      {
+        id: "fx-longer",
+        label: "Vadeyi uzat",
+        value: `${formatAmount(state.requestedAmountTl)} TL ${typeLabel}, ${Math.min(state.preferredTermMonths + 12, 180)} ay`,
+      },
+    ],
+    query: state,
+    exactMatches: [],
+    flexibleMatches: [],
+    summary: emptySummary(),
+    warnings: [
+      `Simülasyon aylık %${rate.toLocaleString("tr-TR", { maximumFractionDigits: 4 })} kâr oranıyla ön değerlendirme üretir; kesin banka onayı değildir.`,
+    ],
+    citations: [],
+    actions: [{ type: "navigate", href, label: "Ödeme Planını Aç" }],
+  };
+}
+
 function buildResultMessage(
   state: FinancingConversationState,
   exactCount: number,
@@ -741,6 +917,7 @@ export async function runFinansmanAssistantChat(
   // Eski oturumlar / test state'leri için varsayılanlar
   if (state.pendingFollowUp === undefined) state.pendingFollowUp = null;
   if (!Array.isArray(state.recentUserMessages)) state.recentUserMessages = [req.message.trim()];
+  if (state.findeksProfile === undefined) state.findeksProfile = null;
 
   const turn = classifyTurn(req.message, req.selectedQuickReply);
 
@@ -1319,6 +1496,12 @@ export async function runFinansmanAssistantChat(
       warnings: [],
       citations: [],
     };
+  }
+
+  const findeksPreApproval = buildFindeksPreApprovalResponse(conversationId, state);
+  if (findeksPreApproval) {
+    conversations.set(conversationId, state);
+    return findeksPreApproval;
   }
 
   const missing = missingRequiredFields(state);
