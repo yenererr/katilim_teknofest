@@ -2,8 +2,9 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Maximize2, X } from "lucide-react";
 import { FinansmanAsistaniView } from "./FinansmanAsistaniView";
+import { BRAND_LOGO } from "../lib/brand";
 
-const AGENT_LOGO = "/logos/katilim-agent.png";
+const AGENT_LOGO = BRAND_LOGO;
 
 type ChatWidgetProps = {
   /** Tam sayfa asistan açıkken FAB gizlenir. */
@@ -62,7 +63,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
               <img
                 src={AGENT_LOGO}
                 alt=""
-                className="h-8 w-8 rounded-lg object-contain"
+                className="h-8 w-16 rounded-lg object-contain object-left"
               />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-txt">
@@ -126,7 +127,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
           <img
             src={AGENT_LOGO}
             alt=""
-            className="h-10 w-10 rounded-full object-contain"
+            className="h-10 w-10 rounded-full bg-white object-contain p-1"
           />
         )}
       </motion.button>

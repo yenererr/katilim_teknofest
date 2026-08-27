@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { ARAC_NAV, TabKey } from './nav';
 import { BankMark } from './BankMark';
+import { BRAND_LOGO, BRAND_NAME, BRAND_TAGLINE } from '../lib/brand';
 
 export interface SonIslem {
   id: string;
@@ -71,8 +72,12 @@ export const SideRail: React.FC<SideRailProps> = ({
 }) => (
   <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-72 shrink-0 flex-col gap-5 overflow-y-auto border-r border-line bg-sunken/55 px-4 py-5 lg:flex">
     <section className="px-1">
-      <p className="text-lg font-extrabold text-brand-700 dark:text-brand-300">KatılımFinans</p>
-      <p className="mt-0.5 text-xs text-txt-muted">Sakin Uzman</p>
+      <img
+        src={BRAND_LOGO}
+        alt={BRAND_NAME}
+        className="h-9 w-44 object-contain object-left"
+      />
+      <p className="sr-only">{BRAND_TAGLINE}</p>
     </section>
 
     <section>

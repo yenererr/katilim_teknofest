@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { Bell, Bookmark, ChevronDown, Moon, Sun, Download } from 'lucide-react';
 import { ANA_NAV, TabKey } from './nav';
+import { BRAND_LOGO, BRAND_NAME, BRAND_TAGLINE } from '../lib/brand';
 
 interface TopNavProps {
   activeTab: TabKey;
@@ -54,16 +55,11 @@ export const TopNav: React.FC<TopNavProps> = ({
           className="flex shrink-0 items-center gap-3 rounded-lg pr-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:ring-offset-canvas"
         >
           <img
-            src="/logos/katilim-agent.png"
-            alt="Katılım Bankası Agent"
-            className="h-10 w-10 rounded-lg object-contain"
+            src={BRAND_LOGO}
+            alt={BRAND_NAME}
+            className="h-10 w-[min(13rem,48vw)] object-contain object-left"
           />
-          <span className="hidden min-w-0 sm:block">
-            <span className="block text-lg leading-tight font-extrabold text-txt">
-              Katılım<span className="text-brand-600 dark:text-brand-400">Finans</span>
-            </span>
-            <span className="block text-xs leading-tight text-txt-muted">Sakin finans uzmanı</span>
-          </span>
+          <span className="sr-only">{BRAND_TAGLINE}</span>
         </button>
 
         {/* Ana gezinme — masaüstü */}

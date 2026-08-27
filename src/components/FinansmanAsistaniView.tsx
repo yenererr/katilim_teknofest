@@ -13,8 +13,9 @@ import {
   User,
 } from "lucide-react";
 import { WELCOME_MESSAGE } from "../lib/assistantPersona";
+import { BRAND_LOGO } from "../lib/brand";
 
-const AGENT_LOGO = "/logos/katilim-agent.png";
+const AGENT_LOGO = BRAND_LOGO;
 const WELCOME_TURN_ID = "welcome-assistant";
 
 export type FinancingMatchRow = {
@@ -612,7 +613,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
               <img
                 src={AGENT_LOGO}
                 alt=""
-                className="mt-1 h-7 w-7 shrink-0 rounded-full object-contain"
+                className="mt-1 h-7 w-7 shrink-0 rounded-full bg-white object-contain p-0.5"
               />
             )}
             <div
@@ -656,7 +657,7 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
             <img
               src={AGENT_LOGO}
               alt=""
-              className="mt-1 h-7 w-7 shrink-0 rounded-full object-contain"
+              className="mt-1 h-7 w-7 shrink-0 rounded-full bg-white object-contain p-0.5"
             />
             <div className="flex items-center gap-2 rounded-2xl rounded-tl-md border border-line bg-surface px-4 py-3 shadow-flat">
               <Loader2 className="h-4 w-4 animate-spin text-brand-500" />
