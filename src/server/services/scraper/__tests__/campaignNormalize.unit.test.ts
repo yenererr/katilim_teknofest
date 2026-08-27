@@ -73,4 +73,31 @@ describe("campaignNormalize", () => {
     expect(out).toHaveLength(2);
     expect(out.map((c) => c.title)).toContain("Tamamla Kazan");
   });
+
+  it("aynı URL'de zengin detay kaydını boş stub'a tercih eder", () => {
+    const sourceUrl =
+      "https://www.albaraka.com.tr/tr/kampanyalar/detay/vade-farksiz-kampanyasi";
+    const out = dedupeCampaignRecords([
+      {
+        title: "Vade Farksiz Kampanyasi",
+        sourceUrl,
+        evidence: [{ field: "title", text: sourceUrl }],
+        manualReviewRequired: true,
+      },
+      {
+        title: "Vade Farksiz Kampanyasi",
+        sourceUrl,
+        maxAmountTl: 140000,
+        maxTermMonths: 6,
+        campaignEnd: "2026-12-31",
+        conditions: ["140.000 TL'ye kadar vade farksız destek."],
+        evidence: [{ field: "summary", text: "140.000 TL'ye kadar vade farksız destek." }],
+        manualReviewRequired: false,
+      },
+    ]);
+
+    expect(out).toHaveLength(1);
+    expect(out[0].maxAmountTl).toBe(140000);
+    expect(out[0].manualReviewRequired).toBe(false);
+  });
 });

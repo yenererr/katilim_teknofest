@@ -13,6 +13,7 @@ import { buildIndexDocumentsFromScrape } from "../qdrant/scrapeIndexer";
 import { getDocumentIndexer, isQdrantConfigured } from "../qdrant";
 import type { SourceStatus } from "./scraperTypes";
 import { registerLiveDataBridge } from "../liveData/liveDataBridge";
+import { dedupeCampaignRecords } from "./campaignNormalize";
 
 export type ScrapeJob = {
   jobId: string;
@@ -78,6 +79,36 @@ export function getOfficialScrapeStates(): BankRuntimeState[] {
   return Object.values(runtimeStates);
 }
 
+function mapEvidenceKey(field: string): string {
+  const map: Record<string, string> = {
+    profitRate: "kar_payi_orani",
+    term: "vade_ay",
+    amount: "tutar",
+    allocationFee: "tahsis_ucreti",
+    installment: "taksit_sayisi",
+    reward: "odul",
+    campaignEnd: "kampanya_bitis",
+    summary: "ozet",
+  };
+  return map[field] || field;
+}
+
+function buildCampaignNote(r: any): string | null {
+  const parts = [
+    ...(Array.isArray(r.conditions) ? r.conditions : []),
+    r.participationMethod,
+    ...(Array.isArray(r.evidence)
+      ? r.evidence
+          .filter((e: any) => ["summary", "reward", "campaignEnd"].includes(e.field))
+          .map((e: any) => e.text)
+      : []),
+  ]
+    .filter(Boolean)
+    .map((s) => String(s).replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  return [...new Set(parts)].slice(0, 3).join(" ") || null;
+}
+
 function mapExtractedToKatilimProduct(r: any) {
   return {
     urun_adi: r.productName || r.title || "Ürün",
@@ -139,12 +170,12 @@ function mapExtractedToKatilimProduct(r: any) {
       },
     },
     kanitlar: Object.fromEntries(
-      (r.evidence || []).map((e: any) => [e.field, e.text]),
+      (r.evidence || []).map((e: any) => [mapEvidenceKey(e.field), e.text]),
     ),
     terim_esleme_uygulandi: false,
     ortalama_guven: 0.8,
     manuel_dogrulama_gerekli: Boolean(r.manualReviewRequired),
-    notlar: null,
+    notlar: buildCampaignNote(r),
     _category: r.category,
     _sourceUrl: r.sourceUrl,
     _campaignStatus: r.campaignStatus,
@@ -354,7 +385,7 @@ async function scrapeOneBankOfficial(
   const combined = allTexts.join("\n\n---\n\n").slice(0, 20_000);
   const contentHash = hashContent(combined || bankId);
 
-  const products = records
+  const products = dedupeCampaignRecords(records)
     .filter((r) => r.category !== "card_campaign" && r.category !== "discount_campaign")
     .map(mapExtractedToKatilimProduct);
 

@@ -95,7 +95,7 @@ export interface VadeBulgusu extends KuralBulgusu<null> {
   max: number | null;
 }
 
-const VADE_DESENI = /(\d{1,3})\s*(?:-|–|ile|ila)?\s*(\d{1,3})?\s*(ay|yıl|yil|sene)/giu;
+const VADE_DESENI = /(?<!\d)(\d{1,3})(?:\s*(?:-|–|ile|ila)\s*(\d{1,3}))?\s*(ay|yıl|yil|sene)\b/giu;
 
 export const vadeCikar = (metin: string): VadeBulgusu => {
   const cumleler = cumlelereBol(metin);

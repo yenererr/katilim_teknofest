@@ -5,7 +5,7 @@ import type {
   ExtractedFinancialRecord,
 } from "../scraper/scraperTypes";
 import { isPrimaryFinanceCategory } from "../scraper/bankSourceConfig";
-import { asciiKatla } from "../../../nlp/normalize";
+import { asciiKatla, sayiCoz } from "../../../nlp/normalize";
 import { kuralTabanliCikar } from "../../../nlp/extract";
 
 const recordSchema = z.object({
@@ -87,6 +87,170 @@ function inferCategory(
   return hint || "general_announcement";
 }
 
+function cleanSnippet(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function meaningfulSentences(text: string): string[] {
+  return text
+    .replace(/\r/g, "\n")
+    .split(/(?<=[.!?])\s+|\n+/u)
+    .map(cleanSnippet)
+    .filter((s) => s.length >= 35 && s.length <= 320)
+    .filter((s) => !/^(menü|menu|anasayfa|arama|giriş|giris)$/i.test(s));
+}
+
+function isLowInfoCampaignSentence(sentence: string): boolean {
+  const folded = asciiKatla(sentence);
+  if (/\d{1,2}[./-]\d{1,2}[./-]20\d{2}.*\d{1,2}[./-]\d{1,2}[./-]20\d{2}.*musteri\s+ol/.test(folded)) {
+    return true;
+  }
+  const stripped = folded
+    .replace(/\b\d{1,2}[./-]\d{1,2}[./-]20\d{2}\b/g, " ")
+    .replace(/\b\d{1,2}\s+(ocak|subat|mart|nisan|mayis|haziran|temmuz|agustos|eylul|ekim|kasim|aralik)\s+20\d{2}\b/g, " ")
+    .replace(/\bmusteri\s+ol\b/g, " ")
+    .replace(/\b(kampanya|baslangic|bitis|tarihleri|gecerlidir)\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+  return stripped.length < 18;
+}
+
+function datesIso(text: string): string[] {
+  const out: string[] = [];
+  const numericRe = /\b(\d{1,2})[./-](\d{1,2})[./-](20\d{2})\b/g;
+  let numeric: RegExpExecArray | null;
+  while ((numeric = numericRe.exec(text)) !== null) {
+    const day = numeric[1].padStart(2, "0");
+    const month = numeric[2].padStart(2, "0");
+    out.push(`${numeric[3]}-${month}-${day}`);
+  }
+  const months: Record<string, string> = {
+    ocak: "01",
+    subat: "02",
+    mart: "03",
+    nisan: "04",
+    mayis: "05",
+    haziran: "06",
+    temmuz: "07",
+    agustos: "08",
+    eylul: "09",
+    ekim: "10",
+    kasim: "11",
+    aralik: "12",
+  };
+  const folded = asciiKatla(text);
+  const namedRe = /\b(\d{1,2})\s+(ocak|subat|mart|nisan|mayis|haziran|temmuz|agustos|eylul|ekim|kasim|aralik)\s+(20\d{2})\b/g;
+  let named: RegExpExecArray | null;
+  while ((named = namedRe.exec(folded)) !== null) {
+    out.push(`${named[3]}-${months[named[2]]}-${named[1].padStart(2, "0")}`);
+  }
+  return [...new Set(out)];
+}
+
+function lastDateIso(text: string): string | null {
+  const dates = datesIso(text);
+  return dates.length ? dates[dates.length - 1] : null;
+}
+
+function largestTlAmount(text: string): number | null {
+  const amounts = [...text.matchAll(/([\d.]+(?:,\d+)?)\s*(?:tl|₺)/giu)]
+    .map((m) => sayiCoz(m[1]))
+    .filter((n): n is number => n != null && n >= 1000);
+  return amounts.length ? Math.max(...amounts) : null;
+}
+
+function extractCampaignDetails(text: string): {
+  campaignEnd: string | null;
+  conditions: string[];
+  exclusions: string[];
+  participationMethod: string | null;
+  maxAmountTl: number | null;
+  rewardAmountTl: number | null;
+  rewardType: string | null;
+  installmentCount: number | null;
+  evidence: ExtractedFinancialRecord["evidence"];
+} {
+  const sentences = meaningfulSentences(text.slice(0, 20_000));
+  const evidence: ExtractedFinancialRecord["evidence"] = [];
+  const conditionSignals =
+    /kampanya|geçerli|gecerli|yararlan|katıl|katil|başvur|basvur|harcama|alışveriş|alisveris|müşteri|musteri|mobil|internet|taksit|puan|iade|hediye|finansman|vade/i;
+  const exclusionSignals =
+    /hariç|haric|dahil değildir|dahil degildir|geçerli değildir|gecerli degildir|iptal|iade işlemi|iade islemi/i;
+
+  const conditions = sentences
+    .filter((s) => conditionSignals.test(s))
+    .filter((s) => !isLowInfoCampaignSentence(s))
+    .slice(0, 5);
+  const exclusions = sentences
+    .filter((s) => exclusionSignals.test(s))
+    .slice(0, 3);
+
+  const endSentence =
+    sentences.find((s) => /son\s+(başvuru|basvuru|gün|gun|tarih)|kampanya\s+(bitiş|bitis)|tarihine\s+kadar|geçerlidir|gecerlidir/i.test(s)) ||
+    "";
+  const campaignEnd = lastDateIso(endSentence) || lastDateIso(text);
+  if (campaignEnd && endSentence) {
+    evidence.push({ field: "campaignEnd", text: endSentence, confidence: 0.75 });
+  }
+
+  const participation =
+    sentences.find((s) => /mobil|internet\s+şube|internet\s+sube|başvur|basvur|hemen\s+katıl|hemen\s+katil/i.test(s)) ||
+    null;
+  const maxAmountTl = largestTlAmount(conditions.join(" "));
+
+  const rewardSentence = sentences.find((s) =>
+    /puan|bankkart\s*lira|worldpuan|nakit\s+iade|hediye|ödül|odul|indirim/i.test(s),
+  );
+  let rewardAmountTl: number | null = null;
+  let rewardType: string | null = null;
+  if (rewardSentence) {
+    const rewardMatch = /([\d.]+(?:,\d+)?)\s*(?:tl|₺)/i.exec(rewardSentence);
+    rewardAmountTl = rewardMatch ? sayiCoz(rewardMatch[1]) : null;
+    const folded = asciiKatla(rewardSentence);
+    rewardType = /puan|bankkart\s*lira|worldpuan/.test(folded)
+      ? "puan"
+      : /iade/.test(folded)
+        ? "nakit_iade"
+        : /indirim/.test(folded)
+          ? "indirim"
+          : rewardAmountTl != null
+            ? "hediye"
+            : null;
+    evidence.push({ field: "reward", text: rewardSentence, confidence: 0.65 });
+  }
+
+  const installmentCandidates = sentences
+    .map((s) => {
+      const matches = [...s.matchAll(/\b(\d{1,2})\s*(?:aya\s+varan\s+)?taksit(?:li)?\b/giu)]
+        .map((m) => Number(m[1]))
+        .filter((n) => Number.isFinite(n) && n > 1 && n <= 60);
+      return matches.length ? { sentence: s, value: Math.max(...matches) } : null;
+    })
+    .filter((v): v is { sentence: string; value: number } => Boolean(v));
+  const installmentBest = installmentCandidates.sort((a, b) => b.value - a.value)[0] || null;
+  const installmentSentence = installmentBest?.sentence || null;
+  const installmentCount = installmentBest?.value || null;
+  if (installmentSentence && installmentCount != null) {
+    evidence.push({ field: "installment", text: installmentSentence, confidence: 0.8 });
+  }
+
+  if (conditions[0]) {
+    evidence.push({ field: "summary", text: conditions[0], confidence: 0.7 });
+  }
+
+  return {
+    campaignEnd,
+    conditions,
+    exclusions,
+    participationMethod: participation,
+    maxAmountTl,
+    rewardAmountTl,
+    rewardType,
+    installmentCount,
+    evidence,
+  };
+}
+
 /**
  * EVREN başarısız olduğunda NLP kural katmanı ile yapılandırılmış kayıt üretir.
  * Kaynakta sinyal yoksa boş döner — uydurma yapmaz.
@@ -158,6 +322,20 @@ export function ruleBasedExtractRecords(opts: {
       confidence: kural.tutar.guven,
     });
   }
+  const campaignDetails = isCampaignPage
+    ? extractCampaignDetails(clipped)
+    : {
+        campaignEnd: null,
+        conditions: [],
+        exclusions: [],
+        participationMethod: null,
+        maxAmountTl: null,
+        rewardAmountTl: null,
+        rewardType: null,
+        installmentCount: null,
+        evidence: [],
+      };
+  evidence.push(...campaignDetails.evidence);
 
   const titleFromUrl = (() => {
     try {
@@ -215,24 +393,30 @@ export function ruleBasedExtractRecords(opts: {
       profitRate: kural.kar_payi_orani.deger,
       ratePeriod,
       minAmountTl: kural.tutar.min,
-      maxAmountTl: kural.tutar.max,
+      maxAmountTl:
+        kural.tutar.max != null && campaignDetails.maxAmountTl != null
+          ? Math.max(kural.tutar.max, campaignDetails.maxAmountTl)
+          : kural.tutar.max ?? campaignDetails.maxAmountTl,
       minTermMonths: kural.vade_ay.min,
-      maxTermMonths: kural.vade_ay.max,
-      installmentCount: null,
+      maxTermMonths:
+        kural.vade_ay.max != null && campaignDetails.installmentCount != null
+          ? Math.max(kural.vade_ay.max, campaignDetails.installmentCount)
+          : kural.vade_ay.max ?? campaignDetails.installmentCount,
+      installmentCount: campaignDetails.installmentCount,
       allocationFeeValue: kural.tahsis_ucreti.deger,
       allocationFeeType:
         kural.tahsis_ucreti.deger != null ? "fixed" : null,
-      rewardAmountTl: null,
-      rewardType: null,
+      rewardAmountTl: campaignDetails.rewardAmountTl,
+      rewardType: campaignDetails.rewardType,
       campaignStart: null,
-      campaignEnd: null,
+      campaignEnd: campaignDetails.campaignEnd,
       targetSegments: [],
-      participationMethod: null,
-      conditions: [],
-      exclusions: [],
+      participationMethod: campaignDetails.participationMethod,
+      conditions: campaignDetails.conditions,
+      exclusions: campaignDetails.exclusions,
       campaignStatus: "active",
       evidence,
-      manualReviewRequired: true,
+      manualReviewRequired: !hasSignal && campaignDetails.conditions.length === 0,
     },
   ];
 }

@@ -30,6 +30,8 @@ export function cleanHtmlToDocument(html: string, titleHint?: string): CleanDocu
 
   // Gizli / aria-hidden
   $("[hidden], [aria-hidden='true']").remove();
+  $("br").replaceWith("\n");
+  $("p, li, h1, h2, h3, h4, h5, h6, div, section, article, tr").append("\n");
 
   const title =
     titleHint ||

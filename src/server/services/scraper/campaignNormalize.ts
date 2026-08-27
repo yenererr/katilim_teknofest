@@ -161,6 +161,30 @@ function titleQualityScore(title: string): number {
   return s;
 }
 
+function recordDetailScore(row: Record<string, unknown>): number {
+  let score = 0;
+  for (const key of [
+    "profitRate",
+    "minAmountTl",
+    "maxAmountTl",
+    "minTermMonths",
+    "maxTermMonths",
+    "installmentCount",
+    "allocationFeeValue",
+    "rewardAmountTl",
+    "campaignStart",
+    "campaignEnd",
+    "participationMethod",
+  ]) {
+    if (row[key] != null && row[key] !== "") score += 10;
+  }
+  if (Array.isArray(row.conditions)) score += Math.min(row.conditions.length, 5) * 8;
+  if (Array.isArray(row.exclusions)) score += Math.min(row.exclusions.length, 3) * 4;
+  if (Array.isArray(row.evidence)) score += Math.min(row.evidence.length, 6) * 3;
+  if (row.manualReviewRequired === false) score += 8;
+  return score;
+}
+
 /** Aynı URL / aynı başlık (case-insensitive) tek kayda iner; listing ve junk elenir. */
 export function dedupeCampaignRecords<
   T extends { sourceUrl?: unknown; title?: unknown; productName?: unknown },
@@ -195,7 +219,11 @@ export function dedupeCampaignRecords<
     }
 
     const prevTitle = String(prevUrl.title || prevUrl.productName || "");
-    if (titleQualityScore(titleRaw) > titleQualityScore(prevTitle)) {
+    const currentScore =
+      titleQualityScore(titleRaw) + recordDetailScore(r as Record<string, unknown>);
+    const prevScore =
+      titleQualityScore(prevTitle) + recordDetailScore(prevUrl as Record<string, unknown>);
+    if (currentScore > prevScore) {
       byUrl.set(urlKey, r);
       byTitle.set(titleKey, urlKey);
     }

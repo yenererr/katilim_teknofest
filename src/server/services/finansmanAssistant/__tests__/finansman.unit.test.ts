@@ -578,4 +578,44 @@ describe("kural tabanlı scraper çıkarımı", () => {
     expect(rows[0].category).toBe("consumer_finance");
     expect(rows[0].profitRate).not.toBeNull();
   });
+
+  it("kampanya detayından koşul, bitiş tarihi ve taksit çıkarır", async () => {
+    const { ruleBasedExtractRecords } = await import(
+      "../../scraper/evrenExtractor"
+    );
+    const rows = ruleBasedExtractRecords({
+      bankId: "albaraka",
+      sourceUrl:
+        "https://www.albaraka.com.tr/tr/kampanyalar/detay/vade-farksiz-kampanyasi",
+      text:
+        "Vade Farksız 140.000 TL’ye Varan Destek! " +
+        "Şimdi Albaraka Mobil’den müşteri olanlar, %0 kâr payı ile 40.000 TL’ye kadar Pratik Finansman Kart kullanabilir. " +
+        "100.000 TL’ye kadar seçili sektörlerde vade farksız 6 taksit fırsatı sunulur. " +
+        "Kampanya 1 Ocak 2026 - 31 Aralık 2026 tarihlerinde geçerlidir.",
+      categoryHint: "card_campaign",
+    });
+    expect(rows[0].campaignEnd).toBe("2026-12-31");
+    expect(rows[0].conditions.length).toBeGreaterThan(0);
+    expect(rows[0].installmentCount).toBe(6);
+    expect(rows[0].maxAmountTl).toBe(140000);
+    expect(rows[0].evidence.some((e) => e.field === "summary")).toBe(true);
+  });
+
+  it("MCC kodundaki AYAK ifadesini vade ayı sanmaz", async () => {
+    const { ruleBasedExtractRecords } = await import(
+      "../../scraper/evrenExtractor"
+    );
+    const rows = ruleBasedExtractRecords({
+      bankId: "albaraka",
+      sourceUrl:
+        "https://www.albaraka.com.tr/tr/kampanyalar/detay/saglik-harcamalarina-vade-farksiz-6-taksit-kampanyasi1-2",
+      text:
+        "Kampanya, 8049-AYAK RAHATSIZLIKLARI UZMANLARI olan üye iş yerlerinde geçerlidir. " +
+        "TROY kredi kartlarınız ile yapacağınız 1.000 TL-100.000 TL arası sağlık harcamalarınıza vade farksız 6 taksit fırsatı.",
+      categoryHint: "card_campaign",
+    });
+
+    expect(rows[0].maxTermMonths).toBe(6);
+    expect(rows[0].installmentCount).toBe(6);
+  });
 });

@@ -12,6 +12,15 @@ type LiveCampaign = {
   campaignEnd?: string | null;
   campaignTheme?: string | null;
   category?: string | null;
+  rewardAmountTl?: number | null;
+  rewardType?: string | null;
+  installmentCount?: number | null;
+  maxTermMonths?: number | null;
+  profitRate?: number | null;
+  ratePeriod?: string | null;
+  conditions?: string[];
+  participationMethod?: string | null;
+  manualReviewRequired?: boolean;
 };
 
 type ThemeKey =
@@ -41,6 +50,12 @@ const TEMA_ETIKET: Record<string, string> = {
   new_customer: 'YENİ MÜŞTERİ',
   general: 'GENEL',
 };
+
+const tl = new Intl.NumberFormat('tr-TR', {
+  style: 'currency',
+  currency: 'TRY',
+  maximumFractionDigits: 0,
+});
 
 /** Scrape / DB’den gelen canlı kampanyalar — statik mock yok. */
 export const CampaignsView: React.FC = () => {
@@ -149,6 +164,9 @@ export const CampaignsView: React.FC = () => {
           const bitis = k.campaignEnd
             ? String(k.campaignEnd).slice(0, 10)
             : null;
+          const kosul = k.conditions?.find(Boolean) || k.participationMethod || null;
+          const taksit = k.installmentCount || k.maxTermMonths || null;
+          const oran = typeof k.profitRate === 'number' ? `%${k.profitRate.toLocaleString('tr-TR')}` : null;
           const rowKey = `${k.bankId}-${k.sourceUrl || k.id || baslik}`;
           return (
             <li
@@ -167,6 +185,28 @@ export const CampaignsView: React.FC = () => {
                 </span>
               </div>
               <h3 className="mt-3 text-sm font-medium text-txt">{baslik}</h3>
+              {kosul && (
+                <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-txt-secondary">
+                  {kosul}
+                </p>
+              )}
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {oran && (
+                  <span className="rounded border border-line bg-sunken px-2 py-1 text-[0.6875rem] text-txt-secondary">
+                    Kâr payı {oran}
+                  </span>
+                )}
+                {taksit && (
+                  <span className="rounded border border-line bg-sunken px-2 py-1 text-[0.6875rem] text-txt-secondary">
+                    {taksit} taksit/ay
+                  </span>
+                )}
+                {k.rewardAmountTl != null && (
+                  <span className="rounded border border-line bg-sunken px-2 py-1 text-[0.6875rem] text-txt-secondary">
+                    {tl.format(k.rewardAmountTl)} {k.rewardType === 'puan' ? 'puan' : k.rewardType === 'indirim' ? 'indirim' : 'ödül'}
+                  </span>
+                )}
+              </div>
               {k.sourceUrl ? (
                 <a
                   href={k.sourceUrl}
