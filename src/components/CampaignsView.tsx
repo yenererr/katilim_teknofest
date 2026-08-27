@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, ExternalLink, Loader2 } from 'lucide-react';
 import { BANKA_INDEKS } from '../data/piyasa';
+import { kisaKampanyaAciklama } from '../lib/kampanyaOzet';
 import { BankMark } from './BankMark';
 
 type LiveCampaign = {
@@ -175,7 +176,11 @@ export const CampaignsView: React.FC = () => {
           const bitis = k.campaignEnd
             ? String(k.campaignEnd).slice(0, 10)
             : null;
-          const kosul = k.conditions?.find(Boolean) || k.participationMethod || null;
+          const kosul =
+            k.conditions?.find(Boolean) ||
+            k.participationMethod ||
+            kisaKampanyaAciklama(k) ||
+            null;
           const taksit = k.installmentCount || k.maxTermMonths || null;
           const oran = typeof k.profitRate === 'number' ? oranEtiketi(k.profitRate) : null;
           const rowKey = `${k.bankId}-${k.sourceUrl || k.id || baslik}`;

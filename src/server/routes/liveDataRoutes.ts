@@ -12,6 +12,23 @@ import { listMemoryCampaigns, listMemoryProducts, isPostgresConfigured, ensureSc
 import { getCollectionHealth, isQdrantConfigured } from "../services/qdrant";
 import { BANK_SOURCE_CONFIGS } from "../services/scraper/bankSourceConfig";
 import { getVerifiedFeeMatrix } from "../../data/verifiedFees";
+import {
+  convertWithTcmb,
+  getTcmbFxRates,
+  type FxCode,
+  type FxCurrency,
+} from "../services/tcmb/tcmbRates";
+
+const FX_CODES = ["USD", "EUR", "GBP"] as const;
+
+function parseFxCurrency(raw: unknown): FxCurrency | null {
+  const s = String(raw || "")
+    .trim()
+    .toUpperCase();
+  if (s === "TRY" || s === "TL") return "TRY";
+  if ((FX_CODES as readonly string[]).includes(s)) return s as FxCode;
+  return null;
+}
 
 export function createLiveDataRouter(): Router {
   const router = Router();
@@ -20,6 +37,40 @@ export function createLiveDataRouter(): Router {
   /** Doğrulanmış FAST / EFT / aidat matrisi — tahmin yok. */
   router.get("/fees", (_req, res) => {
     res.json(getVerifiedFeeMatrix());
+  });
+
+  /** TCMB günlük döviz kurları (USD / EUR / GBP). */
+  router.get("/fx", async (_req, res) => {
+    try {
+      const snapshot = await getTcmbFxRates();
+      return res.json(snapshot);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "TCMB kurları alınamadı.";
+      console.warn("[live/fx]", message);
+      return res.status(502).json({ error: message });
+    }
+  });
+
+  /** TCMB kurlarıyla çeviri: ?amount=100000&from=TRY&to=USD */
+  router.get("/fx/convert", async (req, res) => {
+    const amount = Number(String(req.query.amount ?? "").replace(",", "."));
+    const from = parseFxCurrency(req.query.from);
+    const to = parseFxCurrency(req.query.to);
+    if (!(amount > 0) || !from || !to) {
+      return res.status(400).json({
+        error: "amount, from ve to gerekli. Örnek: amount=100000&from=TRY&to=USD",
+      });
+    }
+    try {
+      const snapshot = await getTcmbFxRates();
+      return res.json(convertWithTcmb(snapshot, amount, from, to));
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Çeviri yapılamadı.";
+      console.warn("[live/fx/convert]", message);
+      return res.status(502).json({ error: message });
+    }
   });
 
   router.get("/sources", (_req, res) => {

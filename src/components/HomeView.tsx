@@ -23,9 +23,12 @@ import {
   VARSAYILAN_TUTAR,
 } from '../data/piyasa';
 import { aylikTaksit, oranBicim, sayiBicim, tlBicim } from '../lib/finansman';
+import { kisaKampanyaAciklama } from '../lib/kampanyaOzet';
 import { KarsilastirmaOgesi } from '../lib/compare';
 import { FINANSMAN_NOTLARI_BY_KEY } from '../data/finansmanNotlari';
 import { BankMark } from './BankMark';
+import { FxConverter } from './FxConverter';
+import { FxRateTicker } from './FxRateTicker';
 import { TabKey } from './nav';
 
 type LiveCampaignOzet = {
@@ -36,6 +39,15 @@ type LiveCampaignOzet = {
   sourceUrl?: string | null;
   campaignEnd?: string | null;
   campaignTheme?: string | null;
+  conditions?: string[] | null;
+  participationMethod?: string | null;
+  evidence?: Array<string | { text?: unknown }> | null;
+  installmentCount?: number | null;
+  maxTermMonths?: number | null;
+  minAmountTl?: number | null;
+  maxAmountTl?: number | null;
+  rewardAmountTl?: number | null;
+  rewardType?: string | null;
 };
 
 export interface KarsilastirmaTalebi {
@@ -98,6 +110,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const tur: FinansmanTuru = secilen?.temelTur ?? talep.tur;
   const [tutarMetni, setTutarMetni] = useState<string>(sayiBicim(talep.tutar));
   const [vadeAy, setVadeAy] = useState<number>(talep.vadeAy);
+  const [vadeMetni, setVadeMetni] = useState<string>(String(talep.vadeAy));
   const [soru, setSoru] = useState('');
   /** Özel kâr oranı — işaretlenince kullanıcı oranı kullanılır. */
   const [oranOzel, setOranOzel] = useState(false);
@@ -291,12 +304,25 @@ export const HomeView: React.FC<HomeViewProps> = ({
     setSecenek(yeniKey);
     const yeni = FINANSMAN_SECENEKLERI.find((f) => f.key === yeniKey);
     if (!yeni) return;
-    // Tutar ve vade seçilen türün makul aralığına çekilir.
     setTutarMetni(sayiBicim(VARSAYILAN_TUTAR[yeni.temelTur]));
-    const vadeler = VADELER[yeni.temelTur];
-    if (!vadeler.includes(vadeAy)) {
-      setVadeAy(vadeler[Math.floor(vadeler.length / 2)]);
+    // Kullanıcının yazdığı vade korunur (1–360 ay).
+    if (vadeAy < 1 || vadeAy > 360) {
+      const vadeler = VADELER[yeni.temelTur];
+      const varsayilan = vadeler[Math.floor(vadeler.length / 2)];
+      setVadeAy(varsayilan);
+      setVadeMetni(String(varsayilan));
     }
+  };
+
+  const vadeUygula = (ham: string) => {
+    const n = Number(ham.replace(/[^\d]/g, ''));
+    if (!Number.isFinite(n) || n < 1) {
+      setVadeMetni(String(vadeAy));
+      return;
+    }
+    const ay = Math.min(360, Math.floor(n));
+    setVadeAy(ay);
+    setVadeMetni(String(ay));
   };
 
   const karsilastirGonder = (event: React.FormEvent) => {
@@ -412,18 +438,29 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </label>
 
               <label className="block">
-                <span className="mb-1 block text-xs font-medium text-txt-muted">Vade</span>
-                <select
-                  value={vadeAy}
-                  onChange={(e) => setVadeAy(Number(e.target.value))}
-                  className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-txt transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
-                >
+                <span className="mb-1 block text-xs font-medium text-txt-muted">Vade (Ay)</span>
+                <span className="relative block">
+                  <input
+                    list={`home-vade-${tur}`}
+                    inputMode="numeric"
+                    value={vadeMetni}
+                    onChange={(e) => setVadeMetni(e.target.value)}
+                    onBlur={() => vadeUygula(vadeMetni)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') vadeUygula(vadeMetni);
+                    }}
+                    aria-label="Vade ay olarak"
+                    className="tnum h-11 w-full rounded-lg border border-line bg-surface px-3 pr-10 font-mono text-sm text-txt transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+                  />
+                  <span className="pointer-events-none absolute inset-y-0 right-3 grid place-items-center text-xs text-txt-muted">
+                    Ay
+                  </span>
+                </span>
+                <datalist id={`home-vade-${tur}`}>
                   {VADELER[tur].map((v) => (
-                    <option key={v} value={v}>
-                      {v} Ay
-                    </option>
+                    <option key={v} value={v} />
                   ))}
-                </select>
+                </datalist>
               </label>
 
               <button
@@ -492,6 +529,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <p className="text-[11px] leading-relaxed text-txt-muted">{turNotu.metin}</p>
         )}
       </form>
+
+      <FxRateTicker />
 
       {/* ---------- Güven şeridi ---------- */}
       <section className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line shadow-flat lg:grid-cols-4">
@@ -699,6 +738,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
               Bilinmeyen bankalar tire ile gösterilir; ayrıntılı tablo Ücretler sekmesinde.
             </p>
           </section>
+
+          <FxConverter />
         </div>
 
         {/* Sağ sütun */}
@@ -723,6 +764,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 const baslik = k.title || k.productName || 'Kampanya';
                 const tema = k.campaignTheme || 'general';
                 const bitis = k.campaignEnd ? String(k.campaignEnd).slice(0, 10) : null;
+                const aciklama = kisaKampanyaAciklama(k);
                 return (
                   <li
                     key={`${k.bankId}|${k.sourceUrl || k.id || baslik}`}
@@ -740,6 +782,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
                       </span>
                     </div>
                     <p className="mt-2 text-sm font-medium text-txt">{baslik}</p>
+                    {aciklama ? (
+                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-txt-secondary">
+                        {aciklama}
+                      </p>
+                    ) : null}
                     <div className="mt-2.5 flex items-center justify-between gap-2">
                       <span className="text-xs text-txt-muted">
                         {bitis ? `Bitiş: ${bitis}` : 'Bitiş tarihi belirtilmemiş'}

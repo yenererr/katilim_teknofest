@@ -164,6 +164,7 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
     () => FINANSMAN_SECENEKLERI.find((f) => f.temelTur === talep.tur)?.key ?? 'tasit_finansmani',
   );
   const [tutarMetni, setTutarMetni] = useState(sayiBicim(talep.tutar));
+  const [vadeMetni, setVadeMetni] = useState(String(talep.vadeAy));
   const [oranOzel, setOranOzel] = useState(false);
   const [oranMetni, setOranMetni] = useState('3,99');
   const [hesapTipi, setHesapTipi] = useState<'1' | '2'>('1');
@@ -186,6 +187,7 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
 
   useEffect(() => {
     setTutarMetni(sayiBicim(talep.tutar));
+    setVadeMetni(String(talep.vadeAy));
     const eslesen = FINANSMAN_SECENEKLERI.find((f) => f.temelTur === talep.tur);
     if (eslesen && !FINANSMAN_SECENEKLERI.find((f) => f.key === secenek && f.temelTur === talep.tur)) {
       setSecenek(eslesen.key);
@@ -325,16 +327,30 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
     setTutarMetni(sayiBicim(yeni > 0 ? yeni : talep.tutar));
   };
 
+  const vadeUygula = (ham: string) => {
+    const n = Number(ham.replace(/[^\d]/g, ''));
+    if (!Number.isFinite(n) || n < 1) {
+      setVadeMetni(String(talep.vadeAy));
+      return;
+    }
+    const vadeAy = Math.min(360, Math.floor(n));
+    setVadeMetni(String(vadeAy));
+    if (vadeAy !== talep.vadeAy) onTalepDegisti({ ...talep, vadeAy });
+  };
+
   const secenekDegistir = (yeniKey: string) => {
     setSecenek(yeniKey);
     const yeni = FINANSMAN_SECENEKLERI.find((f) => f.key === yeniKey);
     if (!yeni) return;
     const tutarYeni = VARSAYILAN_TUTAR[yeni.temelTur];
+    // Kullanıcının yazdığı vade korunur; yoksa türün ortanca önerisi.
     const vadeler = VADELER[yeni.temelTur];
-    const vadeAy = vadeler.includes(talep.vadeAy)
-      ? talep.vadeAy
-      : vadeler[Math.floor(vadeler.length / 2)];
+    const vadeAy =
+      talep.vadeAy >= 1 && talep.vadeAy <= 360
+        ? talep.vadeAy
+        : vadeler[Math.floor(vadeler.length / 2)];
     setTutarMetni(sayiBicim(tutarYeni));
+    setVadeMetni(String(vadeAy));
     onTalepDegisti({ tur: yeni.temelTur, tutar: tutarYeni, vadeAy });
   };
 
@@ -382,18 +398,29 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-xs text-txt-secondary">Vade</span>
-            <select
-              value={talep.vadeAy}
-              onChange={(e) => onTalepDegisti({ ...talep, vadeAy: Number(e.target.value) })}
-              className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-txt"
-            >
+            <span className="mb-1 block text-xs text-txt-secondary">Vade (Ay)</span>
+            <span className="relative block">
+              <input
+                list={`finansman-vade-${talep.tur}`}
+                inputMode="numeric"
+                value={vadeMetni}
+                onChange={(e) => setVadeMetni(e.target.value)}
+                onBlur={() => vadeUygula(vadeMetni)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') vadeUygula(vadeMetni);
+                }}
+                aria-label="Vade ay olarak"
+                className="tnum h-11 w-full rounded-lg border border-line bg-surface px-3 pr-10 font-mono text-sm text-txt"
+              />
+              <span className="pointer-events-none absolute inset-y-0 right-3 grid place-items-center text-xs text-txt-muted">
+                Ay
+              </span>
+            </span>
+            <datalist id={`finansman-vade-${talep.tur}`}>
               {VADELER[talep.tur].map((v) => (
-                <option key={v} value={v}>
-                  {v} Ay
-                </option>
+                <option key={v} value={v} />
               ))}
-            </select>
+            </datalist>
           </label>
         </div>
 

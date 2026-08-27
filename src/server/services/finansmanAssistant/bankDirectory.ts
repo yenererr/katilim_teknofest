@@ -21,6 +21,7 @@ import {
   parseCampaignThemeFromMessage,
   prettifyCampaignTitle,
 } from "../scraper/campaignNormalize";
+import { kisaKampanyaAciklama } from "../../../lib/kampanyaOzet";
 
 export type RehberSonucu = {
   message: string;
@@ -291,69 +292,6 @@ function ucretYaniti(mesaj: string): RehberSonucu {
       `işlem öncesi bankadan teyit edin.`,
     citations: [],
   };
-}
-
-function kisaltMetin(metin: string, max = 140): string {
-  const temiz = metin.replace(/\s+/g, " ").trim();
-  if (temiz.length <= max) return temiz;
-  const kes = temiz.slice(0, max - 1);
-  const sonBosluk = kes.lastIndexOf(" ");
-  return `${(sonBosluk > 80 ? kes.slice(0, sonBosluk) : kes).trim()}…`;
-}
-
-/** Kampanya kaydından tek cümlelik özet (koşul / kanıt / yapılandırılmış alan). */
-function kisaKampanyaAciklama(c: Record<string, unknown>): string | null {
-  const conditions = Array.isArray(c.conditions)
-    ? c.conditions.map((x) => String(x || "").trim()).filter(Boolean)
-    : [];
-  if (conditions[0]) return kisaltMetin(conditions[0]);
-
-  const evidence = Array.isArray(c.evidence) ? c.evidence : [];
-  for (const ev of evidence) {
-    if (typeof ev === "string" && ev.trim()) return kisaltMetin(ev);
-    if (ev && typeof ev === "object" && "text" in ev) {
-      const t = String((ev as { text?: unknown }).text || "").trim();
-      if (t) return kisaltMetin(t);
-    }
-  }
-
-  const parts: string[] = [];
-  const taksit = c.installmentCount ?? c.maxTermMonths;
-  if (taksit != null && Number(taksit) > 0) {
-    parts.push(`vade farksız ${Number(taksit)} taksit`);
-  }
-  const minTl = c.minAmountTl != null ? Number(c.minAmountTl) : null;
-  const maxTl = c.maxAmountTl != null ? Number(c.maxAmountTl) : null;
-  if (minTl != null && maxTl != null && !Number.isNaN(minTl) && !Number.isNaN(maxTl)) {
-    parts.push(
-      `${minTl.toLocaleString("tr-TR")}–${maxTl.toLocaleString("tr-TR")} TL arası`,
-    );
-  } else if (maxTl != null && !Number.isNaN(maxTl)) {
-    parts.push(`${maxTl.toLocaleString("tr-TR")} TL'ye kadar`);
-  }
-  if (c.rewardAmountTl != null && !Number.isNaN(Number(c.rewardAmountTl))) {
-    const tip = String(c.rewardType || "ödül").trim();
-    parts.push(
-      `${Number(c.rewardAmountTl).toLocaleString("tr-TR")} TL ${tip}`,
-    );
-  }
-  if (c.participationMethod) {
-    parts.push(String(c.participationMethod).trim());
-  }
-  if (parts.length) return kisaltMetin(parts.join("; "));
-
-  // Başlıktan kaba ama dürüst özet (scrapede koşul yoksa)
-  const baslik = asciiKatla(String(c.title || c.productName || ""));
-  if (/kirtasiye/.test(baslik) && /taksit/.test(baslik)) {
-    return "Uygun kırtasiye harcamalarında vade farksız taksit.";
-  }
-  if (/egitim|okul/.test(baslik) && /taksit/.test(baslik)) {
-    return "Uygun eğitim/okul harcamalarında vade farksız taksit.";
-  }
-  if (/okula\s*don/.test(baslik)) {
-    return "Okula dönüş dönemine özel kart/kampanya avantajı.";
-  }
-  return null;
 }
 
 function kampanyaSatiri(c: Record<string, unknown>): string {

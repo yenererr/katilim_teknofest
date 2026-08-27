@@ -19,6 +19,8 @@ import {
   resolveKuveytProduct,
 } from "../services/calculators/kuveytTurkCalculator";
 import { bicimleOdemePlani, hesaplaOdemePlani } from "../../lib/odemePlani";
+import { KAR_PAYI_VADELER } from "../services/calculators/karPayiShared";
+import { karsilastirKarPayi } from "../services/calculators/karPayiCompare";
 
 const finansmanTuru = z.enum(
   Object.keys(VAKIF_FINANSMAN_KODLARI) as [VakifFinansmanTuru, ...VakifFinansmanTuru[]],
@@ -30,6 +32,18 @@ const hesaplaBody = z.object({
   termMonths: z.number().int().positive().max(360),
   profitRatePercent: z.number().positive().max(100).nullable().optional(),
   calculateType: z.enum(["1", "2"]).optional().default("1"),
+});
+
+const karPayiTerm = z.enum(
+  KAR_PAYI_VADELER.map((v) => v.key) as [
+    (typeof KAR_PAYI_VADELER)[number]["key"],
+    ...(typeof KAR_PAYI_VADELER)[number]["key"][],
+  ],
+);
+
+const karPayiBody = z.object({
+  amount: z.number().positive().max(50_000_000),
+  term: karPayiTerm,
 });
 
 const odemePlaniBody = z.object({
@@ -194,6 +208,36 @@ export function createCalculatorRouter(): Router {
   });
   router.post("/vakif-katilim/odeme-plani", (req, res) => {
     void handleOdemePlani(req, res);
+  });
+
+  router.post("/kar-payi", async (req, res) => {
+    const parsed = karPayiBody.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        error: "Geçersiz istek gövdesi.",
+        details: parsed.error.flatten(),
+      });
+    }
+    try {
+      const results = await karsilastirKarPayi({
+        amount: parsed.data.amount,
+        term: parsed.data.term,
+        currency: "TRY",
+      });
+      return res.json({
+        amount: parsed.data.amount,
+        term: parsed.data.term,
+        currency: "TRY",
+        disclaimer:
+          "Sonuçlar bankaların resmî hesaplama araçlarından alınır; gösterge niteliğindedir, vade sonunda gerçekleşen kâr payı taahhüt değildir.",
+        results,
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Kâr payı hesaplanamadı.";
+      console.warn("[Hesaplama][kar-payi]", message);
+      return res.status(502).json({ error: message });
+    }
   });
 
   router.get("/vakif-katilim/vadeler", async (req, res) => {

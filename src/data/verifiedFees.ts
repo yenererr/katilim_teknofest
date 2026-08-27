@@ -60,11 +60,59 @@ export const FEE_SOURCES: FeeSourceRef[] = [
     label: "Ziraat Katılım kurumsal form — mobil EFT ücretsiz (tüm dilimler)",
     checkedAt: "2026-08-27",
   },
+  {
+    bankId: "albaraka",
+    url: "https://www.albaraka.com.tr/tr/urun-ve-hizmet-ucretleri",
+    label: "Albaraka — dijital EFT/FAST ücretsiz; klasik/gold/platinum kart aidatsız",
+    checkedAt: "2026-08-27",
+  },
+  {
+    bankId: "albaraka",
+    url: "https://www.albaraka.com.tr/tr/kampanyalar/detay/albarakada-masraflara-son",
+    label: "Albaraka — Masraflara Son (hesap işletim 0, EFT/Havale/FAST 0, ATM ağı ücretsiz)",
+    checkedAt: "2026-08-27",
+  },
+  {
+    bankId: "hayat-finans",
+    url: "https://www.hayatfinans.com.tr/urun-ve-hizmet-ucretleri",
+    label: "Hayat Finans — resmi tarife: EFT/FAST ücretsiz; anlaşmalı ATM para çekme ücretsiz",
+    checkedAt: "2026-08-27",
+  },
+  {
+    bankId: "hayat-finans",
+    url: "https://hayatfinans.com.tr/masrafsiz-bankacilik",
+    label: "Hayat Finans — Masrafsız Bankacılık (hesap işletim alınmaz)",
+    checkedAt: "2026-08-27",
+  },
+  {
+    bankId: "tom-katilim",
+    url: "https://www.tombank.com.tr/assets/images/doc/urun_ve_hizmet_ucretleri.pdf",
+    label: "TOM Bank — resmi PDF: FAST ve EFT tüm dilimler ücretsiz (06.01.2025)",
+    checkedAt: "2026-08-27",
+  },
+  {
+    bankId: "tom-katilim",
+    url: "https://tombank.com.tr/",
+    label: "TOM Bank — aidatsız kredi kartı / ücretsiz para transferi duyurusu",
+    checkedAt: "2026-08-27",
+  },
+  {
+    bankId: "emlak-katilim",
+    url: "https://asset.emlakkatilim.com.tr/documents/urun-ve-hizmet-ucretleri/breysel-bankacilik-urun-ve-hzmet-ucretler-2026-tr.pdf",
+    label: "Emlak Katılım 2026 bireysel tarife — mobil/internet EFT, kendi ATM çekim, kart yıllık 0",
+    checkedAt: "2026-08-27",
+  },
+  {
+    bankId: "dunya-katilim",
+    url: "https://www.dunyakatilim.com.tr/",
+    label: "Dünya Katılım — mobil/internet EFT ve havale masrafsız",
+    checkedAt: "2026-08-27",
+  },
 ];
 
 /**
  * Yalnızca kaynakla desteklenen hücreler doldurulur.
- * Diğer bankalar null kalır (tahmin yok).
+ * Diğer bankalar null/eksik kalır (tahmin yok).
  */
 export const VERIFIED_FEES: UcretKalemi[] = [
   {
@@ -73,10 +121,14 @@ export const VERIFIED_FEES: UcretKalemi[] = [
     aciklama:
       "Mobil / internet üzerinden anlık transfer. BSMV hariç; şube/ATM kanalı farklı olabilir.",
     degerler: {
-      "vakif-katilim": 0,
+      albaraka: 0,
+      "hayat-finans": 0,
       "kuveyt-turk": 0,
+      "tom-katilim": 0,
       "turkiye-finans": 0,
+      "vakif-katilim": 0,
       "ziraat-katilim": 0,
+      // Adil / Dünya / Emlak: genel tarifede doğrulanmış ücretsiz ilan yok
     },
   },
   {
@@ -85,11 +137,14 @@ export const VERIFIED_FEES: UcretKalemi[] = [
     aciklama:
       "Orta tutar diliminde dijital kanal EFT. Banka duyurusu veya tarifede ücretsiz ilan edilenler 0.",
     degerler: {
-      // Vakıf: 22.01.2026 duyurusu — mobil/internet Havale/EFT/FAST ücretsiz devam
-      "vakif-katilim": 0,
+      albaraka: 0,
+      "dunya-katilim": 0,
+      "emlak-katilim": 0,
+      "hayat-finans": 0,
       "kuveyt-turk": 0,
+      "tom-katilim": 0,
       "turkiye-finans": 0,
-      // Kurumsal formda mobil/internet tüm dilimler ücretsiz; bireysel tarife teyidi önerilir
+      "vakif-katilim": 0,
       "ziraat-katilim": 0,
     },
   },
@@ -98,8 +153,10 @@ export const VERIFIED_FEES: UcretKalemi[] = [
     etiket: "Hesap işletim ücreti",
     aciklama: "Katılma / vadesiz hesap işletim ücreti (aylık veya işlem bazlı ilan).",
     degerler: {
-      "vakif-katilim": 0,
+      albaraka: 0,
+      "hayat-finans": 0,
       "turkiye-finans": 0,
+      "vakif-katilim": 0,
     },
   },
   {
@@ -108,17 +165,26 @@ export const VERIFIED_FEES: UcretKalemi[] = [
     aciklama:
       "Seçili aidatsız kart ürünü varsa 0. Diğer kartlarda aidat ürüne göre değişir — bilinmeyenler boş.",
     degerler: {
-      // Happy Bonus Zero — aidatsız (kampanya/ürün sayfası)
+      // Klasik / Gold / Platinum ücretsiz; özel bankacılık kartları ücretli olabilir
+      albaraka: 0,
+      // Paraf Troy yıllık 0
+      "emlak-katilim": 0,
+      // Aidatsız kredi kartı ürünü
+      "tom-katilim": 0,
+      // Happy Bonus Zero — aidatsız
       "turkiye-finans": 0,
     },
   },
   {
     key: "atm_nakit",
     etiket: "ATM nakit çekim (kendi ATM)",
-    aciklama: "Bankanın kendi ATM’sinden nakit çekim. Ortak ATM ücretleri ayrıdır.",
+    aciklama:
+      "Bankanın kendi ATM’sinden nakit çekim. Ortak / anlaşmalı ATM ücretleri ayrıdır (Hayat Finans vb. için tarife anlaşmalı ATM’yi kapsar — bu satırda gösterilmez).",
     degerler: {
-      "vakif-katilim": 0,
+      albaraka: 0,
+      "emlak-katilim": 0,
       "turkiye-finans": 0,
+      "vakif-katilim": 0,
     },
   },
 ];

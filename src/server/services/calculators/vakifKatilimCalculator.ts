@@ -188,7 +188,8 @@ async function ensureSession(
   return session;
 }
 
-async function postPlugin(
+/** Vakıf plugin POST (finansman + kâr payı hesaplayıcıları paylaşır). */
+export async function postVakifPlugin(
   path: string,
   params: Record<string, string>,
   fetchImpl: typeof fetch,
@@ -221,7 +222,7 @@ async function postPlugin(
     // Token süresi dolmuş olabilir — bir kez yeni oturumla denenir.
     if (retry) {
       await ensureSession(fetchImpl, true);
-      return postPlugin(path, params, fetchImpl, false);
+      return postVakifPlugin(path, params, fetchImpl, false);
     }
     throw new Error(`Vakıf Katılım isteği reddedildi (HTTP ${res.status}).`);
   }
@@ -248,7 +249,7 @@ export async function getVakifVadeSecenekleri(
   financingType: VakifFinansmanTuru,
   fetchImpl: typeof fetch = fetch,
 ): Promise<number[]> {
-  const json = await postPlugin(
+  const json = await postVakifPlugin(
     INSTALLMENTS_PATH,
     { financingType: VAKIF_FINANSMAN_KODLARI[financingType] },
     fetchImpl,
@@ -268,7 +269,7 @@ export async function hesaplaVakifKatilim(
   fetchImpl: typeof fetch = fetch,
 ): Promise<VakifHesaplamaSonucu> {
   const calculateType = opts.calculateType ?? "1";
-  const json = await postPlugin(CALC_PATH, calcParams(opts), fetchImpl);
+  const json = await postVakifPlugin(CALC_PATH, calcParams(opts), fetchImpl);
 
   if (json.isErrorFriendly === true || json.errorMessage) {
     // Banka tarafından gelen açıklayıcı kısıt mesajı (ör. tutar üst sınırı).
@@ -317,7 +318,7 @@ export async function getVakifOdemePlani(
   opts: VakifHesaplamaOpts,
   fetchImpl: typeof fetch = fetch,
 ): Promise<VakifOdemePlani> {
-  const json = await postPlugin(PAYMENT_PLAN_PATH, calcParams(opts), fetchImpl);
+  const json = await postVakifPlugin(PAYMENT_PLAN_PATH, calcParams(opts), fetchImpl);
 
   if (json.isErrorFriendly === true || json.errorMessage) {
     throw new VakifKisitHatasi(

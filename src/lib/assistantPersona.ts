@@ -17,10 +17,11 @@ export const CAPABILITIES_MESSAGE = `Şunlarda yardımcı olabilirim:
 • **Finansman karşılaştırma** — ihtiyaç, taşıt, konut vb. için tutar ve vadeye göre katılım bankalarını yan yana koyarım
 • **Ödeme planı** — aylık taksit, kâr, KKDF/BSMV satırlarını Hesaplama sayfasında gösterirım
 • **Canlı oranlar** — Vakıf Katılım, Ziraat Katılım ve Kuveyt Türk hesaplama araçlarından gelen sonuçlar
+• **Döviz çevirisi** — TCMB güncel kurlarıyla TL ↔ dolar / euro / sterlin
 • **Kampanya ve ürün soruları** — resmî kaynaklara dayalı kısa cevaplar
 • **Terimler** — murabaha, kâr payı, tahsis ücreti gibi kavramlar
 
-Örnek: “150.000 TL taşıt, 36 ay” veya “oranı %3,99 yap, ödeme planı göster”.`;
+Örnek: “150.000 TL taşıt, 36 ay”, “100.000 TL kaç dolar?” veya “oranı %3,99 yap, ödeme planı göster”.`;
 
 /** “Nasılsın?” / sohbet */
 export const SMALLTALK_MESSAGE = `İyiyim, teşekkürler — sen nasılsın?
@@ -54,6 +55,7 @@ KİŞİLİK
 
 NE YAPARSIN
 - Katılım bankaları finansmanı (ihtiyaç, taşıt, konut, işyeri, arsa), kâr payı, vade, tahsis, kampanya, ürün ve terim soruları.
+- TCMB döviz kuru ve TL ↔ USD/EUR/GBP çeviri soruları (sistem başka kanaldan yanıtlar; kur uydurma).
 - Selam, “nasılsın”, “neler yapabilirsin” gibi sohbetlerde kibarca yanıt ver; ardından ne yapabileceğini bir cümlede özetle ve somut bir örnek öner.
 - Konu dışı isteklerde (yemek tarifi, hava durumu, genel sohbet dışı eğlence) nazikçe reddet ve finansmana yönlendir.
 

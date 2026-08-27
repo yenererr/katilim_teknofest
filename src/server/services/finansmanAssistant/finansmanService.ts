@@ -29,6 +29,7 @@ import { runRagChat } from "../rag/ragService";
 import { rehberNiyetiTespit, rehberYaniti, bekleyenTakibiCoz, kampanyaSinyaliVar, bankaBul } from "./bankDirectory";
 import { parseCampaignThemeFromMessage } from "../scraper/campaignNormalize";
 import { sozluktenYanitla } from "./terimSozlugu";
+import { dovizAsistanYaniti, isDovizMesaji } from "./dovizAsistan";
 import { hesaplaOdemePlani } from "../../../lib/odemePlani";
 import { enrichWithLiveCalculators } from "./liveCalculatorEnrichment";
 import { BANKA_INDEKS } from "../../../data/piyasa";
@@ -804,6 +805,62 @@ export async function runFinansmanAssistantChat(
       warnings: [],
       citations: [],
     };
+  }
+
+  // TCMB döviz kuru / TL↔USD-EUR-GBP çeviri
+  if (isDovizMesaji(req.message)) {
+    try {
+      const doviz = await dovizAsistanYaniti(req.message);
+      conversations.set(conversationId, { ...state, pendingFollowUp: null });
+      return {
+        conversationId,
+        assistantMessage: doviz.message,
+        status: "general_answer",
+        missingFields: [],
+        quickReplies: [
+          {
+            id: "fx-usd",
+            label: "100.000 TL kaç dolar?",
+            value: "100.000 TL kaç dolar?",
+          },
+          {
+            id: "fx-eur",
+            label: "2.000 euro kaç TL?",
+            value: "2.000 euro kaç TL?",
+          },
+          {
+            id: "fx-kur",
+            label: "Güncel kurlar",
+            value: "TCMB döviz kurları",
+          },
+        ],
+        query: state,
+        exactMatches: [],
+        flexibleMatches: [],
+        summary: emptySummary(),
+        warnings: [],
+        citations: doviz.citations,
+      };
+    } catch (err) {
+      const tip =
+        err instanceof Error ? err.message : "TCMB kurları alınamadı.";
+      conversations.set(conversationId, { ...state, pendingFollowUp: null });
+      return {
+        conversationId,
+        assistantMessage:
+          `Şu an Merkez Bankası kurlarına ulaşamadım (${tip}). ` +
+          `Biraz sonra tekrar deneyebilirsiniz; finansman karşılaştırması için tutar ve amacı yazmanız yeterli.`,
+        status: "general_answer",
+        missingFields: [],
+        quickReplies: purposeQuickReplies().slice(0, 3),
+        query: state,
+        exactMatches: [],
+        flexibleMatches: [],
+        summary: emptySummary(),
+        warnings: [tip],
+        citations: [],
+      };
+    }
   }
 
   // Bekleyen takip (ör. “listele yazın”) veya yeni rehber sorusu

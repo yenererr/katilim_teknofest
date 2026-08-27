@@ -1,8 +1,10 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Loader2, Printer } from "lucide-react";
-import { sayiBicim } from "../lib/finansman";
+import { ExternalLink, Loader2, Printer } from "lucide-react";
+import { sayiBicim, tlBicim2 } from "../lib/finansman";
 import { bicimleOdemePlani, hesaplaOdemePlani } from "../lib/odemePlani";
 import { FINANSMAN_NOTLARI_BY_CODE } from "../data/finansmanNotlari";
+import { BANKA_INDEKS } from "../data/piyasa";
+import { BankMark } from "./BankMark";
 
 type FinancingType =
   | "ihtiyac_finansmani"
@@ -14,6 +16,30 @@ type FinancingType =
   | "arsa_finansmani";
 
 type CalculateType = "1" | "2";
+
+type KarPayiTerm = "1m" | "3m" | "6m" | "12m" | "12p";
+
+type KarPayiRow = {
+  bankId: string;
+  available: boolean;
+  reason?: string;
+  accountName: string | null;
+  grossProfit: number | null;
+  netProfit: number | null;
+  totalAmount: number | null;
+  grossRatePercent: number | null;
+  netRatePercent: number | null;
+  shareCustomerPercent: number | null;
+  sourceUrl: string;
+};
+
+const KAR_PAYI_VADE_OPTIONS: Array<{ key: KarPayiTerm; label: string }> = [
+  { key: "1m", label: "1 Ay" },
+  { key: "3m", label: "3 Ay" },
+  { key: "6m", label: "6 Ay" },
+  { key: "12m", label: "1 Yıl" },
+  { key: "12p", label: "1 Yıl üzeri" },
+];
 
 type HesapSonuc = {
   available?: boolean;
@@ -95,6 +121,7 @@ export const VakifHesaplamaView: React.FC = () => {
     useState<FinancingType>("ihtiyac_finansmani");
   const [tutarMetni, setTutarMetni] = useState("100.000");
   const [vadeAy, setVadeAy] = useState(18);
+  const [vadeMetni, setVadeMetni] = useState("18");
   const [vadeler, setVadeler] = useState<number[]>(
     FALLBACK_VADELER.ihtiyac_finansmani,
   );
@@ -109,12 +136,20 @@ export const VakifHesaplamaView: React.FC = () => {
   const [planYukleniyor, setPlanYukleniyor] = useState(false);
   const [planHata, setPlanHata] = useState<string | null>(null);
   const [autoOpenPlan, setAutoOpenPlan] = useState(false);
+  const [karPayiTutarMetni, setKarPayiTutarMetni] = useState("100.000");
+  const [karPayiVade, setKarPayiVade] = useState<KarPayiTerm>("1m");
+  const [karPayiRows, setKarPayiRows] = useState<KarPayiRow[]>([]);
+  const [karPayiYukleniyor, setKarPayiYukleniyor] = useState(false);
+  const [karPayiHata, setKarPayiHata] = useState<string | null>(null);
+  const [karPayiDisclaimer, setKarPayiDisclaimer] = useState<string | null>(
+    null,
+  );
   const planRef = useRef<HTMLDivElement>(null);
   const pendingVadeRef = useRef<number | null>(null);
   const formId = useId();
   const bootstrappedQuery = useRef(false);
 
-  // Chatbot / deep-link: #/hesaplama?tutar=&vade=&oran=&tur=&plan=1
+  // Chatbot / deep-link: #/hesaplama?tutar=&vade=&oran=&tur=&plan=1&mode=kar-payi
   useEffect(() => {
     if (bootstrappedQuery.current) return;
     bootstrappedQuery.current = true;
@@ -122,6 +157,7 @@ export const VakifHesaplamaView: React.FC = () => {
     const qIdx = hash.indexOf("?");
     if (qIdx < 0) return;
     const params = new URLSearchParams(hash.slice(qIdx + 1));
+    if (params.get("mode") === "kar-payi") setMode("kar-payi");
     const tur = params.get("tur");
     if (tur && FINANSMAN_OPTIONS.some((o) => o.key === tur)) {
       setFinancingType(tur as FinancingType);
@@ -129,7 +165,10 @@ export const VakifHesaplamaView: React.FC = () => {
     const tutarP = params.get("tutar");
     if (tutarP) {
       const n = Number(tutarP.replace(/[^\d]/g, ""));
-      if (n > 0) setTutarMetni(sayiBicim(n));
+      if (n > 0) {
+        setTutarMetni(sayiBicim(n));
+        setKarPayiTutarMetni(sayiBicim(n));
+      }
     }
     const vadeP = params.get("vade");
     if (vadeP) {
@@ -137,6 +176,10 @@ export const VakifHesaplamaView: React.FC = () => {
       if (Number.isFinite(v) && v > 0) {
         pendingVadeRef.current = v;
         setVadeAy(v);
+        setVadeMetni(String(v));
+      }
+      if (KAR_PAYI_VADE_OPTIONS.some((o) => o.key === vadeP)) {
+        setKarPayiVade(vadeP as KarPayiTerm);
       }
     }
     const oranP = params.get("oran");
@@ -148,6 +191,10 @@ export const VakifHesaplamaView: React.FC = () => {
   }, []);
 
   const tutar = useMemo(() => parseMoneyInput(tutarMetni), [tutarMetni]);
+  const karPayiTutar = useMemo(
+    () => parseMoneyInput(karPayiTutarMetni),
+    [karPayiTutarMetni],
+  );
   const secilen = FINANSMAN_OPTIONS.find((f) => f.key === financingType)!;
   const customRate = oranOzel ? parseRateInput(oranMetni) : null;
 
@@ -178,16 +225,11 @@ export const VakifHesaplamaView: React.FC = () => {
         setVadeler(list);
         const pending = pendingVadeRef.current;
         pendingVadeRef.current = null;
-        if (pending != null && list.includes(pending)) {
+        if (pending != null && pending >= 1 && pending <= 360) {
           setVadeAy(pending);
-        } else {
-          const varsayilan = DEFAULT_VADER[financingType];
-          setVadeAy(
-            list.includes(varsayilan)
-              ? varsayilan
-              : list[Math.floor(list.length / 2)],
-          );
+          setVadeMetni(String(pending));
         }
+        // Kullanıcının yazdığı vade, banka listesinde olmasa da korunur.
       })
       .catch(() => {
         if (iptal) return;
@@ -195,8 +237,10 @@ export const VakifHesaplamaView: React.FC = () => {
         setVadeler(list);
         const pending = pendingVadeRef.current;
         pendingVadeRef.current = null;
-        if (pending != null && list.includes(pending)) setVadeAy(pending);
-        else setVadeAy(DEFAULT_VADER[financingType]);
+        if (pending != null && pending >= 1 && pending <= 360) {
+          setVadeAy(pending);
+          setVadeMetni(String(pending));
+        }
       });
     return () => {
       iptal = true;
@@ -256,6 +300,52 @@ export const VakifHesaplamaView: React.FC = () => {
       window.clearTimeout(t);
     };
   }, [body, mode, oranOzel]);
+
+  // Kâr payı: bankaların resmî araçlarından paralel karşılaştırma
+  useEffect(() => {
+    if (mode !== "kar-payi" || karPayiTutar <= 0) {
+      setKarPayiRows([]);
+      return;
+    }
+    let iptal = false;
+    setKarPayiYukleniyor(true);
+    setKarPayiHata(null);
+    const t = window.setTimeout(() => {
+      fetch("/api/calculators/kar-payi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: karPayiTutar, term: karPayiVade }),
+      })
+        .then(async (r) => {
+          const d = (await r.json()) as {
+            error?: string;
+            disclaimer?: string;
+            results?: KarPayiRow[];
+          };
+          if (!r.ok) throw new Error(d.error || "Kâr payı hesaplanamadı");
+          return d;
+        })
+        .then((d) => {
+          if (iptal) return;
+          setKarPayiRows(Array.isArray(d.results) ? d.results : []);
+          setKarPayiDisclaimer(d.disclaimer ?? null);
+        })
+        .catch((err) => {
+          if (iptal) return;
+          setKarPayiRows([]);
+          setKarPayiHata(
+            err instanceof Error ? err.message : "Bağlantı hatası",
+          );
+        })
+        .finally(() => {
+          if (!iptal) setKarPayiYukleniyor(false);
+        });
+    }, 350);
+    return () => {
+      iptal = true;
+      window.clearTimeout(t);
+    };
+  }, [mode, karPayiTutar, karPayiVade]);
 
   const odemePlaniGetir = () => {
     if (tutar <= 0) return;
@@ -370,11 +460,154 @@ export const VakifHesaplamaView: React.FC = () => {
         </div>
 
         {mode === "kar-payi" ? (
-          <div className="space-y-3 p-5 text-sm text-txt-secondary">
-            <p>
-              Katılma hesabı kâr payı hesaplaması için bankaların resmî hesaplama
-              araçlarını kullanın. Bu ekran finansman (taksit) hesabına odaklıdır.
+          <div className="space-y-5 p-5">
+            <p className="text-sm text-txt-secondary">
+              Katılma hesabı tahmini kâr payı; Vakıf Katılım, Albaraka Türk ve
+              Kuveyt Türk’ün resmî hesaplama araçlarından canlı çekilir.
             </p>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-medium text-txt-secondary">
+                  Yatırılan Tutar
+                </span>
+                <div className="relative">
+                  <input
+                    inputMode="numeric"
+                    value={karPayiTutarMetni}
+                    onChange={(e) => setKarPayiTutarMetni(e.target.value)}
+                    onBlur={() => {
+                      if (karPayiTutar > 0) {
+                        setKarPayiTutarMetni(sayiBicim(karPayiTutar));
+                      }
+                    }}
+                    className="tnum h-11 w-full rounded-lg border border-line bg-surface px-3 pr-10 font-mono text-sm text-txt"
+                  />
+                  <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-txt-muted">
+                    TL
+                  </span>
+                </div>
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-medium text-txt-secondary">
+                  Vade
+                </span>
+                <select
+                  value={karPayiVade}
+                  onChange={(e) =>
+                    setKarPayiVade(e.target.value as KarPayiTerm)
+                  }
+                  className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-txt"
+                >
+                  {KAR_PAYI_VADE_OPTIONS.map((o) => (
+                    <option key={o.key} value={o.key}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            {karPayiYukleniyor ? (
+              <div className="flex items-center justify-center gap-2 py-8 text-sm text-txt-secondary">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                Bankalardan kâr payı hesaplanıyor…
+              </div>
+            ) : karPayiHata ? (
+              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200">
+                {karPayiHata}
+              </p>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-line">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="bg-sunken text-xs text-txt-secondary">
+                    <tr>
+                      <th className="px-3 py-2.5 font-medium">Banka</th>
+                      <th className="px-3 py-2.5 font-medium">Brüt oran</th>
+                      <th className="px-3 py-2.5 font-medium">Net oran</th>
+                      <th className="px-3 py-2.5 font-medium">Net kâr</th>
+                      <th className="px-3 py-2.5 font-medium">Vade sonu</th>
+                      <th className="px-3 py-2.5 font-medium">Kaynak</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {karPayiRows.map((row) => {
+                      const banka = BANKA_INDEKS[row.bankId];
+                      return (
+                        <tr
+                          key={row.bankId}
+                          className="border-t border-line align-top"
+                        >
+                          <td className="px-3 py-3">
+                            <div className="flex items-center gap-2">
+                              <BankMark bankaId={row.bankId} size="sm" />
+                              <div>
+                                <div className="font-medium text-txt">
+                                  {banka?.ad ?? row.bankId}
+                                </div>
+                                    {row.accountName ? (
+                                  <div className="text-xs text-txt-muted">
+                                    {row.accountName}
+                                    {row.shareCustomerPercent != null
+                                      ? ` · müşteri payı %${row.shareCustomerPercent}`
+                                      : ""}
+                                  </div>
+                                ) : null}
+                              </div>
+                            </div>
+                          </td>
+                          {row.available ? (
+                            <>
+                              <td className="tnum px-3 py-3 font-mono text-txt">
+                                {formatRate(row.grossRatePercent)}
+                              </td>
+                              <td className="tnum px-3 py-3 font-mono text-txt">
+                                {formatRate(row.netRatePercent)}
+                              </td>
+                              <td className="tnum px-3 py-3 font-mono font-semibold text-txt">
+                                {row.netProfit != null
+                                  ? tlBicim2(row.netProfit)
+                                  : "—"}
+                              </td>
+                              <td className="tnum px-3 py-3 font-mono text-txt">
+                                {row.totalAmount != null
+                                  ? tlBicim2(row.totalAmount)
+                                  : "—"}
+                              </td>
+                            </>
+                          ) : (
+                            <td
+                              colSpan={4}
+                              className="px-3 py-3 text-xs text-txt-secondary"
+                            >
+                              {row.reason || "Bu koşullarda hesaplama yok"}
+                            </td>
+                          )}
+                          <td className="px-3 py-3">
+                            <a
+                              href={row.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-brand-700 hover:underline dark:text-brand-300"
+                            >
+                              Resmî araç
+                              <ExternalLink className="h-3 w-3" aria-hidden />
+                            </a>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {karPayiDisclaimer ? (
+              <p className="text-xs leading-relaxed text-txt-muted">
+                {karPayiDisclaimer}
+              </p>
+            ) : null}
           </div>
         ) : (
           <div className="space-y-5 p-5">
@@ -420,19 +653,44 @@ export const VakifHesaplamaView: React.FC = () => {
 
               <label className="block">
                 <span className="mb-1.5 block text-xs font-medium text-txt-secondary">
-                  Vade
+                  Vade (Ay)
                 </span>
-                <select
-                  value={vadeAy}
-                  onChange={(e) => setVadeAy(Number(e.target.value))}
-                  className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-txt"
-                >
+                <span className="relative block">
+                  <input
+                    list={`${formId}-vade-list`}
+                    inputMode="numeric"
+                    value={vadeMetni}
+                    onChange={(e) => setVadeMetni(e.target.value)}
+                    onBlur={() => {
+                      const n = Number(vadeMetni.replace(/[^\d]/g, ""));
+                      if (!Number.isFinite(n) || n < 1) {
+                        setVadeMetni(String(vadeAy));
+                        return;
+                      }
+                      const ay = Math.min(360, Math.floor(n));
+                      setVadeAy(ay);
+                      setVadeMetni(String(ay));
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+                      const n = Number(vadeMetni.replace(/[^\d]/g, ""));
+                      if (!Number.isFinite(n) || n < 1) return;
+                      const ay = Math.min(360, Math.floor(n));
+                      setVadeAy(ay);
+                      setVadeMetni(String(ay));
+                    }}
+                    aria-label="Vade ay olarak"
+                    className="tnum h-11 w-full rounded-lg border border-line bg-surface px-3 pr-10 font-mono text-sm text-txt"
+                  />
+                  <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-txt-muted">
+                    Ay
+                  </span>
+                </span>
+                <datalist id={`${formId}-vade-list`}>
                   {vadeler.map((v) => (
-                    <option key={v} value={v}>
-                      {v} Ay
-                    </option>
+                    <option key={v} value={v} />
                   ))}
-                </select>
+                </datalist>
               </label>
 
               <div className="block">
