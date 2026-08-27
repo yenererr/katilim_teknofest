@@ -3,13 +3,17 @@
  */
 
 import { hesaplaAlbarakaKarPayi } from "./albarakaKarPayiCalculator";
+import { hesaplaDunyaKarPayi } from "./dunyaKarPayiCalculator";
+import { hesaplaHayatKarPayi } from "./hayatKarPayiCalculator";
 import {
   unavailableKarPayi,
   type KarPayiHesaplamaOpts,
   type KarPayiHesaplamaSonucu,
 } from "./karPayiShared";
 import { hesaplaKuveytKarPayi } from "./kuveytKarPayiCalculator";
+import { hesaplaTurkiyeFinansKarPayi } from "./turkiyeFinansKarPayiCalculator";
 import { hesaplaVakifKarPayi } from "./vakifKarPayiCalculator";
+import { hesaplaZiraatKarPayi } from "./ziraatKarPayiCalculator";
 
 export const KAR_PAYI_BANKALARI = [
   {
@@ -30,6 +34,31 @@ export const KAR_PAYI_BANKALARI = [
     label: "Kuveyt Türk",
     sourceUrl: "https://www.kuveytturk.com.tr/hesaplama-araclari/kar-payi-hesaplama",
     run: hesaplaKuveytKarPayi,
+  },
+  {
+    bankId: "ziraat-katilim",
+    label: "Ziraat Katılım",
+    sourceUrl: "https://www.ziraatkatilim.com.tr/#tab-kar-payi-content",
+    run: hesaplaZiraatKarPayi,
+  },
+  {
+    bankId: "dunya-katilim",
+    label: "Dünya Katılım",
+    sourceUrl: "https://dunyakatilim.com.tr/",
+    run: hesaplaDunyaKarPayi,
+  },
+  {
+    bankId: "hayat-finans",
+    label: "Hayat Finans",
+    sourceUrl: "https://hayatfinans.com.tr/hesaplar/katilma-hesabi",
+    run: hesaplaHayatKarPayi,
+  },
+  {
+    bankId: "turkiye-finans",
+    label: "Türkiye Finans",
+    sourceUrl:
+      "https://www.turkiyefinans.com.tr/tr-tr/hesaplama-araclari/sayfalar/kar-payi-hesap-makinesi.aspx",
+    run: hesaplaTurkiyeFinansKarPayi,
   },
 ] as const;
 

@@ -113,10 +113,12 @@ function formatRate(n: number | null | undefined): string {
 }
 
 /**
- * Finansman hesaplama arayüzü — taksit, toplam tutar ve ödeme planı.
+ * Finansman / kâr payı hesaplama arayüzü.
  */
-export const VakifHesaplamaView: React.FC = () => {
-  const [mode, setMode] = useState<"finansman" | "kar-payi">("finansman");
+export const VakifHesaplamaView: React.FC<{
+  initialMode?: "finansman" | "kar-payi";
+}> = ({ initialMode = "finansman" }) => {
+  const [mode, setMode] = useState<"finansman" | "kar-payi">(initialMode);
   const [financingType, setFinancingType] =
     useState<FinancingType>("ihtiyac_finansmani");
   const [tutarMetni, setTutarMetni] = useState("100.000");
@@ -435,7 +437,11 @@ export const VakifHesaplamaView: React.FC = () => {
             type="button"
             role="tab"
             aria-selected={mode === "kar-payi"}
-            onClick={() => setMode("kar-payi")}
+            onClick={() => {
+              setMode("kar-payi");
+              window.history.replaceState(null, "", "#/kar-payi");
+              window.dispatchEvent(new HashChangeEvent("hashchange"));
+            }}
             className={`min-h-12 px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 ${
               mode === "kar-payi"
                 ? "border-b-2 border-brand-600 text-brand-800 dark:text-brand-200"
@@ -448,7 +454,11 @@ export const VakifHesaplamaView: React.FC = () => {
             type="button"
             role="tab"
             aria-selected={mode === "finansman"}
-            onClick={() => setMode("finansman")}
+            onClick={() => {
+              setMode("finansman");
+              window.history.replaceState(null, "", "#/hesaplama");
+              window.dispatchEvent(new HashChangeEvent("hashchange"));
+            }}
             className={`min-h-12 px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 ${
               mode === "finansman"
                 ? "border-b-2 border-brand-600 text-brand-800 dark:text-brand-200"
@@ -462,8 +472,10 @@ export const VakifHesaplamaView: React.FC = () => {
         {mode === "kar-payi" ? (
           <div className="space-y-5 p-5">
             <p className="text-sm text-txt-secondary">
-              Katılma hesabı tahmini kâr payı; Vakıf Katılım, Albaraka Türk ve
-              Kuveyt Türk’ün resmî hesaplama araçlarından canlı çekilir.
+              Katılma hesabı tahmini kâr payı; Vakıf, Albaraka, Kuveyt Türk,
+              Ziraat, Dünya, Hayat Finans ve Türkiye Finans’ın resmî
+              hesaplama araçlarından canlı
+              çekilir.
             </p>
 
             <div className="grid gap-4 sm:grid-cols-2">

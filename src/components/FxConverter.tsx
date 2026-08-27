@@ -105,8 +105,10 @@ export const FxConverter: React.FC = () => {
   };
 
   return (
-    <section className="rounded-xl border border-line bg-surface p-4 shadow-flat">
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
+    <section
+      id="kurlar"
+      className="scroll-mt-24 rounded-xl border border-line bg-surface p-4 shadow-flat"
+    >      <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
         <h2 className="text-base font-semibold tracking-tight text-txt">
           Döviz Çevirici
         </h2>

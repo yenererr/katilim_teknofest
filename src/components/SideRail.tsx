@@ -5,6 +5,7 @@ import {
   Receipt,
   MessagesSquare,
   Calculator,
+  Percent,
   type LucideIcon,
 } from 'lucide-react';
 import { ARAC_NAV, TabKey } from './nav';
@@ -39,6 +40,12 @@ const IHTIYACLAR: IhtiyacKarti[] = [
     baslik: 'Finansman Hesapla',
     aciklama: 'Taksit ve ödeme planı',
     icon: Calculator,
+  },
+  {
+    key: 'kar-payi',
+    baslik: 'Kâr Payı Hesapla',
+    aciklama: 'Katılma hesabı getiri',
+    icon: Percent,
   },
   { key: 'kampanyalar', baslik: 'Kampanya Bul', aciklama: 'İndirim, taksit, puan vb.', icon: Tag },
   {

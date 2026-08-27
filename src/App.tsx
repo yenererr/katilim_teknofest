@@ -387,7 +387,8 @@ function AppInner() {
           >
             {activeTab !== 'home' &&
               activeTab !== 'finansman-asistani' &&
-              activeTab !== 'hesaplama' && (
+              activeTab !== 'hesaplama' &&
+              activeTab !== 'kar-payi' && (
               <div className="mb-4">
                 <h1 className="text-lg font-semibold tracking-tight text-txt">{baslik}</h1>
                 <p className="mt-0.5 text-sm text-txt-secondary">{aciklama}</p>
@@ -471,9 +472,12 @@ function AppInner() {
               </div>
             )}
 
-            {activeTab === 'hesaplama' && (
-              <div {...panelProps('hesaplama')}>
-                <VakifHesaplamaView />
+            {(activeTab === 'hesaplama' || activeTab === 'kar-payi') && (
+              <div {...panelProps(activeTab === 'kar-payi' ? 'kar-payi' : 'hesaplama')}>
+                <VakifHesaplamaView
+                  key={activeTab}
+                  initialMode={activeTab === 'kar-payi' ? 'kar-payi' : 'finansman'}
+                />
               </div>
             )}
 

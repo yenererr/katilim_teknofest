@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   convertWithTcmb,
   parseTcmbTodayXml,
+  tcmbArchivePath,
   tcmbDateToIso,
   type TcmbFxSnapshot,
 } from "../tcmbRates";
@@ -43,6 +44,21 @@ describe("tcmbRates", () => {
     expect(snap.rates.USD.forexSelling).toBe(48.2);
     expect(snap.rates.EUR.forexBuying).toBe(52);
     expect(snap.rates.GBP.mid).toBeCloseTo(60.25);
+    expect(snap.rates.USD.change).toBeNull();
+  });
+
+  it("önceki bültenle değişim hesaplar", () => {
+    const prev = SAMPLE_XML.replace("48.2000", "48.0000").replace(
+      "52.4000",
+      "52.0000",
+    );
+    const snap = parseTcmbTodayXml(SAMPLE_XML, prev);
+    expect(snap.rates.USD.change).toBeCloseTo(0.2);
+    expect(snap.rates.EUR.change).toBeCloseTo(0.4);
+  });
+
+  it("TCMB arşiv yolu üretir", () => {
+    expect(tcmbArchivePath("26.08.2026")).toBe("/kurlar/202608/26082026.xml");
   });
 
   it("TRY→USD ve USD→TRY çevirir", () => {
