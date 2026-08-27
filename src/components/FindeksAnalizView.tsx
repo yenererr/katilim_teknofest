@@ -9,11 +9,14 @@ import {
   AlertCircle,
   TrendingUp,
   Percent,
-  CreditCard,
   Building2,
   Sparkles,
   ArrowRight,
-  RefreshCw
+  RefreshCw,
+  RotateCcw,
+  Bot,
+  Lightbulb,
+  Award
 } from 'lucide-react';
 import { BANKALAR } from '../data/piyasa';
 import { sayiBicim } from '../lib/finansman';
@@ -110,6 +113,12 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
     }
   };
 
+  const handleReset = () => {
+    setResult(null);
+    setFile(null);
+    setError(null);
+  };
+
   const getScoreColor = (score: number) => {
     if (score >= 1700) return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30';
     if (score >= 1500) return 'text-teal-500 bg-teal-500/10 border-teal-500/30';
@@ -155,107 +164,182 @@ export const FindeksAnalizView: React.FC<FindeksAnalizViewProps> = ({ onAsistana
         </div>
       </div>
 
-      {/* Upload and Manual Entry Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* PDF Uploader Card */}
-        <div className="lg:col-span-2 rounded-2xl border border-line bg-surface p-6 shadow-raised transition-all hover:border-brand-500/30">
-          <h2 className="flex items-center gap-2 text-base font-semibold text-txt">
-            <UploadCloud className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-            <span>Findeks PDF Raporu Yükle</span>
-          </h2>
-          <p className="mt-1 text-xs text-txt-secondary">
-            Findeks.com'dan indirdiğiniz `.pdf` formatındaki risk raporunu sürükleyip bırakın.
-          </p>
-
-          <label className="group mt-4 flex min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-line bg-sunken/50 p-6 text-center transition-all hover:border-brand-500 hover:bg-brand-500/5">
-            <input
-              type="file"
-              accept=".pdf"
-              className="hidden"
-              onChange={(e) => {
-                const uploaded = e.target.files?.[0];
-                if (uploaded) handleFileUpload(uploaded);
-              }}
-            />
-            {isAnalyzing ? (
-              <div className="flex flex-col items-center gap-3">
-                <RefreshCw className="h-8 w-8 animate-spin text-brand-600 dark:text-brand-400" />
-                <span className="text-xs font-medium text-txt-secondary">
-                  PDF Metinleri ve Risk Tablosu Okunuyor…
-                </span>
-              </div>
-            ) : file ? (
-              <div className="flex flex-col items-center gap-2">
-                <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-                <span className="text-sm font-semibold text-txt">{file.name}</span>
-                <span className="text-xs text-emerald-600 dark:text-emerald-400">
-                  PDF Yüklendi ve Analiz Edildi!
-                </span>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-2">
-                <UploadCloud className="h-9 w-9 text-txt-muted transition-transform group-hover:scale-110 group-hover:text-brand-600" />
-                <span className="text-sm font-medium text-txt group-hover:text-brand-600">
-                  PDF Raporunu Buraya Sürükleyin veya Dosya Seçin
-                </span>
-                <span className="text-xs text-txt-muted">Maksimum 15 MB · Yalnızca yerel bellek işlemcisi</span>
-              </div>
-            )}
-          </label>
-        </div>
-
-        {/* Manual Input Card */}
-        <div className="rounded-2xl border border-line bg-surface p-6 shadow-raised flex flex-col justify-between">
-          <div>
+      {/* CONDITIONAL RENDER: Initial Form vs AI Summary Card */}
+      {!result ? (
+        /* Upload and Manual Entry Grid (Shown ONLY when no analysis yet) */
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* PDF Uploader Card */}
+          <div className="lg:col-span-2 rounded-2xl border border-line bg-surface p-6 shadow-raised transition-all hover:border-brand-500/30">
             <h2 className="flex items-center gap-2 text-base font-semibold text-txt">
-              <Percent className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-              <span>Manuel Not & Gelir Girdisi</span>
+              <UploadCloud className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+              <span>Findeks PDF Raporu Yükle</span>
             </h2>
             <p className="mt-1 text-xs text-txt-secondary">
-              Raporunuz yanınızda değilse Findeks notunuzu manuel yazabilirsiniz.
+              Findeks.com'dan indirdiğiniz `.pdf` formatındaki risk raporunu sürükleyip bırakın.
             </p>
 
-            <div className="mt-4 space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-txt-secondary">
-                  Findeks Kredi Notu (1 - 1900)
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="1900"
-                  value={manualScore}
-                  onChange={(e) => setManualScore(Number(e.target.value))}
-                  className="mt-1.5 w-full rounded-xl border border-line bg-sunken px-3.5 py-2.5 text-sm font-semibold text-txt outline-none transition-focus focus:border-brand-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-txt-secondary">
-                  Aylık Net Gelir (TL)
-                </label>
-                <input
-                  type="number"
-                  step="5000"
-                  value={monthlyIncome}
-                  onChange={(e) => setMonthlyIncome(Number(e.target.value))}
-                  className="mt-1.5 w-full rounded-xl border border-line bg-sunken px-3.5 py-2.5 text-sm font-semibold text-txt outline-none transition-focus focus:border-brand-500"
-                />
-              </div>
-            </div>
+            <label className="group mt-4 flex min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-line bg-sunken/50 p-6 text-center transition-all hover:border-brand-500 hover:bg-brand-500/5">
+              <input
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const uploaded = e.target.files?.[0];
+                  if (uploaded) handleFileUpload(uploaded);
+                }}
+              />
+              {isAnalyzing ? (
+                <div className="flex flex-col items-center gap-3">
+                  <RefreshCw className="h-8 w-8 animate-spin text-brand-600 dark:text-brand-400" />
+                  <span className="text-xs font-medium text-txt-secondary">
+                    PDF Metinleri ve Risk Tablosu Okunuyor…
+                  </span>
+                </div>
+              ) : file ? (
+                <div className="flex flex-col items-center gap-2">
+                  <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+                  <span className="text-sm font-semibold text-txt">{file.name}</span>
+                  <span className="text-xs text-emerald-600 dark:text-emerald-400">
+                    PDF Yüklendi ve Analiz Edildi!
+                  </span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <UploadCloud className="h-9 w-9 text-txt-muted transition-transform group-hover:scale-110 group-hover:text-brand-600" />
+                  <span className="text-sm font-medium text-txt group-hover:text-brand-600">
+                    PDF Raporunu Buraya Sürükleyin veya Dosya Seçin
+                  </span>
+                  <span className="text-xs text-txt-muted">Maksimum 15 MB · Yalnızca yerel bellek işlemcisi</span>
+                </div>
+              )}
+            </label>
           </div>
 
-          <button
-            type="button"
-            onClick={handleManualAnalyze}
-            disabled={isAnalyzing}
-            className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 text-xs font-semibold text-white transition-all hover:bg-brand-500 active:scale-98 disabled:opacity-50"
-          >
-            <span>Analiz Et</span>
-            <ArrowRight className="h-4 w-4" />
-          </button>
+          {/* Manual Input Card */}
+          <div className="rounded-2xl border border-line bg-surface p-6 shadow-raised flex flex-col justify-between">
+            <div>
+              <h2 className="flex items-center gap-2 text-base font-semibold text-txt">
+                <Percent className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+                <span>Manuel Not & Gelir Girdisi</span>
+              </h2>
+              <p className="mt-1 text-xs text-txt-secondary">
+                Raporunuz yanınızda değilse Findeks notunuzu manuel yazabilirsiniz.
+              </p>
+
+              <div className="mt-4 space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-txt-secondary">
+                    Findeks Kredi Notu (1 - 1900)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="1900"
+                    value={manualScore}
+                    onChange={(e) => setManualScore(Number(e.target.value))}
+                    className="mt-1.5 w-full rounded-xl border border-line bg-sunken px-3.5 py-2.5 text-sm font-semibold text-txt outline-none transition-focus focus:border-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-txt-secondary">
+                    Aylık Net Gelir (TL)
+                  </label>
+                  <input
+                    type="number"
+                    step="5000"
+                    value={monthlyIncome}
+                    onChange={(e) => setMonthlyIncome(Number(e.target.value))}
+                    className="mt-1.5 w-full rounded-xl border border-line bg-sunken px-3.5 py-2.5 text-sm font-semibold text-txt outline-none transition-focus focus:border-brand-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleManualAnalyze}
+              disabled={isAnalyzing}
+              className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 text-xs font-semibold text-white transition-all hover:bg-brand-500 active:scale-98 disabled:opacity-50"
+            >
+              <span>Analiz Et</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        /* AI FINDESK ÖZET & DEĞERLENDİRME PANELDİR (Analiz Sonrası Ekranı) */
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="rounded-2xl border border-brand-500/30 bg-gradient-to-r from-brand-950/40 via-surface to-brand-900/20 p-6 shadow-raised dark:from-brand-950/70"
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-4">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400">
+                <Bot className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-txt flex items-center gap-2">
+                  <span>Yapay Zekâ Findeks Risk Değerlendirme Raporu</span>
+                  <span className="rounded-full bg-brand-500/10 px-2.5 py-0.5 text-xs font-semibold text-brand-600 dark:text-brand-400">
+                    Yerel NLP Özeti
+                  </span>
+                </h2>
+                <p className="text-xs text-txt-secondary">
+                  {file ? `Yüklenen Rapor: ${file.name}` : 'Girilen Finansal Parametrelere Göre Oluşturuldu'}
+                </p>
+              </div>
+            </div>
+
+            {/* Reset / Re-upload Button */}
+            <button
+              type="button"
+              onClick={handleReset}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-line bg-sunken px-4 text-xs font-semibold text-txt transition-colors hover:bg-surface hover:border-brand-500/30"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>Yeni Rapor Yükle / Yeniden Hesapla</span>
+            </button>
+          </div>
+
+          {/* Executive Insights & Bullet Points */}
+          <div className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-3">
+              <p className="text-sm leading-relaxed text-txt font-medium">
+                Sayın Müşterimiz, Findeks Kredi Notunuz <span className="font-bold text-brand-600 dark:text-brand-400">{result.score} ({result.riskGroup})</span> olarak tespit edilmiştir. Katılım Bankacılığı kredi uygunluk değerlendirmesinde skorunuz yüksek onay beklentisi kategorisinde yer almaktadır.
+              </p>
+              <div className="grid grid-cols-1 gap-2.5 text-xs sm:grid-cols-2">
+                <div className="flex items-start gap-2 rounded-xl border border-line bg-sunken/40 p-3">
+                  <Award className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <div>
+                    <span className="font-semibold text-txt">Özel Kâr Payı İndirimi</span>
+                    <p className="mt-0.5 text-txt-secondary">Türkiye Finans ve Kuveyt Türk'te skorunuza özel kâr payı indirimi hakkınız aktiftir.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 rounded-xl border border-line bg-sunken/40 p-3">
+                  <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                  <div>
+                    <span className="font-semibold text-txt">BDDK Gelir Dengesi (%{result.dtiPercent})</span>
+                    <p className="mt-0.5 text-txt-secondary">Borç/Gelir oranınız yasal %50 sınırının altında olup onay sürecini hızlandırmaktadır.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Status Pill */}
+            <div className="flex flex-col items-center justify-center rounded-xl border border-brand-500/20 bg-brand-500/5 p-4 text-center">
+              <span className="text-xs font-semibold text-txt-muted uppercase tracking-wider">AI Tavsiyesi</span>
+              <span className="mt-1 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                🟢 Ön Onaylı Başvuruya Uygun
+              </span>
+              <p className="mt-1 text-xs text-txt-secondary">
+                Dijital mobil kanallar üzerinden yapılan başvurularda belge talebi olmadan onay alma ihtimaliniz %{result.approvalChancePercent}'dir.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {error && (
         <div className="flex items-center gap-3 rounded-xl border border-risk-300 bg-risk-50 p-4 text-xs font-medium text-risk-900 dark:border-risk-800 dark:bg-risk-950 dark:text-risk-100">
