@@ -109,7 +109,9 @@ export function parseCampaignThemeFromMessage(mesaj: string): CampaignTheme | nu
   }
 
   const hasThemeAsk =
-    /var\s*m[iı]|icin\b|ne\s+var|hangi|neler|goster|bak|pek[iı]|kendim|ozel/.test(t);
+    /var\s*m[iı]|ne\s+var|hangi|neler|goster|bak|pek[iı]|kendim|ozel|icin\s+(kampanya|firsat|avantaj|ozel|ne\s+var)/.test(
+      t,
+    );
 
   for (const { theme, re } of THEME_PATTERNS) {
     if (!re.test(t)) continue;
@@ -141,7 +143,7 @@ export function campaignMatchesTheme(
 export function extractCampaignKeywordHint(mesaj: string): string | null {
   const t = asciiKatla(mesaj);
   const m = t.match(
-    /\b(bilgisayar|\bpc\b|laptop|notebook|tablet|telefon|elektronik|teknoloji|xiaomi|mouse|klavye|monitor|televizyon|\btv\b|beyaz\s*esya|e[\s-]?ticaret|eticaret|alisveris|ucak|u[cç]ak\s*bilet|hava\s*yolu|havayolu|seyahat|yurt\s*disi|otel|tatil|bilet)\b/,
+    /\b(bilgisayar|\bpc\b|laptop|notebook|tablet|telefon|elektronik|teknoloji|xiaomi|mouse|klavye|monitor|televizyon|\btv\b|beyaz\s*esya|e[\s-]?ticaret|eticaret|alisveris|ucak|u[cç]ak\s*bilet|hava\s*yolu|havayolu|seyahat|yurt\s*disi|otel|tatil|bilet|dugun|nikah)\b/,
   );
   return m ? m[1].replace(/\s+/g, " ") : null;
 }

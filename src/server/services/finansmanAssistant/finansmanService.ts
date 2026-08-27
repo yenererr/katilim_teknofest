@@ -114,6 +114,12 @@ function formatAmount(n: number): string {
   return n.toLocaleString("tr-TR");
 }
 
+function joinTrList(items: string[]): string {
+  if (items.length <= 1) return items[0] || "";
+  if (items.length === 2) return `${items[0]} ve ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")} ve ${items[items.length - 1]}`;
+}
+
 /** Doğrulanmış ürün kayıtlarından tür bazlı azami vade / tutar özeti. */
 function collectPublishedLimits(financingType: FinancingType | null): {
   maxTerm: number | null;
@@ -447,6 +453,9 @@ function buildBankFocusMessage(
   }>,
 ): string {
   const bankLabel =
+    (state.selectedBankIds.length === 1
+      ? BANKA_INDEKS[state.selectedBankIds[0]]?.ad
+      : null) ||
     matches[0]?.bankName ||
     state.selectedBankIds.join(", ") ||
     "Seçilen banka";
@@ -1469,10 +1478,19 @@ export async function runFinansmanAssistantChat(
     warnings.push(`Kontrol edilemeyen: ${match.failedBanks.join(", ")}`);
   }
 
-  const liveNote = exactMatches.some((m) =>
-    m.evidence.some((e) => /canlı motor|Softtech|yerel motor/i.test(e)),
-  )
-    ? "\n\nTaksit ve kâr payı; Vakıf, Ziraat ve Kuveyt için bankanın hesaplama aracı / Softtech uyumlu motorla dolduruldu."
+  const liveBankNames = [
+    ...new Set(
+      exactMatches
+        .filter(
+          (m) =>
+            m.productId.startsWith("live-") ||
+            m.evidence.some((e) => /canlı motor|Softtech|yerel motor/i.test(e)),
+        )
+        .map((m) => m.bankName),
+    ),
+  ];
+  const liveNote = liveBankNames.length
+    ? `\n\nTaksit ve kâr payı; ${joinTrList(liveBankNames)} için bankanın hesaplama aracı / Softtech uyumlu motorla dolduruldu.`
     : "";
 
   const citations = exactMatches.slice(0, 8).map((m, i) => ({

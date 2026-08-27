@@ -132,6 +132,7 @@ describe("finansman NLU", () => {
       "campaign_search",
     );
     expect(classifyTurn("araba alcam")).toBe("param_update");
+    expect(classifyTurn("taşıt için")).toBe("param_update");
     expect(classifyTurn("ev alcam")).toBe("param_update");
     expect(parseFinancingType("ev alcam")).toBe("housing");
     expect(parseFinancingType("bisiklet alcam")).toBe("shopping");
@@ -649,6 +650,16 @@ describe("merge follow-up", () => {
     ]);
     const next = mergeMessageIntoState(s, "ihtiyaç 24 ay");
     expect(missingRequiredFields(next)).toEqual([]);
+  });
+
+  it("tek cümleli azami vade sorusunda amaç ve banka bağlamını korur", () => {
+    const next = mergeMessageIntoState(
+      createEmptyState("limit-single-turn"),
+      "Zıraaat için ev alacağım, en fazla kaç ay oluyor?",
+    );
+    expect(next.intent).toBe("follow_up");
+    expect(next.financingType).toBe("housing");
+    expect(next.selectedBankIds).toEqual(["ziraat-katilim"]);
   });
 });
 

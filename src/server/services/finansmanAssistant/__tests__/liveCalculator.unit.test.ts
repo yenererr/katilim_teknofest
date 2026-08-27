@@ -127,6 +127,23 @@ describe("liveCalculatorEnrichment", () => {
     expect(out.matches.every((m) => m.calculationAvailable)).toBe(true);
   });
 
+  it("seçili banka varsa canlı hesaplayıcı yalnız o bankayı ekler", async () => {
+    const { enrichWithLiveCalculators } = await import(
+      "../liveCalculatorEnrichment"
+    );
+    const state = createEmptyState("live-selected-bank");
+    state.financingType = "vehicle";
+    state.requestedAmountTl = 200000;
+    state.preferredTermMonths = 24;
+    state.selectedBankIds = ["ziraat-katilim"];
+
+    const out = await enrichWithLiveCalculators([], state);
+
+    expect(out.liveBankIds).toEqual(["ziraat-katilim"]);
+    expect(out.matches).toHaveLength(1);
+    expect(out.matches[0].bankId).toBe("ziraat-katilim");
+  });
+
   it("canlı API düşerse Ziraat meta oranı + Softtech ile doldurur", async () => {
     const { hesaplaZiraatKatilim } = await import(
       "../../calculators/ziraatKatilimCalculator"

@@ -737,6 +737,20 @@ export function mergeMessageIntoState(
   }
   if (turn === "limit_inquiry") {
     next.intent = "follow_up";
+    const fType = parseFinancingType(text);
+    if (fType) next.financingType = fType;
+    const banks = parseBanks(text);
+    if (banks.requested.length) {
+      next.selectedBankIds = banks.requested;
+    } else {
+      const bul = bankaBul(text);
+      if (bul) next.selectedBankIds = [bul];
+    }
+    if (banks.excluded.length) {
+      next.excludedBankIds = [
+        ...new Set([...next.excludedBankIds, ...banks.excluded]),
+      ];
+    }
     // Azami sorusu mevcut amacı silmesin; tutar/vade slotlarını da zorla doldurma
     return next;
   }

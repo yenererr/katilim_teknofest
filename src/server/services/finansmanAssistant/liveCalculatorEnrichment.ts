@@ -470,12 +470,26 @@ export async function enrichWithLiveCalculators(
 
   const financingKey = mapFinancingKey(state.financingType);
   const customRate = state.customProfitRatePercent;
+  const selectedBanks = new Set(state.selectedBankIds);
+  const shouldUseBank = (bankId: string) =>
+    selectedBanks.size === 0 || selectedBanks.has(bankId);
 
-  const results = await Promise.all([
-    calcVakif(financingKey, amount, term, customRate),
-    calcZiraat(financingKey, amount, term, customRate),
-    calcKuveyt(financingKey, amount, term, customRate),
-  ]);
+  const calculatorJobs: Array<Promise<FinancingMatch | null>> = [];
+  if (shouldUseBank("vakif-katilim")) {
+    calculatorJobs.push(calcVakif(financingKey, amount, term, customRate));
+  }
+  if (shouldUseBank("ziraat-katilim")) {
+    calculatorJobs.push(calcZiraat(financingKey, amount, term, customRate));
+  }
+  if (shouldUseBank("kuveyt-turk")) {
+    calculatorJobs.push(calcKuveyt(financingKey, amount, term, customRate));
+  }
+
+  if (calculatorJobs.length === 0) {
+    return { matches, liveBankIds, warnings };
+  }
+
+  const results = await Promise.all(calculatorJobs);
 
   for (const row of results) {
     if (!row) continue;

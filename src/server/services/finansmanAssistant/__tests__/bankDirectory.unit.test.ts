@@ -138,4 +138,17 @@ describe("banka rehberi yanıtı", () => {
     expect(r.message).toMatch(/kırtasiye|Kırtasiye/i);
     expect(r.message).toMatch(/Albaraka World|vade farksız|taksit/i);
   });
+
+  it("düğün gibi doğrudan eşleşmeyen kampanya niyetinde tüm kampanyaları dökmez", async () => {
+    const { seedVerifiedResearchRecords } = await import(
+      "../../postgres/store"
+    );
+    await seedVerifiedResearchRecords();
+    const r = rehberYaniti(
+      "genel_kampanyalar",
+      "düğün yapacağım para lazım kampanya var mı",
+    );
+    expect(r.message).toMatch(/d[uü]gun|doğrudan eşleşen aktif kampanya bulamadım/i);
+    expect(r.message).not.toMatch(/toplam \d+ aktif kampanya var/i);
+  });
 });
