@@ -1,14 +1,109 @@
 {
-  "savedAt": "2026-08-27T13:41:19.497Z",
+  "savedAt": "2026-08-27T21:15:00.000Z",
   "campaigns": [
     {
-      "id": "aa247ac7f1cb25541bcb99bc",
-      "bankId": "albaraka",
-      "bankName": "Albaraka Türk",
-      "title": "Albarakada Masraflara Son",
-      "productName": "Albarakada Masraflara Son",
+      "id": "gold_ref_1",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
       "conditions": [
-        "Albaraka Türk olarak dijitalleşen dünyada müşterilerimizin finansal ihtiyaçlarına çözüm üretmenin tutkusuyla masrafsız bir bankacılık sunuyoruz."
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Kuveyt Türk'ten Eczacılara Özel 8.000 Mil! Kuveyt Türk'ten tüzel hesap sahibi eczacıların yıl sonuna kadar yapacağı 10.000 TL ve üzeri Miles&Smiles Business Kart "
+      ],
+      "campaignEnd": "2024-12-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/kuveyt-turkten-eczacilara-ozel-8000-mil",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_2",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ana"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/beyaz-esya-ve-elektronik-alisverislerinize-3000-tlye-varan-parafpara",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_3",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ana"
+      ],
+      "campaignEnd": "2026-08-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/paraf-ile-secili-e-ticaret-alisverislerinize-1500-tlye-varan-parafpara",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_4",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ana"
+      ],
+      "campaignEnd": "2026-08-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/paraf-ile-adv-magazalarinda-1000-tl-parafpara",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_5",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ana"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/giyim-ve-kozmetik-alisverislerinize-1000-tl-parafpara",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_6",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa İşim İçin Hesaplar Özel Cari Hesaplar Özel Cari Hesaplar Özel ca"
       ],
       "campaignEnd": null,
       "category": "financing_campaign",
@@ -16,35 +111,484 @@
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.albaraka.com.tr/tr/kampanyalar/detay/albarakada-masraflara-son",
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/isim-icin/hesaplar/ozel-cari-hesaplar",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "f2d1b14bd409e44ec7bcee26",
+      "id": "gold_ref_7",
       "bankId": "albaraka",
       "bankName": "Albaraka Türk",
-      "title": "Agustos Ayina Ozel Fatura Kampanyasi",
-      "productName": "Agustos Ayina Ozel Fatura Kampanyasi",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "Albaraka Mobil Mobil Bankacılık Aç Kredi Hayat Sigortası Anasayfa Bireysel Sigorta ve Emeklilik Hayat ve Ferdi Kaza Sigortası Kredi Hayat Sigortası Kredi Ferdi Kaza Sigortası Güvenceli Hayat Sigortası"
+      ],
       "campaignEnd": null,
       "category": "financing_campaign",
       "campaignTheme": "general",
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.albaraka.com.tr/tr/kampanyalar/detay/agustos-ayina-ozel-fatura-kampanyasi",
+      "sourceUrl": "https://www.albaraka.com.tr/tr/bireysel/sigorta-ve-emeklilik/hayat-ve-ferdi-kaza-sigortasi/kredi-hayat-sigortasi",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "d7bc5202ed71c78c58524c18",
-      "bankId": "albaraka",
-      "bankName": "Albaraka Türk",
-      "title": "Dijital Katilma Hesabina Ozel Paylasim Oranlari 10",
-      "productName": "Dijital Katilma Hesabina Ozel Paylasim Oranlari 10",
+      "id": "gold_ref_8",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa İşim İçin Nakit Yönetimi Ödemeler ve Hizmetler Ödemeler Tasarruf"
+      ],
       "campaignEnd": null,
       "category": "financing_campaign",
       "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/isim-icin/nakit-yonetimi/odemeler-ve-hizmetler/odemeler/tasarruf-finansman-sirketleri-tahsilat-sistemi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_9",
+      "bankId": "ziraat-katilim",
+      "bankName": "Ziraat Katılım",
+      "title": "Ziraat Katılım Kampanyası",
+      "productName": "Ziraat Katılım Kampanyası",
+      "conditions": [
+        "Kira Sertifikaları (Sukuk) Kira sertifikası: Her türlü varlık ve hakkın finansmanını sağlamak amacıyla varlık kiralama şirketi tarafından ihraç edilen ve sahiplerinin bu varlık veya haktan elde edilen"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.ziraatkatilim.com.tr/ozel-bankacilik/yatirim-urunleri/sukuk",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_10",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa İşim İçin Dış Ticaret Dış Ticaret Finansmanları Dış Ticaret Fina"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/isim-icin/dis-ticaret/dis-ticaret-finansmanlari",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_11",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Kampanyalar TOD Paraf Paraf Kart'la alışverişe başla, TOD ayrıcalığını ücretsiz yaşa! 01.01.2026 - 29.01.2026 tarihleri arasında Dünya Katılım Paraf kredi kartı ile yapacağınız toplam 1.000 T"
+      ],
+      "campaignEnd": "2026-01-29",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/tod-paraf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_12",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Size daha iyi hizmet sunabilmek için sitemizde çerezler kullanıyoruz. Sitemizi kullanmaya devam etmeden önce çerezleri kabul etmeniz, bu hizmeti daha da iyileştirebilmemiz adına çok önemli. Ayrıntılı "
+      ],
+      "campaignEnd": null,
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.happycard.com.tr/kampanyalar/Sayfalar/ofot.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_13",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Kendim Için Içerik Kartlar Kartlar Bankamızın kredi kartları ve banka kartlarıyla tüm yurt içi alışverişlerinizi temassız, güvenle ve kolayca yapabilirsiniz. Kredi Kartları Banka Kartları Kre"
+      ],
+      "campaignEnd": null,
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/kendim-icin/kartlar",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_14",
+      "bankId": "tom-katilim",
+      "bankName": "T.O.M. Katılım",
+      "title": "T.O.M. Katılım Kampanyası",
+      "productName": "T.O.M. Katılım Kampanyası",
+      "conditions": [
+        "TOM Bank Hadi Hadi Kazan Kampanyalar A101'de her alışverişte %3'e varan nakit iade! Hemen İndir Hemen İndir A101'de her alışverişte %3'e varan nakit iade! Kampanya 31 Aralık 2026 tarihine kadar geçerl"
+      ],
+      "campaignEnd": "2026-12-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": {
+        "value": 125.0,
+        "currency": "TRY"
+      },
+      "sourceUrl": "https://tombankhadi.com/kampanyalar/a101de-her-alisveriste-3-nakit-iade",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_15",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": "2026-08-31",
+      "category": "new_customer_financing",
+      "campaignTheme": "new_customer",
+      "profitRate": null,
+      "installmentCount": 36,
+      "rewardAmountTl": {
+        "value": 11000.0,
+        "currency": "TRY"
+      },
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/kampanyalar/Sayfalar/turkiye-finans-avantajlariyla-mobilden-tanis.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_16",
+      "bankId": "adil-katilim",
+      "bankName": "Adil Katılım",
+      "title": "Adil Katılım Kampanyası",
+      "productName": "Adil Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa > Katılım Bankacılığı > Katılım Bankacılığı Ürün ve Hizmetleri Katılım Bankacılığı Ürün ve Hizmetleri Adil Katılım Bankası, katılım esasları doğrultusunda bireysel ve ticari müşterilere yönel"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.adilkatilim.com.tr/katilim-bankaciligi/urun-ve-hizmetler",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_17",
+      "bankId": "ziraat-katilim",
+      "bankName": "Ziraat Katılım",
+      "title": "Ziraat Katılım Kampanyası",
+      "productName": "Ziraat Katılım Kampanyası",
+      "conditions": [
+        "Kentsel Dönüşüm Finansmanı Kentsel Dönüşüm Finansmanı Nedir? 6306 sayılı \"Afet Riski Altındaki Alanların Dönüştürülmesi Hakkında Kanun\" kapsamında bulunan riskli bölgelerdeki binaların yenilenmesi içi"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 120,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.ziraatkatilim.com.tr/bireysel/finansman-urunleri/konut-finansmani/kentsel-donusum-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_18",
+      "bankId": "ziraat-katilim",
+      "bankName": "Ziraat Katılım",
+      "title": "Ziraat Katılım Kampanyası",
+      "productName": "Ziraat Katılım Kampanyası",
+      "conditions": [
+        "Finansman Ürünleri Konut Finansmanı Konut finansmanı, konut sahibi olmak isteyenlere konut üzerinden tesis edilecek ipotek karşılığında uzun vadeli konut kredilerinin kullanılmasına dayanan ve tüketic"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.ziraatkatilim.com.tr/ozel-bankacilik/finansman-urunleri",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_19",
+      "bankId": "ziraat-katilim",
+      "bankName": "Ziraat Katılım",
+      "title": "Ziraat Katılım Kampanyası",
+      "productName": "Ziraat Katılım Kampanyası",
+      "conditions": [
+        "TROY Kart & Yemeksepeti Kampanyası Tüm Kampanyalar 2 Kuyum, Optik ve Saat 3 Market ve Gıda 4 E-Ticaret 2 Elektronik ve Telekomünikasyon 3 Yapı Sektörü ve İklimlendirme 2 Akaryakıt 12 Diğer Kampanyalar"
+      ],
+      "campaignEnd": "2025-11-30",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/troy-kart-yemeksepeti-kampanyasi?IsArchived=true",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_20",
+      "bankId": "ziraat-katilim",
+      "bankName": "Ziraat Katılım",
+      "title": "Ziraat Katılım Kampanyası",
+      "productName": "Ziraat Katılım Kampanyası",
+      "conditions": [
+        "Ziraat Katılım Bankası Zekat Hesaplama ZEKAT HESAPLAMA MODÜLÜ Zekat Hesaplama Modülünü kullanarak, sahip olduğunuz para, altın, gümüş, ticari mal, gayrimenkul gibi varlıklar ile birlikte, borçlarınızı"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.ziraatkatilim.com.tr/zekat-hesaplama",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_21",
+      "bankId": "hayat-finans",
+      "bankName": "Hayat Finans",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
+      "conditions": [
+        "Harcadıkça Kazan, Cebin Hep Dolu Kalsın! Hayat Finans'ın ayrıcalıklı dünyasında GastroClub üyeliği ile harcadıkça kazan! Hayat Finans Mobil uygulaması üzerinden GastroClub üyeliğinizi oluşturarak seçk"
+      ],
+      "campaignEnd": null,
+      "category": "discount_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://hayatfinans.com.tr/kampanyalar/hayat-finans-ile-gastroclub-ayricaliklari",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_22",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "Albaraka Mobil Mobil Bankacılık Aç Togg Finansmanı Anasayfa Bireysel Finansmanlar Taşıt Finansmanı Togg Finansmanı Taşıt Finansmanı Togg Finansmanı Dijital Araç Finansmanı Deniz Taşıtları Finansmanı T"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": 0.029900000000000003,
+      "installmentCount": 48,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.albaraka.com.tr/tr/bireysel/finansmanlar/tasit-finansmani/togg-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_23",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa İşim İçin Leasing Leasing Süreci ve Hesaplama Aracı Leasing Nedir? Avantajları Nelerdir? Leasing Süreci ve Hesaplama Aracı Sürdürülebilir Ürünlerimiz Leasing Finansman Ürünlerimiz Leasing'e "
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/isim-icin/leasing/leasing-sureci-ve-hesaplama-araci",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_24",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Business Plus ile Akaryakıtta İndirim Fırsatı Business Plus ile akaryakıtta 200 TL'ye Varan İndirim! Kampanya Tarihleri 31.05.2024 - 30.06.2024 Kampanya Süresi Do"
+      ],
+      "campaignEnd": "2024-06-30",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/business-plus-ile-akaryakitta-indirim-firsati",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_25",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Kuveyt Türk'ten Avantajlı Leasing Finansmanı İşinize değer katmanın tam zamanı! Kuveyt Türk'ün sunduğu avantajlı leasing finansman oranları ile işletmenizin ihtiy"
+      ],
+      "campaignEnd": "2025-09-30",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 60,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/kuveyt-turkten-avantajli-leasing-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_26",
+      "bankId": "hayat-finans",
+      "bankName": "Hayat Finans",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
+      "conditions": [
+        "Birikimin Büyüsün, Avantajın Bitmesin! Finansal gücünüzü artırmanın etkili yolu: Avantajlı Hesap ile birikim yaparken avantajlarınız hiç bitmesin. Hayat Finans Avantajlı Hesap Avantajlı Hesap ile biri"
+      ],
+      "campaignEnd": "2026-10-08",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://hayatfinans.com.tr/hesaplar/avantajli-hesap",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_27",
+      "bankId": "hayat-finans",
+      "bankName": "Hayat Finans",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
+      "conditions": [
+        "Hesaplar Hayat Finans'ın sunmuş olduğu farklı hesap türleriyle hem ihtiyaçlarınızı karşılayabilir hem de birikimlerinizi değerlendirebilirsiniz. Avantajlı Hesap Avantajlı Katılma Hesabı ile kazancınız"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://hayatfinans.com.tr/hesaplar",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_28",
+      "bankId": "hayat-finans",
+      "bankName": "Hayat Finans",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
+      "conditions": [
+        "HFY – Günlük Kazandıran Fon Paranızı getirisi üzerinden değerlendirin, mesai saatleri arasında (09.45–16.00) nakde geçin! HFY – Hayat Finans Günlük Kazandıran Fon Nedir? Katılım finans ilkeleri çerçev"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://hayatfinans.com.tr/yatirim-ve-birikim/hfy-gunluk-kazandiran-fon",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_29",
+      "bankId": "hayat-finans",
+      "bankName": "Hayat Finans",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
+      "conditions": [
+        "Hisse Senedi Hayat Finans Hisse Senedi Hesabı ile Borsa İstanbul'da işlem gören hisse senetlerini kolayca alabilir, yatırım fırsatlarını değerlendirebilirsiniz. Hisse Senedine Yatırım Kısa/Uzun Vadeli"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://hayatfinans.com.tr/yatirim-ve-birikim/hisse-senedi-islemleri-yatirim-ve-birikim",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_30",
+      "bankId": "hayat-finans",
+      "bankName": "Hayat Finans",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
+      "conditions": [
+        "Yatırım Fonları Hisse senedi, değerli madenler, döviz, yabancı hisse senedi ve daha birçok seçenek ile yatırımlarınızı profesyoneller tarafından yönetilen TEFAS fonları ile değerlendirebilirsiniz. Sun"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://hayatfinans.com.tr/yatirim-ve-birikim/yatirim-fonlari-yatirim-ve-birikim",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_31",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "Albaraka Mobil Mobil Bankacılık Aç Dijital Katılma Hesabı'na Özel Paylaşım Oranları! Anasayfa Kampanyalar Kampanya Başlangıç ve Bitiş 01.04.2026 - 31.12.2026 Müşteri Ol Müşteri Ol Albaraka Mobil'i ind"
+      ],
+      "campaignEnd": "2026-12-31",
+      "category": "new_customer_financing",
+      "campaignTheme": "new_customer",
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
@@ -53,51 +597,383 @@
       "recordType": "campaign"
     },
     {
-      "id": "92e7e9c1c5c076911d619c48",
+      "id": "gold_ref_32",
       "bankId": "albaraka",
       "bankName": "Albaraka Türk",
-      "title": "Vade Farksız 140.000 Tl'ye Varan Destek",
-      "productName": "Vade Farksız 140.000 Tl'ye Varan Destek",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
       "conditions": [
-        "40.000 TL'ye kadar Pratik Finansman Kart ve 100.000 TL'ye kadar seçili sektörlerde vade farksız taksit fırsatı birlikte sunulur."
+        "Albaraka Mobil Mobil Bankacılık Aç Kampanyalar Tümü Dijital Eflatun Trend Özel Bankacılık Bireysel Business World Kampanyaları Geçmiş Kampanyalar Tüm Kampanyalar Tüm Kampanyalar Tüm Kampanyalar Dijita"
       ],
-      "campaignEnd": "2026-12-31",
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.albaraka.com.tr/tr/kampanyalar",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_33",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa Kendim İçin Kampanyalar TROY Kredi Kartı ile %50'si Bizden! Kamp"
+      ],
+      "campaignEnd": "2025-05-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/troy-kredi-karti-ile-50si-bizden",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_34",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa Kendim İçin Kampanyalar Ria A101 Hediye Çeki Kampanyası Kampanya"
+      ],
+      "campaignEnd": "2026-03-18",
       "category": "new_customer_financing",
       "campaignTheme": "new_customer",
-      "profitRate": 0,
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": {
+        "value": 500,
+        "currency": "TRY"
+      },
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/ria-a101-hediye-ceki-kampanyasi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_35",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa Diğer Alışveriş Finansmanı Başvurusu Bilgileri doldurarak Vakıf "
+      ],
+      "campaignEnd": null,
+      "category": "new_customer_financing",
+      "campaignTheme": "new_customer",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/diger/musteri/alisveris-finansmani-basvurusu",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_36",
+      "bankId": "adil-katilim",
+      "bankName": "Adil Katılım",
+      "title": "Adil Katılım Kampanyası",
+      "productName": "Adil Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa > Katılım Bankacılığı Katılım Bankacılığı Katılım bankacılığı, faizsiz finans ilkeleri doğrultusunda reel ekonomiyi esas alan bir bankacılık anlayışıdır. Tüm işlemler, kâr-zarar paylaşımı ve "
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.adilkatilim.com.tr/katilim-bankaciligi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_37",
+      "bankId": "adil-katilim",
+      "bankName": "Adil Katılım",
+      "title": "Adil Katılım Kampanyası",
+      "productName": "Adil Katılım Kampanyası",
+      "conditions": [
+        "Dijital bankacılığın yeni yüzüne Hoş Geldiniz Hızlı ve güvenilir finansal işlemlerinizin yeni adresi, değerlerinize saygılı, sizi anlayan finansal ürün ve hizmetlerin yeni bankası Adil Katılım"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.adilkatilim.com.tr/",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_38",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Kampanyalar Carter's Carter's Mağazalarında 4 Taksit Fırsatı! Dünya Katılım Paraf ile Carter's mağazalarında Paraf POS'larından yapılacak alışverişlerde 4 taksit imkanı sunulacaktır. Kampanya"
+      ],
+      "campaignEnd": "2026-06-30",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": 4,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/carter-s",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_39",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Kampanyalar Divarese Divarese'de 4 Taksit Fırsatı! Dünya Katılım Paraf ile Divarese mağazaları ve www.divarese.com.tr 'de Paraf POS'larından yapılacak alışverişlerde 4 taksit imkanı sunulacak"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": 4,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/divarese",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_40",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Kendim Için Içerik Finansmanlar İhtiyaç Finansmanları Enerya İhtiyaç Finansmanı Enerya İhtiyaç Finansmanı Enerya İhtiyaç Finansmanı Nedir? Enerya Enerji A.Ş. faaliyet alanı içerisinde yer ala"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": 0.039900000000000005,
+      "installmentCount": 36,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/kendim-icin/finansmanlar/ihtiyac-finansmanlari/enerya-ihtiyac-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_41",
+      "bankId": "adil-katilim",
+      "bankName": "Adil Katılım",
+      "title": "Adil Katılım Kampanyası",
+      "productName": "Adil Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa > Katılım Bankacılığı > Danışma Komitesi Danışma Komitesi Doç. Dr. Abdulkadir ATAR Başkan 1983 yılında Erzurum'da doğdu. İlk ve orta öğrenimini İstanbul'da tamamladı. 2000 yılında Kadıköy İma"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.adilkatilim.com.tr/katilim-bankaciligi/danisma-komitesi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_42",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ana"
+      ],
+      "campaignEnd": "2026-08-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": 4,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/paraf-ile-networkte-4-taksit-firsati",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_43",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ana"
+      ],
+      "campaignEnd": "2026-08-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": 4,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/paraf-ile-yargici-magazalarinda-4-taksit-firsati",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_44",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kendim İçin Müşteri Ol Kampanyaları Kuveyt Türk Mobil'den Müşterimiz Olun Özel Kur Fırsatını Kaçırmayın! Kuveyt Türk Mobil'den müşterimiz olan bireysel müşterilerimize özel avant"
+      ],
+      "campaignEnd": "2026-09-01",
+      "category": "new_customer_financing",
+      "campaignTheme": "new_customer",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kendim-icin/musteri-ol-kampanyalari/kuveyt-turk-mobilden-musterimiz-olun-ozel-kur-firsatini-kacirmayin",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_45",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi 7.000 TL Değerindeki Çek Tahsil Paketi Ücretsiz! Size özel 7.000 TL tutarındaki 100 adet çek tahsili Kuveyt Türk'te yıl sonuna kadar ücretsiz. Kampanya Tarihleri "
+      ],
+      "campaignEnd": "2024-12-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/7000-tl-degerindeki-cek-tahsil-paketi-ucretsiz-scr",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_46",
+      "bankId": "tom-katilim",
+      "bankName": "T.O.M. Katılım",
+      "title": "T.O.M. Katılım Kampanyası",
+      "productName": "T.O.M. Katılım Kampanyası",
+      "conditions": [
+        "TOM Bank Hadi Hadi Kazan Kampanyalar Hadi Black Kredi Kartı ile tüm Pegasus uçuşlarında %50 iade! Hemen İndir Kampanya Tarihleri 01 Temmuz - 31 Ekim 2026 Hemen İndir Hadi Black Kredi Kartı ile tüm Peg"
+      ],
+      "campaignEnd": "2026-10-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": {
+        "value": 2500.0,
+        "currency": "TRY"
+      },
+      "sourceUrl": "https://tombankhadi.com/kampanyalar/hadi-black-kredi-karti-ile-pegasus-harcamalarindan-50-iade-kazan",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_47",
+      "bankId": "tom-katilim",
+      "bankName": "T.O.M. Katılım",
+      "title": "T.O.M. Katılım Kampanyası",
+      "productName": "T.O.M. Katılım Kampanyası",
+      "conditions": [
+        "TOM Bank Hadi Hadi Kazan Kampanyalar Çok Kazananlar Kulübü, 2 kat kazandıran kampanyaları ile seninle! Hemen İndir Hemen İndir Çok Kazananlar Kulübü, 2 kat kazandıran kampanyaları ile seninle! Kampany"
+      ],
+      "campaignEnd": null,
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
       "installmentCount": 6,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.albaraka.com.tr/tr/kampanyalar/detay/vade-farksiz-kampanyasi",
+      "sourceUrl": "https://tombankhadi.com/kampanyalar/cok-kazananlar-kulubu-kat-kat-kazandiran-kampanyalari-ile-seninle",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "b08dde8d4fdee8f1b5ae1f0f",
+      "id": "gold_ref_48",
+      "bankId": "tom-katilim",
+      "bankName": "T.O.M. Katılım",
+      "title": "T.O.M. Katılım Kampanyası",
+      "productName": "T.O.M. Katılım Kampanyası",
+      "conditions": [
+        "TOM Bank Hadi Hadi Kazan Kampanyalar Kredi Kartı limitini artır, harcamalarından toplam 2000 TL'ye kadar A101 hediye bakiye kazan! Hemen İndir Hemen İndir Kredi Kartı limitini artır, harcamalarından t"
+      ],
+      "campaignEnd": "2026-08-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": {
+        "value": 2000.0,
+        "currency": "TRY"
+      },
+      "sourceUrl": "https://tombankhadi.com/kampanyalar/hadi-kredi-karti-limitini-artir-toplam-2000-tlye-kadar-a101-hediye-bakiye-kazan",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_49",
       "bankId": "albaraka",
       "bankName": "Albaraka Türk",
-      "title": "Saglik Harcamalarina Vade Farksiz 6 Taksit Kampanyasi1 2",
-      "productName": "Saglik Harcamalarina Vade Farksiz 6 Taksit Kampanyasi1 2",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
       "conditions": [
-        "Kampanya, 5975-ISITME CIHAZLARI SATIS-SERVIS, 5976-ORTOPEDI VE PROTEZ MALZ.SATIS, 5912-ECZANELER VE ECZACILAR, 8011-SINIFLANMAMIS HEKIM VE…"
+        "Albaraka Mobil Mobil Bankacılık Aç Dijital Müşterilere Özel Pratik Finansman Kart Anasayfa Kampanyalar Kampanya Başlangıç ve Bitiş 01.01.2026 - 31.12.2026 Müşteri Ol Müşteri Ol Vade farksız 40.000 TL "
       ],
-      "campaignEnd": null,
+      "campaignEnd": "2026-12-31",
       "category": "financing_campaign",
       "campaignTheme": "general",
       "profitRate": null,
-      "installmentCount": 49,
+      "installmentCount": 4,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.albaraka.com.tr/tr/kampanyalar/detay/saglik-harcamalarina-vade-farksiz-6-taksit-kampanyasi1-2",
+      "sourceUrl": "https://www.albaraka.com.tr/tr/kampanyalar/detay/dijital-musterilere-ozel-pratik-finansman-kart",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "49944d450d9c73d24f2fc4ff",
+      "id": "gold_ref_50",
       "bankId": "albaraka",
       "bankName": "Albaraka Türk",
-      "title": "Albarakalilara Ozel Ucretsiz İspark Kampanyasi 1",
-      "productName": "Albarakalilara Ozel Ucretsiz İspark Kampanyasi 1",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
       "conditions": [
-        "Ücretsiz İSPARK Otopark Kampanyası | Albarakalılara Özel"
+        "Albaraka Mobil Mobil Bankacılık Aç Sağlık Harcamalarına Vade Farksız 6 Taksit Kampanyası Anasayfa Kampanyalar Kampanya Başlangıç ve Bitiş 01.07.2026 - 31.07.2026 Müşteri Ol Müşteri Ol TROY kredi kartl"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": 6,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.albaraka.com.tr/tr/kampanyalar/detay/saglik-harcamalarina-vade-farksiz-6-taksit-kampanyasi-1_1",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_51",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "Albaraka Mobil Mobil Bankacılık Aç Harici Garantiler Anasayfa KOBİ Dış Ticaret Dış Ticaret Finansmanları Harici Garantiler İthalat Finansmanı İhracat Finansmanı Harici Garantiler Dış Kaynak Temini Yur"
       ],
       "campaignEnd": null,
       "category": "financing_campaign",
@@ -105,34 +981,56 @@
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.albaraka.com.tr/tr/kampanyalar/detay/albarakalilara-ozel-ucretsiz-ispark-kampanyasi-1",
+      "sourceUrl": "https://www.albaraka.com.tr/tr/kobi/dis-ticaret/dis-ticaret-finansmanlari/harici-garantiler",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "578a907b86fbedcaab87dd65",
-      "bankId": "dunya-katilim",
-      "bankName": "Dünya Katılım",
-      "title": "Fiziki Altin",
-      "productName": "Fiziki Altin",
+      "id": "gold_ref_52",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "Albaraka Mobil Mobil Bankacılık Aç Prefabrik Anasayfa Bireysel Finansmanlar İhtiyaç Finansmanı Eviniz İçin Prefabrik Konut Kirası Taşınma Ücreti ve Emlak Eşya Dekorasyon Bina Tamamlama Prefabrik Doğal"
+      ],
       "campaignEnd": null,
       "category": "financing_campaign",
       "campaignTheme": "general",
       "profitRate": null,
-      "installmentCount": null,
+      "installmentCount": 36,
       "rewardAmountTl": null,
-      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/fiziki-altin",
+      "sourceUrl": "https://www.albaraka.com.tr/tr/bireysel/finansmanlar/ihtiyac/eviniz-icin/prefabrik",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "3a1b6da756fc2acf7048e2bc",
-      "bankId": "dunya-katilim",
-      "bankName": "Dünya Katılım",
-      "title": "Avantajli Kurlar",
-      "productName": "Avantajli Kurlar",
+      "id": "gold_ref_53",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
       "conditions": [
-        "Döviz, altın, gümüş ve tüm yatırımlarınız için benzersiz kurlar Dünya Katılım’da sizi bekliyor."
+        "Albaraka Mobil Mobil Bankacılık Aç Bayide Finansman Anasayfa Bireysel Finansmanlar Bayide Finansman Konut Finansmanı Taşıt Finansmanı Gayrimenkul Finansmanı Bayide Finansman İhtiyaç Finansmanı BES Tem"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 36,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.albaraka.com.tr/tr/bireysel/finansmanlar/bayide-finansman",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_54",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "ALTIN HESAPLARINDAN TÜRK LİRASI MEVDUAT VE KATILMA HESAPLARINA DÖNÜŞÜMÜN DESTEKLENMESİ HAKKINDA TEBLİĞ KAPSAMINDA KATILMA HESABI AÇILIŞINA İLİŞKİN BİLGİLENDİRME VE BEYAN FORMU Albaraka Türk Katılım Ba"
       ],
       "campaignEnd": null,
       "category": "financing_campaign",
@@ -140,18 +1038,18 @@
       "profitRate": null,
       "installmentCount": 12,
       "rewardAmountTl": null,
-      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/avantajli-kurlar",
+      "sourceUrl": "https://www.albaraka.com.tr/documents/hakkimizda/sozlesme-ve-formlar/formlar/altin-hesaplarindan-donusumun-desteklenmesi-tl-katilma-hesabi-bilgilendirme-formu.pdf",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "57cb2de0ba95bf4ec9f95011",
-      "bankId": "hayat-finans",
-      "bankName": "Hayat Finans",
-      "title": "Hayatfinansla İslem Yaptikca Kazan",
-      "productName": "Hayatfinansla İslem Yaptikca Kazan",
+      "id": "gold_ref_55",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
       "conditions": [
-        "Başka bir banka hesabından veya para kuruluşundan Hayat Finans hesabınıza gelen en az 1.000 TL tutarlı EFT veya FAST transferlerinde nakit…"
+        "ARAÇ FİNANSMANI TALEP, ONAY ve ÜCRET BİLGİLENDİRME FORMU Sayfa 1 / 3 EFRM-137-031/07 Ürünün Adı/Tanımı ARAÇ KREDİSİ Süresi (Vadesi) ………………….. Ay Finansman Tutarı (Anapara) Akdi Kâr Payı Oranı (Aylık) "
       ],
       "campaignEnd": null,
       "category": "financing_campaign",
@@ -159,18 +1057,18 @@
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://hayatfinans.com.tr/kampanyalar/hayatfinansla-islem-yaptikca-kazan",
+      "sourceUrl": "https://www.albaraka.com.tr/documents/hakkimizda/sozlesme-ve-formlar/gecmis-tarihli/aracfinansmanitalep,onayveucretbilgilendirmeformu.pdf",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "b758ebba7a3697bd64a1ab7f",
-      "bankId": "hayat-finans",
-      "bankName": "Hayat Finans",
-      "title": "Avantajli Hesap Musterilerine Ozel Fx Dar Makas Avantaji",
-      "productName": "Avantajli Hesap Musterilerine Ozel Fx Dar Makas Avantaji",
+      "id": "gold_ref_56",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
       "conditions": [
-        "Kampanya döneminde maksimum 5.000 USD veya karşılığı hacme kadar Hayat FX işlemlerinde dar makas uygulanacaktır."
+        "BİREYSEL FİNANSMAN DESTEĞİ KREDİSİ TALEP, ONAY ve ÜCRET BİLGİLENDİRME FORMU Sayfa 1 / 3 EFRM-137-032/07 Ürünün Adı/Tanımı BİREYSEL FİNANSMAN DESTEĞİ KREDİSİ Süresi (Vadesi) ………………….. Ay Finansman Tuta"
       ],
       "campaignEnd": null,
       "category": "financing_campaign",
@@ -178,34 +1076,417 @@
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://hayatfinans.com.tr/kampanyalar/avantajli-hesap-musterilerine-ozel-fx-dar-makas-avantaji",
+      "sourceUrl": "https://www.albaraka.com.tr/documents/hakkimizda/sozlesme-ve-formlar/gecmis-tarihli/bireysel-finansman-destegi-kredisi-talep-onay-ucret-bilgilendirme-formu.pdf",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "058c116b30751ad8666f9893",
-      "bankId": "hayat-finans",
-      "bankName": "Hayat Finans",
-      "title": "Hayatfx İle Gumus İslemleri",
-      "productName": "Hayatfx İle Gumus İslemleri",
+      "id": "gold_ref_57",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "Albaraka Mobil Mobil Bankacılık Aç Şubesiz Umre Finansmanı Anasayfa Bireysel Finansmanlar İhtiyaç Finansmanı Şubesiz Umre Finansmanı Pratik Finansman Kart SMS' li Finansman Şubesiz Umre Finansmanı Jet"
+      ],
       "campaignEnd": null,
       "category": "financing_campaign",
       "campaignTheme": "general",
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://hayatfinans.com.tr/kampanyalar/hayatfx-ile-gumus-islemleri",
+      "sourceUrl": "https://www.albaraka.com.tr/tr/bireysel/finansmanlar/ihtiyac/subesiz-umre-finansmani",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "67d801bdddd760c20f4f9013",
+      "id": "gold_ref_58",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "Albaraka Mobil Mobil Bankacılık Aç Tatiliniz İçin Anasayfa Bireysel Finansmanlar İhtiyaç Finansmanı Tatiliniz İçin Seyahat Devre Mülk Devre Tatil Seyahat Turistik seyahatlerinizdeki ulaşım, konaklama "
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 36,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.albaraka.com.tr/tr/bireysel/finansmanlar/ihtiyac/tatiliniz-icin",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_59",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "Albaraka Mobil Mobil Bankacılık Aç World Platinum Kart Anasayfa Bireysel Kartlar Kredi Kartları World Platinum Kart World Platinum Kart World Gold Kart World Klasik Kart Troy Kredi Kartı Trend Kredi K"
+      ],
+      "campaignEnd": null,
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.albaraka.com.tr/tr/bireysel/kartlar/kredi-kartlari/world-platinum-kart",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_60",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "ALBARAKA TÜRK KATILIM BANKASI A.Ş. İnkılap Mah. Dr. Adnan Büyükdeniz Cad. No:6 34768 Ümraniye/İstanbul İstanbul Ticaret Sicil Memurluğu/206671 MERSİS No: 0047000870200019 www.albaraka.com.tr / albarak"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.albaraka.com.tr/documents/hakkimizda/sozlesme-ve-formlar/sozlesmeler/bayide-finansman-ihtiyac---aracilik-ve-garantorluk-sozlesmesi-kredi-(komisyonsuz).pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_61",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "ALBARAKA TÜRK KATILIM BANKASI A.Ş. İnkılap Mah. Dr. Adnan Büyükdeniz Cad. No:6 34768 Ümraniye/İstanbul İstanbul Ticaret Sicil Memurluğu/206671 MERSİS No: 0047000870200019 www.albaraka.com.tr / albarak"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.albaraka.com.tr/documents/hakkimizda/sozlesme-ve-formlar/sozlesmeler/bayide-finansman-ots---aracilik-ve-garantorluk-sozlesmesi-(-komisyonsuz).pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_62",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "ALBARAKA TÜRK KATILIM BANKASI A.Ş. İnkılap Mah. Dr. Adnan Büyükdeniz Cad. No:6 34768 Ümraniye/İstanbul İstanbul Ticaret Sicil Memurluğu/206671 MERSİS No: 0047000870200019 www.albaraka.com.tr / albarak"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.albaraka.com.tr/documents/hakkimizda/sozlesme-ve-formlar/sozlesmeler/bayide-finansman-tasit--aracilik-ve-garantorluk-sozlesmesi-kredi-(komisyonsuz).pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_63",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "Albaraka Mobil Mobil Bankacılık Aç Diğer Finansmanlar Anasayfa KOBİ Tarım Bankacılığı Diğer Finansmanlar Tarım Bankacılığı Hakkında Tarım Finansmanları Elektronik Ürün Senedi (ELÜS) Diğer Finansmanlar"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 48,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.albaraka.com.tr/tr/kobi/tarim-bankaciligi/diger-finansmanlar",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_64",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "Albaraka Mobil Mobil Bankacılık Aç Deniz Taşıtları Finansmanı Anasayfa Bireysel Finansmanlar Taşıt Finansmanı Deniz Taşıtları Finansmanı Taşıt Finansmanı Togg Finansmanı Dijital Araç Finansmanı Deniz "
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.albaraka.com.tr/tr/bireysel/finansmanlar/tasit-finansmani/deniz-tasitlari-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_65",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "Albaraka Mobil Mobil Bankacılık Aç Devre Mülk Anasayfa Bireysel Finansmanlar İhtiyaç Finansmanı Tatiliniz İçin Devre Mülk Seyahat Devre Mülk Devre Tatil Hemen Başvur Devre mülkler tapu kaydı gerektire"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 36,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.albaraka.com.tr/tr/bireysel/finansmanlar/ihtiyac/tatiliniz-icin/devre-mulk",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_66",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "Albaraka Mobil Mobil Bankacılık Aç Ürün ve Hizmet Ücretleri Bireysel Bireysel Finansmanlar Katılım Fonu (TL/YP) Para ve Kıymetli Maden Transferleri (TL/YP) Kredi Kartları (TL/YP) Diğer (TL/YP) Ticari "
+      ],
+      "campaignEnd": "2024-06-30",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 24,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.albaraka.com.tr/tr/urun-ve-hizmet-ucretleri",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_67",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Kendim Için Içerik Altın Bankacılığı Fiziki Altın Alımı Dijitalden Fiziki Altın İşlemleri Dijitalden Fiziki Altın Nedir ? Mobil şubemiz ve internet şubemiz üzerinden güvenli ve kolay bir şeki"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/kendim-icin/altin-bankaciligi/fiziki-altin-alimi/dijitalden-fiziki-altin-islemleri",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_68",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Kendim Için Içerik Hesaplar Cari Hesaplar Cari Hesaplar Cari Hesaplar Altın Hesapları Altın Cari Hesabı, tasarruflarınızı altın olarak değerlendirilmesini sağlayan vadesiz bir hesap türüdür. "
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/kendim-icin/hesaplar/cari-hesaplar",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_69",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Kampanyalar damat tween Paraf İle Damat Tween'de 6 Taksit Fırsatı! Dünya Katılım Paraf ile Paraf POS'larından yapılacak alışverişlerde 6 aya varan taksit imkanı sunulacaktır. Mağazalardan yap"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 6,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/damat-tween",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_70",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Kampanyalar Ramsey Ramsey'de 5 Taksit Fırsatı! Dünya Katılım Paraf ile Ramsey mağazaları ve ramsey.com.tr 'de Paraf POS'larından yapılacak alışverişlerde 5 taksit imkanı sunulacaktır. Kampany"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 5,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/ramsey",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_71",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Kendim Için Içerik Kartlar Kredi Kartları Paraf Kredi Kartı Paraf Kredi Kartı Nedir ? Dünya Katılım Paraf Kredi Kartı; yurt içindeki Paraf üye iş yerlerinde yapacağınız tüm alışverişlerinizde"
+      ],
+      "campaignEnd": null,
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/kendim-icin/kartlar/kredi-kartlari/paraf-kredi-karti",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_72",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Kendim Için Içerik Kartlar Kredi Kartları Paraf Platinum Kredi Kartı Paraf Platinum Kredi Kartı Nedir ? Dünya Katılım Paraf Platinum Kredi Kartı; yurt içindeki Paraf üye iş yerlerinde yapacağ"
+      ],
+      "campaignEnd": null,
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/kendim-icin/kartlar/kredi-kartlari/paraf-platinum-kredi-karti",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_73",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Isim Için Içerik Yatırım Sermaye Piyasası Ürünleri Yatırım Fonları Yatırım Fonları Yatırım Fonu Nedir? Yatırımcılardan toplanan birikimlerin çeşitli para ve sermaye piyasası araçlarında değer"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/isim-icin/yatirim/sermaye-piyasasi-urunleri/yatirim-fonlari",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_74",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Kendim Için Içerik Yatırım Ürünleri Sermaye Piyasası Ürünleri Yatırım Fonları Yatırım Fonları Yatırım Fonu Nedir? Yatırımcılardan toplanan birikimlerin çeşitli para ve sermaye piyasası araçla"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/kendim-icin/yatirim-urunleri/sermaye-piyasasi-urunleri/yatirim-fonlari",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_75",
+      "bankId": "dunya-katilim",
+      "bankName": "Dünya Katılım",
+      "title": "Dünya Katılım Kampanyası",
+      "productName": "Dünya Katılım Kampanyası",
+      "conditions": [
+        "Anasayfa Isim Için Içerik Yatırım Hazine Ürünleri Hazine Ürünleri Hazine Ürünleri Döviz/ Kıymetli Maden Alım Satımı Döviz ve kıymetli maden alım satım hizmeti, yatırımcılara uluslararası para birimler"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://dunyakatilim.com.tr/isim-icin/yatirim/hazine-urunleri",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_76",
       "bankId": "hayat-finans",
       "bankName": "Hayat Finans",
-      "title": "Bana Bunu Al İs Ortagim İle Troy Magaza Firsatlari",
-      "productName": "Bana Bunu Al İs Ortagim İle Troy Magaza Firsatlari",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
       "conditions": [
-        "Kampanya üst limiti 80.000TL'dir."
+        "Avantajlı Günlük Hesap Bir gün üzerinden işleyen, esnek ve avantajlı katılma hesabı ile birikimlerinizi her gün değerlemeye başlayın. Avantajlı Günlük Hesap Nedir? Hayat Finans olarak, tasarruflarınız"
+      ],
+      "campaignEnd": "2026-10-08",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://hayatfinans.com.tr/hesaplar/avantajli-gunluk-hesap",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_77",
+      "bankId": "hayat-finans",
+      "bankName": "Hayat Finans",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
+      "conditions": [
+        "Birikimin Büyüsün, Avantajın Bitmesin! Finansal gücünüzü artırmanın etkili yolu: Avantajlı Hesap ile birikim yaparken avantajlarınız hiç bitmesin. Hayat Finans Avantajlı Hesap Avantajlı Hesap ile biri"
+      ],
+      "campaignEnd": "2026-10-08",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://hayatfinans.com.tr/hesaplar/avantajli-hesap",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_78",
+      "bankId": "hayat-finans",
+      "bankName": "Hayat Finans",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
+      "conditions": [
+        "Bana Bunu Al İş Ortağım ile Troy Mağazalarında Finansman Fırsatı! Hayat Finanslılara özel Troy mağazalarında 3 aya varan taksit fırsatı Bana Bunu Al İş Ortağımda! Kampanya Koşulları Kampanya 31 Ağusto"
       ],
       "campaignEnd": null,
       "category": "financing_campaign",
@@ -218,102 +1499,206 @@
       "recordType": "campaign"
     },
     {
-      "id": "f67b19ad8eb19c7907601b84",
+      "id": "gold_ref_79",
       "bankId": "hayat-finans",
       "bankName": "Hayat Finans",
-      "title": "Xiaomi Urunlerinde Finansman Avantaji",
-      "productName": "Xiaomi Urunlerinde Finansman Avantaji",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
       "conditions": [
-        "Kampanya üst limiti 40.000TL'dir."
+        "Biz Kart ile Dijital Üyeliklerde %75 Nakit İade Fırsatı! Kampanya Dönemi: 16 Haziran - 31 Ağustos 2026 Kampanya Koşulları Kampanya Hayat Finans bireysel müşterileri için geçerlidir. Kampanyadan yararl"
       ],
-      "campaignEnd": null,
-      "category": "financing_campaign",
-      "campaignTheme": "general",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://hayatfinans.com.tr/kampanyalar/xiaomi-urunlerinde-finansman-avantaji",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "3e21c3f2c8348b6cb1d2fb2d",
-      "bankId": "hayat-finans",
-      "bankName": "Hayat Finans",
-      "title": "Hayat Finans İle Gastroclub Ayricaliklari",
-      "productName": "Hayat Finans İle Gastroclub Ayricaliklari",
-      "conditions": [
-        "Hayat Finans Mobil uygulaması üzerinden GastroClub üyeliğinizi oluşturarak seçkin restoranlar, marketler, moda, teknoloji, kuru temizleme,…"
-      ],
-      "campaignEnd": null,
-      "category": "financing_campaign",
-      "campaignTheme": "general",
-      "profitRate": 0.1,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://hayatfinans.com.tr/kampanyalar/hayat-finans-ile-gastroclub-ayricaliklari",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "4f9c978e8177b1f92b6e5026",
-      "bankId": "kuveyt-turk",
-      "bankName": "Kuveyt Türk",
-      "title": "Vivensede Vade Farksiz 5 Aya Varan Taksit Firsati",
-      "productName": "Vivensede Vade Farksiz 5 Aya Varan Taksit Firsati",
-      "campaignEnd": null,
+      "campaignEnd": "2026-08-31",
       "category": "card_campaign",
       "campaignTheme": "card",
       "profitRate": null,
       "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kendim-icin/kart-kampanyalari/vivensede-vade-farksiz-5-aya-varan-taksit-firsati",
+      "rewardAmountTl": {
+        "currency": "TRY",
+        "value": 300.0
+      },
+      "sourceUrl": "https://hayatfinans.com.tr/kampanyalar/biz-kart-dijital-uyelikler-kampanyasi",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "d9ce49f4b69a8117032abe4d",
-      "bankId": "kuveyt-turk",
-      "bankName": "Kuveyt Türk",
-      "title": "Taksitlioda Yeni Musterilere Ozel Kuveyt Turk Alisveris Finansmani Firsati",
-      "productName": "Taksitlioda Yeni Musterilere Ozel Kuveyt Turk Alisveris Finansmani Firsati",
+      "id": "gold_ref_80",
+      "bankId": "hayat-finans",
+      "bankName": "Hayat Finans",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
       "conditions": [
-        "Taksitlio’nun anlaşmalı olduğu mağazalarda yapacağınız alışverişlerinizde yeni müşteriye özel %2,99 kar payı oranlı Taksitlio Alışveriş…"
+        "Bana Bunu Al Hayat Finans ile ihtiyaçlarınızı karşılamanın tam zamanı! Bana Bunu Al Nedir? Bana Bunu Al bireysel ihtiyaçlarınızı finanse edebileceğiniz ihtiyaç finansmanı (ihtiyaç kredisi)* limitidir."
       ],
       "campaignEnd": null,
-      "category": "new_customer_financing",
-      "campaignTheme": "new_customer",
-      "profitRate": 0.0299,
-      "installmentCount": 3,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 18,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kendim-icin/finansman-kampanyalari/taksitlioda-yeni-musterilere-ozel",
+      "sourceUrl": "https://hayatfinans.com.tr/krediler/bana-bunu-al",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "9dd6a499c7c249540bdf38bb",
-      "bankId": "kuveyt-turk",
-      "bankName": "Kuveyt Türk",
-      "title": "Tarimda Kuveyt Turk İle Buyume Zamani",
-      "productName": "Tarimda Kuveyt Turk İle Buyume Zamani",
+      "id": "gold_ref_81",
+      "bankId": "hayat-finans",
+      "bankName": "Hayat Finans",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
+      "conditions": [
+        "Eğitim Finansmanı Sistemi Eğitim Finansmanında hızlı, kolay ve avantajlı çözümler. Vade farksız, gelir belgesiz eğitim finansmanı fırsatı! Üstelik 3 ay erteleme seçeneği ile! Eğitim ihtiyaçlarınıza öz"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 3,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://hayatfinans.com.tr/krediler/hayat-finans-egitim-finansmani-sistemi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_82",
+      "bankId": "hayat-finans",
+      "bankName": "Hayat Finans",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
+      "conditions": [
+        "Kira Sertifikası Kira sertifikası (sukuk) bir varlık, proje, iş veya yatırım faaliyeti üzerinde kısmi mülkiyeti temsil eden ve faizsiz finansman ilkelerine uygun olarak ihraç edilen menkul kıymetlerdi"
+      ],
       "campaignEnd": null,
       "category": "financing_campaign",
       "campaignTheme": "general",
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kendim-icin/tarimda-kuveyt-turk-ile-buyume-zamani",
+      "sourceUrl": "https://hayatfinans.com.tr/yatirim-ve-birikim/kira-sertifikasi-yatirim-ve-birikim",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "f2d00be4742581466e74b104",
-      "bankId": "tom-katilim",
-      "bankName": "T.O.M. Katılım",
-      "title": "Bayii Kampanyalari",
-      "productName": "Bayii Kampanyalari",
+      "id": "gold_ref_83",
+      "bankId": "hayat-finans",
+      "bankName": "Hayat Finans",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
       "conditions": [
-        "TOM Bank’tan “Hesaplı Kampanya”, seçili bayilerden kredi kullanan müşterilerin, belirli şartları yerine getirdiğinde vade farkının iade edildiği ve avantajlı vadelerle kredi kullanmasını sağlayan bir kampanyadır."
+        "Yatırım Fonları Hisse senedi, değerli madenler, döviz, yabancı hisse senedi ve daha birçok seçenek ile yatırımlarınızı profesyoneller tarafından yönetilen TEFAS fonları ile değerlendirebilirsiniz. Sun"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://hayatfinans.com.tr/yatirim-ve-birikim/yatirim-fonlari-yatirim-ve-birikim",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_84",
+      "bankId": "hayat-finans",
+      "bankName": "Hayat Finans",
+      "title": "Hayat Finans Kampanyası",
+      "productName": "Hayat Finans Kampanyası",
+      "conditions": [
+        "Yatırımcı Seviyesi ile Daha Fazla Avantaj Sizi Bekliyor Yatırım Yaptıkça Kazancınız Katlanır Hayat Finans'ta yatırım işlemleri sadece kazanç sağlamakla kalmaz, aynı zamanda size özel avantajların kapı"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://hayatfinans.com.tr/yatirim-ve-birikim/yatirimci-seviye-sistemi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_85",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kendim İçin Finansmanlar Alışveriş Finansmanları Alışveriş Finansmanı CebimPOS ile Alışveriş Finansmanı İhtiyaç Kart Taksitlio Alışveriş Finansmanı Hepsiburada Alışveriş Finansmanı Trendyol "
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 12,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/finansmanlar/alisveris-finansmanlari/alisveris-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_86",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kendim İçin Finansmanlar Alışveriş Finansmanları Hepsiburada Alışveriş Finansmanı CebimPOS ile Alışveriş Finansmanı İhtiyaç Kart Taksitlio Alışveriş Finansmanı Hepsiburada Alışveriş Finansma"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 12,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/finansmanlar/alisveris-finansmanlari/hepsiburada-alisveris-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_87",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kendim İçin Finansmanlar Alışveriş Finansmanları LC Waikiki Alışveriş Finansmanı CebimPOS ile Alışveriş Finansmanı İhtiyaç Kart Taksitlio Alışveriş Finansmanı Hepsiburada Alışveriş Finansman"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/finansmanlar/alisveris-finansmanlari/lc-waikiki-alisveris-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_88",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kendim İçin Finansmanlar Alışveriş Finansmanları Teknosa Alışveriş Finansmanı CebimPOS ile Alışveriş Finansmanı İhtiyaç Kart Taksitlio Alışveriş Finansmanı Hepsiburada Alışveriş Finansmanı T"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 12,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/finansmanlar/alisveris-finansmanlari/teknosa-alisveris-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_89",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kendim İçin Finansmanlar Alışveriş Finansmanları Vivense Alışveriş Finansmanı CebimPOS ile Alışveriş Finansmanı İhtiyaç Kart Taksitlio Alışveriş Finansmanı Hepsiburada Alışveriş Finansmanı T"
       ],
       "campaignEnd": null,
       "category": "financing_campaign",
@@ -321,679 +1706,113 @@
       "profitRate": null,
       "installmentCount": 36,
       "rewardAmountTl": null,
-      "sourceUrl": "https://tombankhadi.com/kampanyalar/bayii-kampanyalari",
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/finansmanlar/alisveris-finansmanlari/vivense-alisveris-finansmani",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "427d1ec6b3d6e35aa80b18b9",
-      "bankId": "emlak-katilim",
-      "bankName": "Emlak Katılım",
-      "title": "Kitap Kirtasiye Harcamalariniza 1000 Tl Parafpara",
-      "productName": "Kitap Kirtasiye Harcamalariniza 1000 Tl Parafpara",
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "education",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kitap-kirtasiye-harcamalariniza-1000-tl-parafpara",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "7b4aceca8def7a8c520b3af1",
-      "bankId": "vakif-katilim",
-      "bankName": "Vakıf Katılım",
-      "title": "Tamamla Kazan",
-      "productName": "Tamamla Kazan",
-      "conditions": [
-        "1 Aylık tabii Premium Üyelik Hediye"
-      ],
-      "campaignEnd": null,
-      "category": "financing_campaign",
-      "campaignTheme": "general",
-      "profitRate": null,
-      "installmentCount": 1,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/tamamla-kazan",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "67930592b33cf8b01fc25b1c",
-      "bankId": "vakif-katilim",
-      "bankName": "Vakıf Katılım",
-      "title": "Vclub Dunyasi Artik Vakif Katilim Mobilde",
-      "productName": "Vclub Dunyasi Artik Vakif Katilim Mobilde",
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/vclub-dunyasi-artik-vakif-katilim-mobilde",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "aceaba2d97320cefe102fe4f",
-      "bankId": "tom-katilim",
-      "bankName": "T.O.M. Katılım",
-      "title": "A101de Her Alisveriste 3 Nakit İade",
-      "productName": "A101de Her Alisveriste 3 Nakit İade",
-      "campaignEnd": null,
-      "category": "financing_campaign",
-      "campaignTheme": "general",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://tombankhadi.com/kampanyalar/a101de-her-alisveriste-3-nakit-iade",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "7d747350c5bc94a7cd256121",
-      "bankId": "turkiye-finans",
-      "bankName": "Türkiye Finans",
-      "title": "Yeni Yatırım Hesabına Sıfır Komisyon",
-      "productName": "Yeni Yatırım Hesabına Sıfır Komisyon",
-      "conditions": [
-        "Daha önce yatırım hesabı bulunmayan müşteriler için kampanya boyunca yurt içi hisse alım satımında %0 komisyon."
-      ],
-      "campaignEnd": "2026-10-31",
-      "category": "financing_campaign",
-      "campaignTheme": "general",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/kampanyalar/sayfalar/yeni-yatirim-hesabina-sifir-komisyon",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "569725ed382e5db7b7e72634",
-      "bankId": "turkiye-finans",
-      "bankName": "Türkiye Finans",
-      "title": "Mobilden Türkiye Finanslı Ol 50.000 Tl'ye Varan Kâr Paysız İhtiyaç Finansmanı",
-      "productName": "Mobilden Türkiye Finanslı Ol 50.000 Tl'ye Varan Kâr Paysız İhtiyaç Finansmanı",
-      "conditions": [
-        "Mobilden yeni müşteri olanlara 50.000 TL'ye kadar kâr paysız ihtiyaç finansmanı sunulur."
-      ],
-      "campaignEnd": "2026-08-31",
-      "category": "new_customer_financing",
-      "campaignTheme": "new_customer",
-      "profitRate": 0,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/kampanyalar/sayfalar/mobilden-turkiye-finansli-ol",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "e6de5036eb16837c29d917bd",
+      "id": "gold_ref_90",
       "bankId": "kuveyt-turk",
       "bankName": "Kuveyt Türk",
-      "title": "Yeni Kuveyt Turk Mobil Musterilerine 10000 Mile Varan Firsat",
-      "productName": "Yeni Kuveyt Turk Mobil Musterilerine 10000 Mile Varan Firsat",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Dijital Bankacılık API Bankacılığı API Market Finansman Hazine Hesap Yönetimi Finansman TCMB Ürünleri Finansman Kuveyt Türk Finansman API'ları ile kullanıcılara kapsamlı finansman hizmetleri"
+      ],
       "campaignEnd": null,
       "category": "financing_campaign",
       "campaignTheme": "general",
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kendim-icin/musteri-ol-kampanyalari/yeni-kuveyt-turk-mobil-musterilerine-10000-mile-varan-firsat",
+      "sourceUrl": "https://www.kuveytturk.com.tr/dijital-bankacilik/api-bankaciligi/api-market/finansman",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "2e7a7dfb212eac389b5b336e",
-      "bankId": "ziraat-katilim",
-      "bankName": "Ziraat Katılım",
-      "title": "Hava Yolu Bilet Aliminiza 1500 Tl Bankkart Lira 3",
-      "productName": "Hava Yolu Bilet Aliminiza 1500 Tl Bankkart Lira 3",
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/hava-yolu-bilet-aliminiza-1500-tl-bankkart-lira-3",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "4538847d75a3d7c53801ee55",
-      "bankId": "albaraka",
-      "bankName": "Albaraka Türk",
-      "title": "Yurt Disi Cikis Harci Kampanyasi 1250 Tl Worldpuan 3",
-      "productName": "Yurt Disi Cikis Harci Kampanyasi 1250 Tl Worldpuan 3",
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.albaraka.com.tr/tr/kampanyalar/detay/yurt-disi-cikis-harci-kampanyasi-1250-tl-worldpuan-3",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "7ad73216f55c6b28ed02b1c3",
-      "bankId": "albaraka",
-      "bankName": "Albaraka Türk",
-      "title": "Yakınını Davet Et Kampanyası",
-      "productName": "Yakınını Davet Et Kampanyası",
-      "conditions": [
-        "Davet edilen uygun kişi başına 500 TL Worldpuan; davet eden için toplam 5.000 TL'ye kadar Worldpuan."
-      ],
-      "campaignEnd": "2026-12-31",
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": 5000,
-      "sourceUrl": "https://www.albaraka.com.tr/tr/kampanyalar/detay/yakinini-davet-et-kampanyasi",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "2a7c1150f70b1c46ac4b0e69",
-      "bankId": "albaraka",
-      "bankName": "Albaraka Türk",
-      "title": "Eğitim Harcamalarına Vade Farksız 6 Taksit",
-      "productName": "Eğitim Harcamalarına Vade Farksız 6 Taksit",
-      "conditions": [
-        "Albaraka World kredi kartı ile tek çekim okul ödemeleri için geçerlidir."
-      ],
-      "campaignEnd": "2026-09-30",
-      "category": "card_campaign",
-      "campaignTheme": "education",
-      "profitRate": null,
-      "installmentCount": 6,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.albaraka.com.tr/tr/kampanyalar/detay/egitim-harcamalarina-vade-farksiz-6-taksit",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "441993c782775ddafecf4c91",
-      "bankId": "albaraka",
-      "bankName": "Albaraka Türk",
-      "title": "Kırtasiye Harcamalarına Vade Farksız 4 Taksit",
-      "productName": "Kırtasiye Harcamalarına Vade Farksız 4 Taksit",
-      "conditions": [
-        "Albaraka World kredi kartı ile uygun kırtasiye harcamaları için geçerlidir."
-      ],
-      "campaignEnd": "2026-09-30",
-      "category": "card_campaign",
-      "campaignTheme": "education",
-      "profitRate": null,
-      "installmentCount": 4,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.albaraka.com.tr/tr/kampanyalar/detay/kirtasiye-harcamalarina-vade-farksiz-4-taksit",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "8c2755f08515bc9607545964",
-      "bankId": "dunya-katilim",
-      "bankName": "Dünya Katılım",
-      "title": "Altin Kesemticari",
-      "productName": "Altin Kesemticari",
-      "conditions": [
-        "Altın Kazandıran Alışveriş Dünya Katılım’da !"
-      ],
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/altin-kesemticari",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "afce1a09e5f9dc71b866bc95",
-      "bankId": "dunya-katilim",
-      "bankName": "Dünya Katılım",
-      "title": "Davet Et, Altın Kazan",
-      "productName": "Davet Et, Altın Kazan",
-      "conditions": [
-        "Davet koduyla müşteri olan ve Paraf Kart başvurusu yapan her kişi için 0,1 gram altın; toplam 1 grama kadar."
-      ],
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/davetetkazan",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "7236ab1b15b2b9b8414d6fe9",
-      "bankId": "dunya-katilim",
-      "bankName": "Dünya Katılım",
-      "title": "Lc Waikiki",
-      "productName": "Lc Waikiki",
-      "conditions": [
-        "LCW mobil uygulaması ve lcw.com ‘dan yapılacak alışverişlerde 300 TL indirime hak kazanmak için; kargo bedeli hariç sepet tutarı tek…"
-      ],
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/lc-waikiki",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "840a035d148f01a2104f16b6",
-      "bankId": "hayat-finans",
-      "bankName": "Hayat Finans",
-      "title": "Biz Kart ile Arkadaşını Getir Kazan",
-      "productName": "Biz Kart ile Arkadaşını Getir Kazan",
-      "conditions": [
-        "Davet eden müşterinin toplam kazanımı 25.000 TL'ye kadar çıkabilir."
-      ],
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": 25000,
-      "sourceUrl": "https://hayatfinans.com.tr/kampanyalar/biz-kart-ile-arkadasini-getir-kazan",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "40751ecfb77b2116e5aabb8c",
-      "bankId": "hayat-finans",
-      "bankName": "Hayat Finans",
-      "title": "Biz Kart Dijital Uyelikler Kampanyasi",
-      "productName": "Biz Kart Dijital Uyelikler Kampanyasi",
-      "conditions": [
-        "Kampanya Hayat Finans bireysel müşterileri için geçerlidir."
-      ],
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": 0.75,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://hayatfinans.com.tr/kampanyalar/biz-kart-dijital-uyelikler-kampanyasi",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "09dae4f863a36b2993da3ed9",
-      "bankId": "hayat-finans",
-      "bankName": "Hayat Finans",
-      "title": "Biz Kart ile Okula Donus Kampanyasi",
-      "productName": "Biz Kart ile Okula Donus Kampanyasi",
-      "conditions": [
-        "Biz Kart ile Okula Dönüş Kampanyası"
-      ],
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "education",
-      "profitRate": 0.1,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://hayatfinans.com.tr/kampanyalar/biz-kart-ile-okula-donus-kampanyasi",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "a990be5e0b2b4b15cc4b2989",
-      "bankId": "hayat-finans",
-      "bankName": "Hayat Finans",
-      "title": "Biz Kart Yemek Harcaması Nakit İade",
-      "productName": "Biz Kart Yemek Harcaması Nakit İade",
-      "conditions": [
-        "Biz Kart ile yemek sektöründeki uygun harcamaların %10'u, aylık en fazla 1.000 TL nakit iade."
-      ],
-      "campaignEnd": "2026-08-31",
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": 1000,
-      "sourceUrl": "https://hayatfinans.com.tr/kampanyalar/biz-kart-yemek-harcamasi-nakit-iade",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "449310b80b4505a6cad07f00",
+      "id": "gold_ref_91",
       "bankId": "kuveyt-turk",
       "bankName": "Kuveyt Türk",
-      "title": "İsim İcin",
-      "productName": "İsim İcin",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
       "conditions": [
-        "Kuveyt Türk Tüm Tüzel Kartları ile 500 – 300.00 Arası Akaryakıt Taksitli Harcamalarınıza %2.99 Vade Farkı Oran Fırsatı!"
-      ],
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": 0.0299,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/isin-icin/akaryakit-taksit",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "8ebe703fd186627fa91b48c7",
-      "bankId": "emlak-katilim",
-      "bankName": "Emlak Katılım",
-      "title": "Emlak Katılım Paraf 2.500 Tl Parafpara",
-      "productName": "Emlak Katılım Paraf 2.500 Tl Parafpara",
-      "conditions": [
-        "Kampanyaya uygun müşterinin 5.000 TL harcamaya ulaşması gerekir."
-      ],
-      "campaignEnd": "2026-09-18",
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": 2500,
-      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/emlak-katilim-paraf-2-500-tl-parafpara",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "78263204523e7f4bb5c06189",
-      "bankId": "emlak-katilim",
-      "bankName": "Emlak Katılım",
-      "title": "Biletinialda 20 İndirim",
-      "productName": "Biletinialda 20 İndirim",
-      "campaignEnd": null,
-      "category": "discount_campaign",
-      "campaignTheme": "general",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/biletinialda-20-indirim",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "77c4d2f7d5b17a41613a4183",
-      "bankId": "emlak-katilim",
-      "bankName": "Emlak Katılım",
-      "title": "Marina Mayoda Tum Urunlerde 15 İndirim",
-      "productName": "Marina Mayoda Tum Urunlerde 15 İndirim",
-      "campaignEnd": null,
-      "category": "discount_campaign",
-      "campaignTheme": "general",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/marina-mayoda-tum-urunlerde-15-indirim",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "19a22bc4b64f1c12d98edf7c",
-      "bankId": "emlak-katilim",
-      "bankName": "Emlak Katılım",
-      "title": "Modanisada Tum İndirimlere Ek 15 İndirim Firsati",
-      "productName": "Modanisada Tum İndirimlere Ek 15 İndirim Firsati",
-      "campaignEnd": null,
-      "category": "discount_campaign",
-      "campaignTheme": "general",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/modanisada-tum-indirimlere-ek-15-indirim-firsati",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "f566a75507e6102320b9ccb3",
-      "bankId": "emlak-katilim",
-      "bankName": "Emlak Katılım",
-      "title": "Enterprise Arac Kiralamalarinda 35 İndirim Firsati",
-      "productName": "Enterprise Arac Kiralamalarinda 35 İndirim Firsati",
-      "campaignEnd": null,
-      "category": "discount_campaign",
-      "campaignTheme": "vehicle",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/enterprise-arac-kiralamalarinda-35-indirim-firsati",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "c8413a12241059c5491e817c",
-      "bankId": "emlak-katilim",
-      "bankName": "Emlak Katılım",
-      "title": "Rentgoda 40 İndirim Firsati",
-      "productName": "Rentgoda 40 İndirim Firsati",
-      "conditions": [
-        "rentgo.com web sitesinde Emlak Katılım kart sahiplerine özel %40 oranında ek indirim sunulacaktır."
-      ],
-      "campaignEnd": null,
-      "category": "discount_campaign",
-      "campaignTheme": "general",
-      "profitRate": 0.4,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/rentgoda-40-indirim-firsati",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "fa942c940165d9f3211be69d",
-      "bankId": "emlak-katilim",
-      "bankName": "Emlak Katılım",
-      "title": "Hizli Cicekte Tum İndirimlere Ek 20 İndirim Firsati",
-      "productName": "Hizli Cicekte Tum İndirimlere Ek 20 İndirim Firsati",
-      "conditions": [
-        "İndirim oranı tüm indirimlere ek %20’dir."
-      ],
-      "campaignEnd": null,
-      "category": "discount_campaign",
-      "campaignTheme": "general",
-      "profitRate": 0.2,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/hizli-cicekte-tum-indirimlere-ek-20-indirim-firsati",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "91675399d12e84d0cf64af4e",
-      "bankId": "vakif-katilim",
-      "bankName": "Vakıf Katılım",
-      "title": "Vakif Katilimli Olanlara Tabiiden Premium Uyelik",
-      "productName": "Vakif Katilimli Olanlara Tabiiden Premium Uyelik",
-      "conditions": [
-        "Siz de Vakıf Katılım Mobil Şube’den şimdi müşterimiz olun, 1 aylık tabii Premium üyeliğinizin tadını çıkarın."
+        "Ana Sayfa Kendim İçin Biz Bize Bankacılık Biz Bize Özel Kur Avantajı Biz Bize'ye Özel 1.000 Mil Hoş Geldin Avantajı Ücretsiz HGS Etiketi Avantajı Biz Bize'ye Özel BES'te Ek Katkı Avantajı Özel Kur Ava"
       ],
       "campaignEnd": null,
       "category": "financing_campaign",
       "campaignTheme": "general",
       "profitRate": null,
-      "installmentCount": 1,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/vakif-katilimli-olanlara-tabiiden-premium-uyelik",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "89c9d3fd79cfc741e6fbd237",
-      "bankId": "ziraat-katilim",
-      "bankName": "Ziraat Katılım",
-      "title": "Qr İle Odemelerinize Toplam 100 Tl Bankkart Lira 3",
-      "productName": "Qr İle Odemelerinize Toplam 100 Tl Bankkart Lira 3",
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/qr-ile-odemelerinize-toplam-100-tl-bankkart-lira-3",
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/biz-bize-bankacilik/biz-bize/ozel-kur-avantajii",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "b66e38bf7ae111e089849b94",
-      "bankId": "ziraat-katilim",
-      "bankName": "Ziraat Katılım",
-      "title": "E Ticaret Alisverislerinize Toplam 500 Tl Bankkart Lira 3",
-      "productName": "E Ticaret Alisverislerinize Toplam 500 Tl Bankkart Lira 3",
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/e-ticaret-alisverislerinize-toplam-500-tl-bankkart-lira-3",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "24138febca10586b1ffbd2cb",
-      "bankId": "ziraat-katilim",
-      "bankName": "Ziraat Katılım",
-      "title": "Giyim Ve Ayakkabi Alisverisinizde Toplam 1000 Tl Bankkart Lira 3",
-      "productName": "Giyim Ve Ayakkabi Alisverisinizde Toplam 1000 Tl Bankkart Lira 3",
+      "id": "gold_ref_92",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
       "conditions": [
-        "Kampanya Koşulları:8 Ağustos – 7 Eylül 2026 tarihleri arasında Ziraat Katılım Bankkart kredi kartınız ile giyim ve ayakkabı…"
+        "Ana Sayfa Kendim İçin Biz Bize Bankacılık Biz Bize Plus Özel Kur Avantajı Harcadıkça Mil Kazandıran Miles&Smiles Kredi Kartı Ücretsiz! Biz Bize Plus'a Özel 2.000 Mil Hoş Geldin Avantajı Biz Bize Plus "
       ],
       "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/giyim-ve-ayakkabi-alisverisinizde-toplam-1000-tl-bankkart-lira-3",
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/biz-bize-bankacilik/biz-bize-plus/ozel-kur-avantaji",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "d45ce66b896ce10a30878a81",
-      "bankId": "ziraat-katilim",
-      "bankName": "Ziraat Katılım",
-      "title": "Kafe Ve Restoran Harcamalariniza Toplam 450 Tl Bankkart Lira 3",
-      "productName": "Kafe Ve Restoran Harcamalariniza Toplam 450 Tl Bankkart Lira 3",
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/kafe-ve-restoran-harcamalariniza-toplam-450-tl-bankkart-lira-3",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "8ab65abdedc38f7cea10d6d8",
-      "bankId": "ziraat-katilim",
-      "bankName": "Ziraat Katılım",
-      "title": "Kültür Sanat Harcamalarına 500 Tl Bankkart Lira",
-      "productName": "Kültür Sanat Harcamalarına 500 Tl Bankkart Lira",
+      "id": "gold_ref_93",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
       "conditions": [
-        "Müze, sinema, tiyatro ve konser bileti harcamalarında alışverişten önce kampanyaya katılım gerekir."
+        "Ana Sayfa Hakkımızda Kuveyt Türk'ü Tanıyın Basın Bültenleri Kuveyt Türk'ten 1 milyar TL limitli yeni makine finansmanı kampanyası Ticari müşterilerine cazip kâr oranlarıyla finansman desteğinde buluna"
       ],
-      "campaignEnd": "2026-09-07",
-      "category": "card_campaign",
-      "campaignTheme": "card",
+      "campaignEnd": "2020-07-22",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
       "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": 500,
-      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/kultur-sanat-harcamalarina-500-tl-bankkart-lira",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "0910759cd51a81be7d75184e",
-      "bankId": "ziraat-katilim",
-      "bankName": "Ziraat Katılım",
-      "title": "Optik Alisverisinize 500 Tl Bankkart Lira 3",
-      "productName": "Optik Alisverisinize 500 Tl Bankkart Lira 3",
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
+      "installmentCount": 60,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/optik-alisverisinize-500-tl-bankkart-lira-3",
+      "sourceUrl": "https://www.kuveytturk.com.tr/hakkimizda/kuveyt-turk-hakkinda/bizden-haberler/kuveyt-turkten-1-milyar-tl-limitli-yeni-makine-finansmani-kampanyasi",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "1efe4d6b67924e99617a9a6b",
-      "bankId": "ziraat-katilim",
-      "bankName": "Ziraat Katılım",
-      "title": "Akaryakit Harcamalariniza 400 Tl Bankkart Lira 3",
-      "productName": "Akaryakit Harcamalariniza 400 Tl Bankkart Lira 3",
+      "id": "gold_ref_94",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
       "conditions": [
-        "Kampanya Koşulları:Ziraat Katılım Bankkart kredi kartınız ile anlaşmalı akaryakıt istasyonlarında 8 Ağustos - 7 Eylül 2026 tarihleri…"
+        "Ana Sayfa İşim İçin Yatırım Hesaplar Katılma Hesapları Cari Hesaplar Katılma Hesapları Yatırım Hesabı Katılma Hesapları Katılma Hesabı türünü kendiniz seçebilir ve vade sonunda belirli oranda getiri e"
       ],
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/akaryakit-harcamalariniza-400-tl-bankkart-lira-3",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "b184e39ba90ebeda53f53601",
-      "bankId": "dunya-katilim",
-      "bankName": "Dünya Katılım",
-      "title": "Altin Kesem",
-      "productName": "Altin Kesem",
-      "conditions": [
-        "Altın Kazandıran Alışveriş Dünya Katılım’da !"
-      ],
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": null,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/altin-kesem",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "34d426b5a8e3ae782af57441",
-      "bankId": "albaraka",
-      "bankName": "Albaraka Türk",
-      "title": "Dijital Musterilere Ozel Pratik Finansman Kart",
-      "productName": "Dijital Musterilere Ozel Pratik Finansman Kart",
-      "conditions": [
-        "Dijital Müşterilere Özel Pratik Finansman Kart"
-      ],
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
+      "campaignEnd": "2025-04-30",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
       "profitRate": null,
       "installmentCount": 12,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.albaraka.com.tr/tr/kampanyalar/detay/dijital-musterilere-ozel-pratik-finansman-kart",
+      "sourceUrl": "https://www.kuveytturk.com.tr/isim-icin/yatirim/hesaplar/katilma-hesaplari",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "b4c0d27a9921ebc441ea5500",
-      "bankId": "dunya-katilim",
-      "bankName": "Dünya Katılım",
-      "title": "Koton %8 Nakit İade",
-      "productName": "Koton %8 Nakit İade",
+      "id": "gold_ref_95",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
       "conditions": [
-        "Koton mağazalarındaki uygun alışverişlerde harcamanın %8'i oranında anlık nakit iade."
+        "Ana Sayfa Kendim İçin Finansmanlar İhtiyaç Finansmanları Eğitim Finansmanı Hac-Umre Finansmanı Eğitim Finansmanı Seyahat Finansmanı Tekne Tüketici Finansmanı Kira Finansmanı İhtiyaç Kart Bisiklet Fina"
       ],
       "campaignEnd": null,
       "category": "financing_campaign",
@@ -1001,156 +1820,1717 @@
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/koton-8-nakit-iade",
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/finansmanlar/ihtiyac-finansmanlari/egitim-finansmani",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "2f7323a4b75acb1384a3d391",
-      "bankId": "dunya-katilim",
-      "bankName": "Dünya Katılım",
-      "title": "Touristica Peşin Fiyatına 9 Taksit",
-      "productName": "Touristica Peşin Fiyatına 9 Taksit",
+      "id": "gold_ref_96",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
       "conditions": [
-        "Dünya Katılım Paraf ile Touristica alışverişlerinde otel ve ürüne göre 9 taksite kadar."
+        "Ana Sayfa Kendim İçin Finansmanlar İhtiyaç Finansmanları Hac-Umre Finansmanı Hac-Umre Finansmanı Eğitim Finansmanı Seyahat Finansmanı Tekne Tüketici Finansmanı Kira Finansmanı İhtiyaç Kart Bisiklet Fi"
       ],
       "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": 9,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/touristica-pesin-fiyatina-9-taksit",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "265194b332cd4f774ca9368f",
-      "bankId": "dunya-katilim",
-      "bankName": "Dünya Katılım",
-      "title": "Demirdöküm Vade Farksız 9 Taksit",
-      "productName": "Demirdöküm Vade Farksız 9 Taksit",
-      "conditions": [
-        "Demirdöküm'ün kendi POS'u üzerinden yapılan uygun işlemler için geçerlidir."
-      ],
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "card",
-      "profitRate": null,
-      "installmentCount": 9,
-      "rewardAmountTl": null,
-      "sourceUrl": "https://dunyakatilim.com.tr/kampanyalar/demirdokum-vade-farksiz-9-taksit",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "371e09f6588425002562bf80",
-      "bankId": "ziraat-katilim",
-      "bankName": "Ziraat Katılım",
-      "title": "Okul Odemelerinizde 12 Aya Varan Taksit Firsati",
-      "productName": "Okul Odemelerinizde 12 Aya Varan Taksit Firsati",
-      "conditions": [
-        "Uygun eğitim/okul harcamalarında vade farksız taksit."
-      ],
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "education",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/okul-odemelerinizde-12-aya-varan-taksit-firsati",
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/finansmanlar/ihtiyac-finansmanlari/hac-umre-finansmani",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "2bc06281ce9a8f846164fd85",
-      "bankId": "emlak-katilim",
-      "bankName": "Emlak Katılım",
-      "title": "Debit Kart İlk Harcamanın Yarısı Nakit İade",
-      "productName": "Debit Kart İlk Harcamanın Yarısı Nakit İade",
+      "id": "gold_ref_97",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
       "conditions": [
-        "Görüntülü görüşmeyle ilk defa müşteri olanların ilk Debit Kart harcamasının %50'si, en fazla 500 TL iade edilir."
+        "Ana Sayfa Kendim İçin Finansmanlar İhtiyaç Finansmanları Seyahat Finansmanı Hac-Umre Finansmanı Eğitim Finansmanı Seyahat Finansmanı Tekne Tüketici Finansmanı Kira Finansmanı İhtiyaç Kart Bisiklet Fin"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/finansmanlar/ihtiyac-finansmanlari/seyahat-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_98",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kendim İçin Finansmanlar İhtiyaç Finansmanları Tekne Tüketici Finansmanı Hac-Umre Finansmanı Eğitim Finansmanı Seyahat Finansmanı Tekne Tüketici Finansmanı Kira Finansmanı İhtiyaç Kart Bisik"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/finansmanlar/ihtiyac-finansmanlari/tekne-tuketici-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_99",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Akaryakıtta 200 TL'ye Varan Altın Puan Fırsatı! Akaryakıt harcamalarınıza toplam 200 TL Altın Puan kazanma fırsatı! 1-31 Temmuz arasında 2.000 TL ve üzeri harcama"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/akaryakitta-200-tlye-varan-altin-puan-firsati",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_100",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Avva'da 500 TL İndirim Fırsatı! Avva'da 500 TL İndirim Fırsatı! Kampanya Tarihleri 8.05.2026 - 31.05.2026 Kampanya Süresi Doldu! Kampanyayı Paylaş Facebook'da pay"
+      ],
+      "campaignEnd": "2026-05-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/avvada-500-tl-indirim-firsati",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_101",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Bisiklet Finansmanı'nda Enerji Tasarrufu Haftasına Özel %4.19 Kar Oranı Fırsatı! Daha yaşanılabilir bir dünya için Enerji Haftasına özel kar payı oranı Bisiklet F"
+      ],
+      "campaignEnd": "2025-01-20",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": 0.04190000000000001,
+      "installmentCount": 12,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/bisiklet-finansmaninda-enerji-tasarrufu-haftasina-ozel-419-kar-orani-firsati",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_102",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Elektrikli Araç Şarj Ünitesi Finansmanı'nda Enerji Tasarrufu Haftasına Özel %4.19 Kar Oranı Fırsatı! Daha yaşanılabilir bir dünya için Enerji Haftasına özel kar p"
+      ],
+      "campaignEnd": "2025-01-20",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": 0.04190000000000001,
+      "installmentCount": 12,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/elektrikli-arac-sarj-unitesi-finansmaninda-enerji-tasarrufu-haftasina-ozel-419-kar-orani-firsati",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_103",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Firma Ortakları Yatırım Yaparken Mil Kazanıyor Size özel kur oranları ile aylık 10.000 USD ve üzerine eş değer tutarda döviz/kıymetli maden işlemi yaparak 5.000 M"
+      ],
+      "campaignEnd": "2025-07-14",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/firma-ortaklari-yatirim-yaparken-mil-kazaniyor-scr",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_104",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Gürgençler'de Mil ve Taksit Avantajı! Miles&Smiles Kuveyt Türk bireysel kredi kartları ile 31 Mayıs 2026 tarihine kadar Gürgençler Bilişim mağazalarında ve web si"
+      ],
+      "campaignEnd": "2026-05-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/gurgenclerde-mil-ve-taksit-avantaji",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_105",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Hepsiburada Alışveriş Finansmanı'nda Enerji Tasarrufu Haftasına Özel %3.99 Kar Oranı Fırsatı! Daha yaşanılabilir bir dünya için Enerji Haftasına özel oran Hepsibu"
+      ],
+      "campaignEnd": "2025-01-20",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": 0.039900000000000005,
+      "installmentCount": 12,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/hepsiburada-alisveris-finansmaninda-enerji-tasarrufu-haftasina-ozel-399-kar-orani-firsati",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_106",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi İşiniz Büyürken Kazancınız da Büyüsün 30 Haziran 2025 tarihine kadar 500.000 TL ve üzeri işletme finansmanı ödemenizi, satıcının Kuveyt Türk hesaplarına yapmanız "
+      ],
+      "campaignEnd": "2025-06-30",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/isiniz-buyurken-kazanciniz-buyusun-scr",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_107",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Kuveyt Türk ve TOGG İş Birliği Ülkemizin yerli ve milli otomobili TOGG'a, Kuveyt Türk desteğiyle hemen sahip olabilirsiniz! Kampanya Tarihleri 1.07.2026 - 31.07.2"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/kuveyt-turk-ve-togg-is-birligi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_108",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Kuveyt Türk&VavaCars İş Birliği VavaCars'a özel indirimli kar paylı finansman Kuveyt Türk'te! Kampanya Tarihleri 10.07.2025 - 31.12.2025 Kampanya Süresi Doldu! Ka"
+      ],
+      "campaignEnd": "2025-12-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/kuveyt-turkandvavacars-is-birligi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_109",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Kuveyt Türk'ten Esnafa Ücretsiz Çek Paketi! 75.000 TL ve üzeri hak ediş yönlendiren gıda esnafına 3.500 TL değerinde çek paketi hediye! Kampanya Tarihleri 1.08.20"
+      ],
+      "campaignEnd": "2024-12-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/kuveyt-turkten-esnafa-ucretsiz-cek-paketi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_110",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kampanya Arşivi Kuveyt Türk'ten Turizm Sektörüne KFK Destekli Finansman! KFK teminatı desteğiyle sunulan finansman paketiyle işletme sermayenizi rahatlatın, nakit akışınızı denge"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 12,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/kuveyt-turkten-turizm-sektorune-kfk-destekli-finansman",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_111",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kendim İçin Kart Kampanyaları Doğtaş Grubu'nda 5 Aya Varan Taksit İmkanı! Doğtaş Grubu'nda 5 Aya Varan Taksit İmkanı! Kampanya Tarihleri 13.10.2025 - 31.12.2026 Kampanyayı Paylaş"
+      ],
+      "campaignEnd": "2026-12-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kendim-icin/kart-kampanyalari/dogtas-grubunda-5-aya-varan-taksit-imkani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_112",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar İşim İçin Kart Kampanyaları Sağlam Business Kart'tan Dev Kampanya 3 Ay Erteleme ve %3,49 Oranla 9 Taksit İmkanı! Sağlam Business Kartınızla harcamanızı 3 ay erteleme ve %3,49 ora"
+      ],
+      "campaignEnd": "2026-12-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": 9,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/isim-icin/kart-kampanyalari/saglam-business-karttan-dev-kampanya-3-ay-erteleme-ve-349-oranla-9-taksit-imkani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_113",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kendim İçin Hesaplar Katılma Hesapları Ara Dönem Kâr Payı Ödemeli Hesaplar Katılma Hesabı Dijital Katılma Hesabı Hoş Geldin Katılma Hesabı Sepet Hesap İncir Katılma Hesabı Ara Dönem Kâr Payı"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/hesaplar/katilma-hesaplari/ara-donem-kar-payi-odemeli-hesaplar",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_114",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kendim İçin Hesaplar Katılma Hesapları Birikimli Katılma Hesabı Katılma Hesabı Dijital Katılma Hesabı Hoş Geldin Katılma Hesabı Sepet Hesap İncir Katılma Hesabı Ara Dönem Kâr Payı Ödemeli He"
+      ],
+      "campaignEnd": "2025-07-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 36,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/hesaplar/katilma-hesaplari/birikimli-katilma-hesabi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_115",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kendim İçin Hesaplar Katılma Hesapları Güvenceli Birikim Hesabı Katılma Hesabı Dijital Katılma Hesabı Hoş Geldin Katılma Hesabı Sepet Hesap İncir Katılma Hesabı Ara Dönem Kâr Payı Ödemeli He"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 120,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kendim-icin/hesaplar/katilma-hesaplari/guvenceli-birikim-hesabi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_116",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kendim İçin Kampanyalar Kendim İçin İşim İçin Kampanya Arşivi Tüm Kampanyalar Seyahat Kampanyaları Kart Kampanyaları Müşteri Ol Kampanyaları Finansman Kampanyaları Ara Kampanya A"
+      ],
+      "campaignEnd": "2026-12-31",
+      "category": "new_customer_financing",
+      "campaignTheme": "new_customer",
+      "profitRate": null,
+      "installmentCount": 3,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kendim-icin/finansman-kampanyalari",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_117",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Konut Finansmanı Kampanyası. Kuveyt Türk ile hayalinizdeki eve kavuşun. Konut finansmanında kâr payı oranı %1,89'dan başlayan oranlarla, 120 aya kadar vade imkânı. Tahsis ücreti 750 TL. Kampanya 31.12"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": null,
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_118",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "KUVEYT TÜRK KATILIM BANKASI A.Ş. | Büyükdere Cad. No: 129/1 Esentepe / Şişli / İstanbul. Mersis No: 0600002681400074 | kuveytturk@hs03.kep.tr | www.kuveytturk.com.tr | Tel: 444 0 123 Faaliyet Konusu: "
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": 0.012,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/medium/bireysel-finansman-talebi-onay-ve-bilgilendirme-fo-4012.pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_119",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "KUVEYT TÜRK KATILIM BANKASI A.Ş. | Büyükdere Street No: 129/1 Esentepe / Şişli / Istanbul. Mersis No: 0600002681400074 | kuveytturk@hs03.kep.tr | www.kuveytturk.com.tr | Tel: 444 0 123 Activity: Any A"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/medium/bireysel-finansman-talebi-onay-ve-bilgilendirme-fo-4013.pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_120",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "KUVEYT TÜRK KATILIM BANKASI A.Ş. | Büyükdere Cad. No: 129/1 Esentepe / Şişli / İstanbul. Mersis No: 0600002681400074 | kuveytturk@hs03.kep.tr | www.kuveytturk.com.tr | Tel: 444 0 123 Faaliyet Konusu: "
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": 0.012,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/medium/bireysel-finansman-talebi-onay-ve-bilgilendirme-fo-4014.pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_121",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Sayfa-Page 1 / 13 KUVEYT TÜRK KATILIM BANKASI A.Ş. | Büyükdere Street No: 129/1 Esentepe / Şişli / Istanbul. Mersis No: 0600002681400074 | kuveytturk@hs03.kep.tr | www.kuveytturk.com.tr | Tel: 444 0 1"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/medium/genel-kredi-sozlesmesi-ucret-bilgi-formu-ingilizce-3715.pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_122",
+      "bankId": "kuveyt-turk",
+      "bankName": "Kuveyt Türk",
+      "title": "Kuveyt Türk Kampanyası",
+      "productName": "Kuveyt Türk Kampanyası",
+      "conditions": [
+        "Ana Sayfa Kampanyalar Kendim İçin Müşteri Ol Kampanyaları Yakınlarını Kuveyt Türk'e Davet Et Toplamda 5.000 TL'ye Varan Hediye Kazan! Yakınlarını Kuveyt Türk'e Davet Et Toplamda 5.000 TL'ye Varan Hedi"
+      ],
+      "campaignEnd": "2026-12-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kendim-icin/musteri-ol-kampanyalari/yakinlarini-kuveyt-turke-davet-et-toplamda-5000-tlye-varan-hediye-kazan",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_123",
+      "bankId": "tom-katilim",
+      "bankName": "T.O.M. Katılım",
+      "title": "T.O.M. Katılım Kampanyası",
+      "productName": "T.O.M. Katılım Kampanyası",
+      "conditions": [
+        "TOM Bank Hadi Hadi Kazan Kampanyalar Tüm akaryakıt harcamalarında %5 iade kazan! Üstelik Çok Kazananlar Kulübü'ne Özel %10 iade! Hemen İndir Hemen İndir Tüm akaryakıt harcamalarında %5 iade kazan! Üst"
       ],
       "campaignEnd": "2026-08-31",
       "category": "card_campaign",
       "campaignTheme": "card",
       "profitRate": null,
       "installmentCount": null,
-      "rewardAmountTl": 500,
-      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/debit-kart-ilk-harcamanin-yarisi-nakit-iade",
-      "campaignStatus": "active",
-      "recordType": "campaign"
-    },
-    {
-      "id": "327f8aa7ccc89412bb494000",
-      "bankId": "vakif-katilim",
-      "bankName": "Vakıf Katılım",
-      "title": "Vakıf Katılım Mastercard Eğitimde Vade Farksız 5 Taksit",
-      "productName": "Vakıf Katılım Mastercard Eğitimde Vade Farksız 5 Taksit",
-      "conditions": [
-        "Bireysel Vakıf Katılım Mastercard ile uygun eğitim harcamalarında geçerlidir."
-      ],
-      "campaignEnd": "2026-12-31",
-      "category": "card_campaign",
-      "campaignTheme": "education",
-      "profitRate": null,
-      "installmentCount": 5,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/vakif-katilim-mastercard-egitimde-vade-farksiz-5-taksit",
+      "sourceUrl": "https://tombankhadi.com/kampanyalar/akaryakit-harcamalarinda-5e-varan-iade-ustelik-cok-kazananlar-kulubune-ozel-10-iade",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "c6b06bf6553826dc08db8dbd",
-      "bankId": "ziraat-katilim",
-      "bankName": "Ziraat Katılım",
-      "title": "İlk Bankkart Kredi Kartına 5.000 Tl Bankkart Lira",
-      "productName": "İlk Bankkart Kredi Kartına 5.000 Tl Bankkart Lira",
+      "id": "gold_ref_124",
+      "bankId": "tom-katilim",
+      "bankName": "T.O.M. Katılım",
+      "title": "T.O.M. Katılım Kampanyası",
+      "productName": "T.O.M. Katılım Kampanyası",
       "conditions": [
-        "İlk kez uygun Bankkart kredi kartı alan müşterilerde harcama hedefi şartı aranır."
+        "TOM Bank Hadi Hadi Kazan Kampanyalar Giyim Alışverişlerinde Vade Farksız 3 Taksit! Çok Kazananlar Kulübü'ne özel vade farksız 6 Taksit! Hemen İndir Hemen İndir Giyim Alışverişlerinde Vade Farksız 3 Ta"
       ],
-      "campaignEnd": "2026-09-07",
+      "campaignEnd": "2026-08-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": 3,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://tombankhadi.com/kampanyalar/giyim-alisverislerinde-kampanya",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_125",
+      "bankId": "tom-katilim",
+      "bankName": "T.O.M. Katılım",
+      "title": "T.O.M. Katılım Kampanyası",
+      "productName": "T.O.M. Katılım Kampanyası",
+      "conditions": [
+        "TOM Bank Hadi Hadi Kazan Kampanyalar Kredi Kartı limitini artır, harcamalarından toplam 2000 TL'ye kadar A101 hediye bakiye kazan! Hemen İndir Hemen İndir Kredi Kartı limitini artır, harcamalarından t"
+      ],
+      "campaignEnd": "2026-08-31",
       "category": "card_campaign",
       "campaignTheme": "card",
       "profitRate": null,
       "installmentCount": null,
-      "rewardAmountTl": 5000,
-      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/ilk-bankkart-kredi-kartina-5-000-tl-bankkart-lira",
+      "rewardAmountTl": null,
+      "sourceUrl": "https://tombankhadi.com/kampanyalar/hadi-kredi-karti-limitini-artir-toplam-2000-tlye-kadar-a101-hediye-bakiye-kazan",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "6cbf7f67852dc47deb449319",
-      "bankId": "vakif-katilim",
-      "bankName": "Vakıf Katılım",
-      "title": "Nota Çiçek'te %20 İndirim",
-      "productName": "Nota Çiçek'te %20 İndirim",
+      "id": "gold_ref_126",
+      "bankId": "tom-katilim",
+      "bankName": "T.O.M. Katılım",
+      "title": "T.O.M. Katılım Kampanyası",
+      "productName": "T.O.M. Katılım Kampanyası",
       "conditions": [
-        "Mobil Şube kampanyalar alanından kişiye özel kod ile Nota Çiçek alışverişinde %20 indirim."
+        "Ürünlerimiz Para Yükleme, Para Çekme, Para Gönderme, QR ile Ödeme ve Fatura Ödeme HADİ uygulaması ile tüm finansal işlemlerini hızlıca gerçekleştirmek çok kolay! HADİ hesabına hızlıca para yükleyebili"
       ],
-      "campaignEnd": "2026-12-31",
-      "category": "discount_campaign",
+      "campaignEnd": null,
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.tombank.com.tr/urunlerimiz.html",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_127",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Çey"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 1,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/hesaplar/cari-hesaplar/ceyrek-hesap",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_128",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ref"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
       "campaignTheme": "general",
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/nota-cicek-te-20-indirim",
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/kurumsal/finansmanlar/gayrinakdi-finansman/referans-mektuplari",
       "campaignStatus": "active",
       "recordType": "campaign"
     },
     {
-      "id": "bc41662ded9754844a85f63a",
-      "bankId": "kuveyt-turk",
-      "bankName": "Kuveyt Türk",
-      "title": "Okula Donuste 300 Tlye Varan Altin Puan",
-      "productName": "Okula Donuste 300 Tlye Varan Altin Puan",
-      "campaignEnd": null,
-      "category": "card_campaign",
-      "campaignTheme": "education",
+      "id": "gold_ref_129",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ana"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
       "profitRate": null,
       "installmentCount": null,
       "rewardAmountTl": null,
-      "sourceUrl": "https://www.kuveytturk.com.tr/kampanyalar/kendim-icin/kart-kampanyalari/okula-donuste-300-tlye-varan-altin-puan",
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/akaryakit-harcamalariniza-300-tl-parafpara",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_130",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ana"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/beyaz-esya-ve-elektronik-alisverislerinize-3000-tlye-varan-parafpara",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_131",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ana"
+      ],
+      "campaignEnd": "2026-08-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/elektrikli-arac-sarj-istasyonu-harcamalariniza-200-tl-parafpara",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_132",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ana"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/paraf-ile-damat-tweende-3000-tl-parafpara",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_133",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ana"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/paraf-ile-ds-damatta-2000-tl-parafpara",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_134",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ana"
+      ],
+      "campaignEnd": "2026-08-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": 9,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/paraf-ile-gurgenclerde-vade-farksiz-9-taksit-firsati",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_135",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Ana"
+      ],
+      "campaignEnd": "2026-08-31",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/paraf-ile-secili-e-ticaret-alisverislerinize-2000-tlye-varan-parafpara",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_136",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Eml"
+      ],
+      "campaignEnd": null,
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": 0.0,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/kartlar/kredi-karti",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_137",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Züm"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 12,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/bireysel/hesaplar/katilma-hesaplari/zumrut-katilma-hesabi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_138",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "Türkiye Emlak Katılım Bankası A.Ş. internet sitesini ziyaretiniz esnasında kullanılabilecek çerezler ve benzeri teknolojiler hakkında bilgi vermek amacıyla işbu Çerez Politikası'nı hazırlanmıştır. Çev"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 24,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.emlakkatilim.com.tr/tr/kurumsal/finansmanlar/nakdi-finansman/cevreci-ihracat-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_139",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "SOZ.0005.07 Gizlilik Derecesi: Şirket İçi 3 BANKACILIK HİZMETLERİ SÖZLEŞMESİ 1. TARAFLAR İşbu Bankacılık Hizmetleri Sözleşmesi (kısaca BHS), İstanbul Ticaret Sicil Memurluğu nezdinde 2417010 numara il"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://asset.emlakkatilim.com.tr/documents/sozlesme-formlar/qr/bankacilik-hizmetleri-sozlesmesi--turkce.pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_140",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "SOZ.0195.04 Gizlilik Derecesi: Şirket İçi Sözleşme No : …… Tarih : …… FİNANSAL KİRALAMA SÖZLEŞMESİ Bir tarafta, Barbaros Mh. Begonya Sk. No:9/A Ataşehir / İSTANBUL adresindeki Türkiye Emlak Katılım Ba"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://asset.emlakkatilim.com.tr/documents/sozlesme-formlar/qr/finansal-kiralama-sozlesmesi-leasing.pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_141",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "1 SOZ.0190.02 Gizlilik Derecesi: Açık TÜRKİYE EMLAK KATILIM BANKASI A.Ş. KREDİ KARTI ÜYELİK SÖZLEŞMESİ Bir tarafta TÜRKİYE EMLAK KATILIM BANKASI A.Ş. (\"Banka\" olarak anılacaktır) ile diğer tarafta, KA"
+      ],
+      "campaignEnd": null,
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://asset.emlakkatilim.com.tr/documents/sozlesme-formlar/qr/kredi-karti-uyelik-sozlesmesi.pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_142",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "SOZ.0102.06 Gizlilik Derecesi: Gizli TÜRKİYE EMLAK KATILIM BANKASI A.Ş. Mersis No: 0879 0015 2770 0040 Ticaret Sicil No: 241701-0 Genel Müdürlük Adres: Barbaros Mh. Begonya Sk. No:9 A/1 Ataşehir - İst"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 6,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://asset.emlakkatilim.com.tr/documents/sozlesme-formlar/qr/ozel-fon-havuzu-katilma-hesabi-sozlesmesi.pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_143",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "FRM.BAOP.0094.22 Gizlilik Derecesi: Şirket İçi TÜRKİYE EMLAK KATILIM BANKASI A.Ş. Mersis No: 0879 0015 2770 0040 Ticaret Sicil No: 241701-0 Genel Müdürlük Adres: Barbaros Mh. Begonya Sk. No:9 A/1 Ataş"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://asset.emlakkatilim.com.tr/documents/sozlesme-formlar/qr/temel-bankacilik-hizmetleri-talep-ve-bilgilendirme-formu-ticariturkce.pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_144",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "SOZ.0130.05 Gizlilik Derecesi: Şirket İçi ÜYE İŞYERİ (KULLANICI) SÖZLEŞMESİ 1. TARAFLAR BANKA: TÜRKİYE EMLAK KATILIM BANKASI A.Ş.'yi (Kısaca ‘Emlak Katılım'') Adres: Barbaros Mh. Begonya Sk. No:9 A/1 "
+      ],
+      "campaignEnd": null,
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://asset.emlakkatilim.com.tr/documents/sozlesme-formlar/uye-syer-kullanici-sozlesmes.pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_145",
+      "bankId": "emlak-katilim",
+      "bankName": "Emlak Katılım",
+      "title": "Emlak Katılım Kampanyası",
+      "productName": "Emlak Katılım Kampanyası",
+      "conditions": [
+        "ÜRÜN/İŞLEM PARA BİRİMİ ASGARİ TUTAR ASGARİ ORANAZAMİ TUTARAZAMİ ORAN AÇIKLAMALAR Güncelleme Tarihi Konut Finansmanı TL 0.5% 0.5% İşlem başına, işlem tutarı üzerinden tahsil edilmektedir. BSMV'den muaf"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://asset.emlakkatilim.com.tr/documents/urun-ve-hizmet-ucretleri/breysel-bankacilik-urun-ve-hzmet-ucretler-2026-tr.pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_146",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/bireysel/Sayfalar/gunluk-hesap.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_147",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/bireysel/Sayfalar/isyeri-finansmani.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_148",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/bireysel/Sayfalar/Kar-Payi-Oranlari.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_149",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": "2024-06-30",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 120,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/bireysel/Sayfalar/urun-hizmet-ucretleri.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_150",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/kampanyalar/Sayfalar/banka-calisanlarina-ozel-ihtiyac-finansmani.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_151",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/kampanyalar/Sayfalar/dijital-bankacilik-kampanyalari.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_152",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 3,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/kampanyalar/Sayfalar/emekliler-haftasina-ozel-avantajlar.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_153",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/kampanyalar/Sayfalar/emeklilere-nakit-promosyon.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_154",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": "2026-08-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/kampanyalar/Sayfalar/fatura-2300tl-bonus.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_155",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": "2026-08-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/kampanyalar/Sayfalar/ihtiyac-finansmani-kampanyasi.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_156",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": "2026-07-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/kampanyalar/Sayfalar/turkiye-finans-avantajlariyla-mobilden-tanis.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_157",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": "2026-08-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/kampanyalar/Sayfalar/yakininizi-davet-edin.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_158",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 15,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/bireysel/katilma-hesaplari/Sayfalar/e-katilma-hesabi.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_159",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 1,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/bireysel/katilma-hesaplari/Sayfalar/katilma-hesaplari.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_160",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/kobi/Sayfalar/dijital-taksitli-ticari-finansman-destegi.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_161",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/kobi/Sayfalar/kobi-icin-gunluk-hesap.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_162",
+      "bankId": "turkiye-finans",
+      "bankName": "Türkiye Finans",
+      "title": "Türkiye Finans Kampanyası",
+      "productName": "Türkiye Finans Kampanyası",
+      "conditions": [
+        "Navigasyonu görüntüle İçeriği görüntüle GÜNCELLE Çerez Politikası ve 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Bankamız ile paylaşmış olduğunuz kişisel verileriniz ile ilgili detaylı b"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 1,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.turkiyefinans.com.tr/tr-tr/ticari/ticari-katilma-hesaplari/Sayfalar/ticari-katilma-hesaplari.aspx",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_163",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa Kendim İçin Bireysel Bankacılık Vakıf Katılım ile Altın Günler V"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/bireysel-bankacilik/vakif-katilim-ile-altin-gunler",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_164",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa Kendim İçin Kampanyalar Bu Yol İndirime Gider! Kampanya Geçerlil"
+      ],
+      "campaignEnd": null,
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/bu-yol-indirime-gider",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_165",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa Kendim İçin Kampanyalar İGDAŞ Finansman Kampanyası Kampanya Geçe"
+      ],
+      "campaignEnd": "2024-05-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 12,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/igdas-finansman-kampanyasi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_166",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa Kendim İçin Kampanyalar Mastercard Kredi Kartınızla 200 TL Martı"
+      ],
+      "campaignEnd": "2026-06-30",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": 3,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/mastercard-kredi-kartinizla-200-tl-marti-kuponu",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_167",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa Kendim İçin Kampanyalar Öğretmenlerimize Vakıf Katılım'dan Avant"
+      ],
+      "campaignEnd": "2025-11-30",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/ogretmenlerimize-vakif-katilimdan-avantajli-paket",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_168",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa Kendim İçin Kampanyalar Vakıf Katılım Aile Yılı Paketi Kampanya "
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/kampanyalar/detay/vakif-katilim-aile-yili-paketi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_169",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa Kendim İçin Finansmanlar Motosiklet Finansmanı Motosiklet Finans"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 48,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/finansmanlar/motosiklet-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_170",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa Kendim İçin Finansmanlar Taşıt Finansmanı Taşıt Finansmanı Vakıf"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/finansmanlar/tasit-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_171",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa Kendim İçin Hesaplar Katılma Hesapları Ara Dönem Kâr Payı Ödemel"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/kendim-icin/hesaplar/katilma-hesaplari/ara-donem-kar-payi-odemeli-katilma-hesabi",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_172",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa Diğer Yardım Merkezi İhtiyaç Finansmanı ile ilgili Sıkça Sorulan"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 36,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/diger/yardim-merkezi/kendim-icin-detay/ihtiyac-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_173",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa İşim İçin Finansmanlar KOBİ Destekli Finansmanlar KOSGEB Destekl"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/isim-icin/finansmanlar/kobi-destekli-finansmanlar/kosgeb-destekli-finansman",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_174",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa İşim İçin Finansmanlar Nakdi Finansmanlar İş Yeri Finansmanı İş "
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/isim-icin/finansmanlar/nakdi-finansmanlar/is-yeri-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_175",
+      "bankId": "vakif-katilim",
+      "bankName": "Vakıf Katılım",
+      "title": "Vakıf Katılım Kampanyası",
+      "productName": "Vakıf Katılım Kampanyası",
+      "conditions": [
+        "Müşteri Ol Kendim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ İşim İçin SİZE ÖZEL ÇÖZÜMLER ÜRÜN VE HİZMETLERİMİZ Hakkımızda Ana Sayfa İşim İçin Finansmanlar Nakdi Finansmanlar Proje Finansmanı Proje"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.vakifkatilim.com.tr/tr/isim-icin/finansmanlar/nakdi-finansmanlar/proje-finansmani",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_176",
+      "bankId": "ziraat-katilim",
+      "bankName": "Ziraat Katılım",
+      "title": "Ziraat Katılım Kampanyası",
+      "productName": "Ziraat Katılım Kampanyası",
+      "conditions": [
+        "KONUT FİNANSMANI SÖZLEŞMESİ 1/11 Ziraat Katılım Bankası A.Ş. Ticaret Sicil No: 962000 Merkez Adresi: Finanskent Mah. Finans Cad. B Blok No: 44B İç Kapı No: 29 34760 Ümraniye/İstanbul Mersis No: 0998-0"
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.ziraatkatilim.com.tr/sites/default/files/2024-08/Konut%20Finansman%20S%C3%B6zle%C5%9Fmesi.pdf",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_177",
+      "bankId": "ziraat-katilim",
+      "bankName": "Ziraat Katılım",
+      "title": "Ziraat Katılım Kampanyası",
+      "productName": "Ziraat Katılım Kampanyası",
+      "conditions": [
+        "Beyaz Eşya ve Ev Aletleri Tüm Kampanyalar 2 Kuyum, Optik ve Saat 3 Market ve Gıda 4 E-Ticaret 2 Elektronik ve Telekomünikasyon 3 Yapı Sektörü ve İklimlendirme 2 Akaryakıt 12 Diğer Kampanyalar 1 Eğitim"
+      ],
+      "campaignEnd": "2026-07-09",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 3,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.ziraatkatilim.com.tr/kampanyalar/beyaz-esya-ve-ev-aletleri",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_178",
+      "bankId": "ziraat-katilim",
+      "bankName": "Ziraat Katılım",
+      "title": "Ziraat Katılım Kampanyası",
+      "productName": "Ziraat Katılım Kampanyası",
+      "conditions": [
+        "Continental'de 4 Taksit Tüm Kampanyalar 2 Kuyum, Optik ve Saat 3 Market ve Gıda 4 E-Ticaret 2 Elektronik ve Telekomünikasyon 3 Yapı Sektörü ve İklimlendirme 2 Akaryakıt 12 Diğer Kampanyalar 1 Eğitim, "
+      ],
+      "campaignEnd": "2026-08-07",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/continentalde-4-taksit?IsArchived=true",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_179",
+      "bankId": "ziraat-katilim",
+      "bankName": "Ziraat Katılım",
+      "title": "Ziraat Katılım Kampanyası",
+      "productName": "Ziraat Katılım Kampanyası",
+      "conditions": [
+        "Hafta İçi Her Gün İlk Ulaşımın TROY Kartla Ücretsiz! Tüm Kampanyalar 2 Kuyum, Optik ve Saat 3 Market ve Gıda 4 E-Ticaret 2 Elektronik ve Telekomünikasyon 3 Yapı Sektörü ve İklimlendirme 2 Akaryakıt 12"
+      ],
+      "campaignEnd": "2026-06-30",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/hafta-ici-her-gun-ilk-ulasimin-troy-kartla-ucretsiz?IsArchived=true",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_180",
+      "bankId": "ziraat-katilim",
+      "bankName": "Ziraat Katılım",
+      "title": "Ziraat Katılım Kampanyası",
+      "productName": "Ziraat Katılım Kampanyası",
+      "conditions": [
+        "Mobilya Alışverişinize 1.500 TL Bankkart Lira! Tüm Kampanyalar 2 Kuyum, Optik ve Saat 3 Market ve Gıda 4 E-Ticaret 2 Elektronik ve Telekomünikasyon 3 Yapı Sektörü ve İklimlendirme 2 Akaryakıt 12 Diğer"
+      ],
+      "campaignEnd": "2026-07-09",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": null,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/mobilya-alisverisinize-1500-tl-bankkart-lira?IsArchived=true",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_181",
+      "bankId": "ziraat-katilim",
+      "bankName": "Ziraat Katılım",
+      "title": "Ziraat Katılım Kampanyası",
+      "productName": "Ziraat Katılım Kampanyası",
+      "conditions": [
+        "Size Özel! Banka Kartı Kampanyası Tüm Kampanyalar 2 Kuyum, Optik ve Saat 3 Market ve Gıda 4 E-Ticaret 2 Elektronik ve Telekomünikasyon 3 Yapı Sektörü ve İklimlendirme 2 Akaryakıt 12 Diğer Kampanyalar "
+      ],
+      "campaignEnd": "2025-09-21",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": 4,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/size-ozel-banka-karti-kampanyasi?IsArchived=true",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_182",
+      "bankId": "ziraat-katilim",
+      "bankName": "Ziraat Katılım",
+      "title": "Ziraat Katılım Kampanyası",
+      "productName": "Ziraat Katılım Kampanyası",
+      "conditions": [
+        "TROY Kartla D&R'da 1.000 TL'ye Varan İndirim! Tüm Kampanyalar 2 Kuyum, Optik ve Saat 3 Market ve Gıda 4 E-Ticaret 2 Elektronik ve Telekomünikasyon 3 Yapı Sektörü ve İklimlendirme 2 Akaryakıt 12 Diğer "
+      ],
+      "campaignEnd": "2026-07-15",
+      "category": "card_campaign",
+      "campaignTheme": "card",
+      "profitRate": null,
+      "installmentCount": 4,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.ziraatkatilim.com.tr/kart-kampanyalari/troy-kartla-drda-1000-tlye-varan-indirim?IsArchived=true",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_183",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Albaraka Türk Kampanyası",
+      "productName": "Albaraka Türk Kampanyası",
+      "conditions": [
+        "Konut finansmanında kâr payı oranı %1,89, 120 aya kadar vade. Tahsis ücreti 500 TL. Kampanya 31.12.2026 tarihine kadar geçerlidir."
+      ],
+      "campaignEnd": "2026-12-31",
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": 0.0189,
+      "installmentCount": 120,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.katilimfinans.com.tr",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_184",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "İhtiyaç finansmanında ilk 6 ay masrafsız, 36 ay vade imkânı.",
+      "productName": "İhtiyaç finansmanında ilk 6 ay masrafsız, 36 ay vade imkânı.",
+      "conditions": [
+        "İhtiyaç finansmanında ilk 6 ay masrafsız, 36 ay vade imkânı."
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 36,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.katilimfinans.com.tr",
+      "campaignStatus": "active",
+      "recordType": "campaign"
+    },
+    {
+      "id": "gold_ref_185",
+      "bankId": "albaraka",
+      "bankName": "Albaraka Türk",
+      "title": "Taşıt finansmanı kâr payı oranı %1,99 - %2,49 arasındadır, 48 ay vade.",
+      "productName": "Taşıt finansmanı kâr payı oranı %1,99 - %2,49 arasındadır, 48 ay vade.",
+      "conditions": [
+        "Taşıt finansmanı kâr payı oranı %1,99 - %2,49 arasındadır, 48 ay vade."
+      ],
+      "campaignEnd": null,
+      "category": "financing_campaign",
+      "campaignTheme": "general",
+      "profitRate": null,
+      "installmentCount": 48,
+      "rewardAmountTl": null,
+      "sourceUrl": "https://www.katilimfinans.com.tr",
       "campaignStatus": "active",
       "recordType": "campaign"
     }

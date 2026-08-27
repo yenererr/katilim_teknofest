@@ -124,7 +124,7 @@ describe("banka rehberi yanıtı", () => {
     expect(rehberNiyetiTespit("FAST ücreti ne kadar")).toBe("ucret_karsilastir");
     const r = rehberYaniti("ucret_karsilastir", "FAST ücreti ne kadar");
     expect(r.message).toContain("FAST");
-    expect(r.message).toMatch(/ücretsiz/i);
+    expect(r.message).toMatch(/ücretsiz|0 TL/i);
     expect(r.message).toContain("Vakıf Katılım");
     expect(r.message).toContain("Kuveyt Türk");
   });

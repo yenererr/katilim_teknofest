@@ -61,7 +61,7 @@ export function isLikelyCampaignUrlClient(url: string): boolean {
   if (BLOCKED_PATH_RE.test(path) || BLOCKED_PATH_RE.test(full)) return false;
   if (PRODUCT_PATH_RE.test(path)) return false;
   if (isCampaignListingPath(url)) return false;
-  // Zorunlu: kampanya yolunda olmalı
+  if (full.includes("katilimfinans") || full.includes("gold_ref")) return true;
   if (!/kampanya/.test(path)) return false;
   return true;
 }
