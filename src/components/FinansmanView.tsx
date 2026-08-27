@@ -9,6 +9,7 @@ import {
 } from '../data/piyasa';
 import { FINANSMAN_NOTLARI_BY_KEY } from '../data/finansmanNotlari';
 import { oranBicim, sayiBicim, tlBicim } from '../lib/finansman';
+import { hesaplaOdemePlani } from '../lib/odemePlani';
 import { BankMark } from './BankMark';
 import { KarsilastirmaTalebi } from './HomeView';
 
@@ -27,6 +28,27 @@ type CanliSonuc = {
   allocationFeeTl?: number | null;
   termMonths?: number;
   amountTl?: number;
+  productName?: string | null;
+  sourceLabel?: string;
+};
+
+type StructuredProduct = {
+  bankId: string;
+  productName?: string | null;
+  title?: string | null;
+  category?: string | null;
+  productType?: string | null;
+  profitRate?: number | null;
+  ratePeriod?: string | null;
+  minAmountTl?: number | null;
+  maxAmountTl?: number | null;
+  minTermMonths?: number | null;
+  maxTermMonths?: number | null;
+  allocationFeeValue?: number | null;
+  allocationFeeType?: string | null;
+  campaignEnd?: string | null;
+  campaignStatus?: string | null;
+  payload?: StructuredProduct | string;
 };
 
 type Satir = {
@@ -39,6 +61,7 @@ type Satir = {
   tahsisUcreti: number | null;
   toplamMaliyet: number | null;
   kaynakEtiket?: string;
+  urunAdi?: string | null;
 };
 
 const CANLI_BANKALAR: { id: string; path: string }[] = [
@@ -63,7 +86,75 @@ function canliToSatir(t: CanliSonuc): Satir | null {
     toplamOdeme,
     tahsisUcreti: tahsis,
     toplamMaliyet: toplamOdeme + tahsis,
-    kaynakEtiket: 'Canlı',
+    kaynakEtiket: t.sourceLabel || 'Canlı',
+    urunAdi: t.productName || null,
+  };
+}
+
+function normalizeStructuredProduct(row: StructuredProduct): StructuredProduct {
+  if (!row.payload) return row;
+  if (typeof row.payload === 'string') {
+    try {
+      return { ...row, ...JSON.parse(row.payload) };
+    } catch {
+      return row;
+    }
+  }
+  return { ...row, ...row.payload };
+}
+
+function isActiveStructuredProduct(row: StructuredProduct): boolean {
+  if (row.campaignStatus === 'expired') return false;
+  if (!row.campaignEnd) return true;
+  const ts = Date.parse(String(row.campaignEnd));
+  return !Number.isFinite(ts) || ts >= Date.now();
+}
+
+function between(value: number, min?: number | null, max?: number | null): boolean {
+  if (min != null && value < min) return false;
+  if (max != null && value > max) return false;
+  return true;
+}
+
+function verifiedProductToCanli(
+  raw: StructuredProduct,
+  opts: { secenek: string; temelTur: string; tutar: number; vadeAy: number },
+): CanliSonuc | null {
+  const row = normalizeStructuredProduct(raw);
+  if (!isActiveStructuredProduct(row)) return null;
+  if (row.ratePeriod !== 'monthly' || typeof row.profitRate !== 'number') return null;
+  if (row.productType !== opts.secenek && row.productType !== opts.temelTur) return null;
+  if (!between(opts.tutar, row.minAmountTl, row.maxAmountTl)) return null;
+  if (!between(opts.vadeAy, row.minTermMonths, row.maxTermMonths)) return null;
+
+  const allocationFeeTl =
+    row.allocationFeeType === 'percentage' && typeof row.allocationFeeValue === 'number'
+      ? Math.round(opts.tutar * row.allocationFeeValue * 100) / 100
+      : typeof row.allocationFeeValue === 'number'
+        ? row.allocationFeeValue
+        : null;
+  const plan = hesaplaOdemePlani({
+    amountTl: opts.tutar,
+    termMonths: opts.vadeAy,
+    profitRatePercent: row.profitRate * 100,
+    financingType: opts.secenek,
+    allocationFeeRate:
+      row.allocationFeeType === 'percentage' && typeof row.allocationFeeValue === 'number'
+        ? row.allocationFeeValue
+        : undefined,
+  });
+  return {
+    bankaId: row.bankId,
+    productName: row.productName || row.title || null,
+    profitRatePercent: row.profitRate * 100,
+    monthlyInstallmentTl: plan.taksitTutari,
+    totalPaymentTl: plan.odenecekToplamTutar,
+    appraisementFeeTl: null,
+    mortgageReleaseFeeTl: null,
+    allocationFeeTl,
+    termMonths: opts.vadeAy,
+    amountTl: opts.tutar,
+    sourceLabel: 'Resmî tablo',
   };
 }
 
@@ -117,7 +208,7 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
       ...(ozelOranYuzde != null ? { profitRatePercent: ozelOranYuzde } : {}),
     };
     const zamanlayici = window.setTimeout(() => {
-      void Promise.all(
+      const canliIstekleri = Promise.all(
         CANLI_BANKALAR.map(async ({ id, path }) => {
           try {
             const r = await fetch(path, {
@@ -151,7 +242,13 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
             return null;
           }
         }),
-      ).then((sonuclar) => {
+      );
+      const dogrulanmisIstek = fetch('/api/live/products')
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error('ürün yanıtı yok'))))
+        .then((d: { structuredProducts?: StructuredProduct[] }) => d.structuredProducts || [])
+        .catch(() => [] as StructuredProduct[]);
+
+      void Promise.all([canliIstekleri, dogrulanmisIstek]).then(([sonuclar, dogrulanmisUrunler]) => {
         if (iptal) return;
         const dolu: CanliSonuc[] = [];
         const notlar: string[] = [];
@@ -162,6 +259,17 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
           } else if (s.reason) {
             notlar.push(s.reason);
           }
+        }
+        const temelTur =
+          FINANSMAN_SECENEKLERI.find((f) => f.key === secenek)?.temelTur ?? talep.tur;
+        for (const row of dogrulanmisUrunler) {
+          const canli = verifiedProductToCanli(row, {
+            secenek,
+            temelTur,
+            tutar,
+            vadeAy: talep.vadeAy,
+          });
+          if (canli) dolu.push(canli);
         }
         setCanliListe(dolu);
         setHesapNotu(notlar[0] ?? null);
@@ -421,15 +529,22 @@ export const FinansmanView: React.FC<FinansmanViewProps> = ({ talep, onTalepDegi
                 </tr>
               )}
               {dogrulanmisSatirlar.map((s) => (
-                <tr key={s.bankaId} className="border-t border-line hover:bg-sunken">
+                <tr key={`${s.bankaId}-${s.urunAdi || s.kaynakEtiket || 'teklif'}`} className="border-t border-line hover:bg-sunken">
                   <th scope="row" className="px-3 py-3 text-left font-medium">
                     <span className="flex items-center gap-2.5">
                       <BankMark bankaId={s.bankaId} size="sm" />
-                      <span className="text-txt">
-                        {BANKA_INDEKS[s.bankaId]?.ad}
-                        {s.kaynakEtiket && (
-                          <span className="ml-1.5 text-[0.625rem] font-normal text-txt-muted">
-                            ({s.kaynakEtiket})
+                      <span className="min-w-0 text-txt">
+                        <span className="block">
+                          {BANKA_INDEKS[s.bankaId]?.ad}
+                          {s.kaynakEtiket && (
+                            <span className="ml-1.5 text-[0.625rem] font-normal text-txt-muted">
+                              ({s.kaynakEtiket})
+                            </span>
+                          )}
+                        </span>
+                        {s.urunAdi && (
+                          <span className="mt-0.5 block max-w-60 truncate text-xs font-normal text-txt-muted">
+                            {s.urunAdi}
                           </span>
                         )}
                       </span>

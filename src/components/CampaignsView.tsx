@@ -57,6 +57,14 @@ const tl = new Intl.NumberFormat('tr-TR', {
   maximumFractionDigits: 0,
 });
 
+function oranEtiketi(value: number): string {
+  const pct = Math.abs(value) <= 1 ? value * 100 : value;
+  return `%${pct.toLocaleString('tr-TR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 /** Scrape / DB’den gelen canlı kampanyalar — statik mock yok. */
 export const CampaignsView: React.FC = () => {
   const [tema, setTema] = useState<ThemeKey>('hepsi');
@@ -166,7 +174,7 @@ export const CampaignsView: React.FC = () => {
             : null;
           const kosul = k.conditions?.find(Boolean) || k.participationMethod || null;
           const taksit = k.installmentCount || k.maxTermMonths || null;
-          const oran = typeof k.profitRate === 'number' ? `%${k.profitRate.toLocaleString('tr-TR')}` : null;
+          const oran = typeof k.profitRate === 'number' ? oranEtiketi(k.profitRate) : null;
           const rowKey = `${k.bankId}-${k.sourceUrl || k.id || baslik}`;
           return (
             <li

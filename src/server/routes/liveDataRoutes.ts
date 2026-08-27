@@ -50,6 +50,7 @@ export function createLiveDataRouter(): Router {
         })),
       ),
       structuredMemoryCount: memory.length,
+      structuredProducts: memory,
     });
   });
 

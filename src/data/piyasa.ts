@@ -6,7 +6,7 @@ import { UrunTuru } from '../types';
  * burada uydurma teklif veya kampanya tutulmaz.
  */
 
-export const VERI_TARIHI = '26 Mayıs 2026';
+export const VERI_TARIHI = '27 Ağustos 2026';
 
 export interface Banka {
   id: string;

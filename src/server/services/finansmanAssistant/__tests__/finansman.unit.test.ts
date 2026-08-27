@@ -17,6 +17,7 @@ import {
   runFinansmanAssistantChat,
   sanitizeAssistantNumbers,
 } from "../finansmanService";
+import { VERIFIED_RESEARCH_RECORDS } from "../../verifiedResearch/records";
 import type { LiveBankState } from "../../liveData/liveDataBridge";
 
 function makeProduct(overrides: Record<string, unknown> = {}) {
@@ -558,6 +559,32 @@ describe("merge follow-up", () => {
     ]);
     const next = mergeMessageIntoState(s, "ihtiyaç 24 ay");
     expect(missingRequiredFields(next)).toEqual([]);
+  });
+});
+
+describe("doğrulanmış araştırma kayıtları", () => {
+  it("Türkiye Finans resmi tablo kaydını ihtiyaç finansmanı teklifi olarak eşler", () => {
+    const state = createEmptyState("verified-research");
+    state.financingType = "consumer";
+    state.requestedAmountTl = 200000;
+    state.preferredTermMonths = 24;
+
+    const result = runFinancingMatchEngine({
+      state,
+      states: [],
+      memoryProducts: VERIFIED_RESEARCH_RECORDS.filter(
+        (r) => r.recordType === "product",
+      ),
+      memoryCampaigns: [],
+    });
+
+    expect(result.exactMatches).toHaveLength(1);
+    expect(result.exactMatches[0].bankId).toBe("turkiye-finans");
+    expect(result.exactMatches[0].productName).toBe(
+      "Sigortalı İhtiyaç Finansmanı (24 ay)",
+    );
+    expect(result.exactMatches[0].profitRate).toBeCloseTo(0.0399);
+    expect(result.exactMatches[0].allocationFeeTl).toBe(1000);
   });
 });
 

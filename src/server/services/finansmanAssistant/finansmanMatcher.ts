@@ -88,7 +88,7 @@ function productTypeMatches(
 ): boolean {
   if (!financingType) return true;
   const allowed = PRODUCT_TYPE_MAP[financingType] || [];
-  return allowed.includes(urunTuru) || urunTuru === "diger";
+  return allowed.includes(urunTuru);
 }
 
 function segmentOk(
@@ -135,8 +135,17 @@ function readRate(p: Record<string, any>) {
   return { profitRate: deger, ratePeriod };
 }
 
-function readFee(p: Record<string, any>): number | null {
+function readFee(p: Record<string, any>, amount?: number): number | null {
   const f = p.terimler?.tahsis_ucreti?.deger;
+  const feeType = p.terimler?.tahsis_ucreti?.tipi;
+  if (
+    feeType === "percentage" &&
+    typeof f === "number" &&
+    typeof amount === "number" &&
+    Number.isFinite(amount)
+  ) {
+    return Math.round(amount * f * 100) / 100;
+  }
   return typeof f === "number" ? f : null;
 }
 
@@ -235,7 +244,8 @@ function collectProductCandidates(
         : {
             urun_adi: mapped.productName || mapped.title || "Ürün",
             urun_turu:
-              mapped.category === "housing_finance"
+              mapped.productType ||
+              (mapped.category === "housing_finance"
                 ? "konut_finansmani"
                 : mapped.category === "vehicle_finance"
                   ? "tasit_finansmani"
@@ -243,7 +253,7 @@ function collectProductCandidates(
                     ? "ihtiyac_finansmani"
                     : mapped.category === "shopping_finance"
                       ? "alisveris_puani"
-                      : "diger",
+                      : "diger"),
             musteri_segmenti: mapped.targetSegments || [],
             kampanya_bitis: mapped.campaignEnd,
             terimler: {
@@ -261,7 +271,10 @@ function collectProductCandidates(
                 max: mapped.maxTermMonths,
               },
               tutar: { min: mapped.minAmountTl, max: mapped.maxAmountTl },
-              tahsis_ucreti: { deger: mapped.allocationFeeValue },
+              tahsis_ucreti: {
+                deger: mapped.allocationFeeValue,
+                tipi: mapped.allocationFeeType,
+              },
             },
             kanitlar: Object.fromEntries(
               (mapped.evidence || []).map((e: any) => [e.field, e.text]),
@@ -296,7 +309,7 @@ function toExactMatch(
   const amount = state.requestedAmountTl!;
   const term = state.preferredTermMonths!;
   const { profitRate, ratePeriod } = readRate(c.product);
-  const fee = readFee(c.product);
+  const fee = readFee(c.product, amount);
   const calc = calculateFinancingPayments({
     principalTl: amount,
     termMonths: term,

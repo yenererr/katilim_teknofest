@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "test:integration": "vitest run src/server/services/qdrant/__tests__/qdrant.integration.test.ts",
     "scrape:campaigns": "tsx scripts/scrape-campaigns.ts",
-    "import:campaigns": "tsx scripts/import-campaigns-to-db.ts"
+    "import:campaigns": "tsx scripts/import-campaigns-to-db.ts",
+    "import:verified-research": "tsx scripts/import-verified-research-to-db.ts"
   },
   "dependencies": {
     "@qdrant/js-client-rest": "^1.19.0",

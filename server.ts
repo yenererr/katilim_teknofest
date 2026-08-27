@@ -15,6 +15,7 @@ import { bindOfficialScraperBridge, runOfficialScrapeJob } from "./src/server/se
 import {
   ensureSchema,
   hydrateMemoryFromPostgres,
+  seedVerifiedResearchRecords,
 } from "./src/server/services/postgres/store";
 import {
   buildIndexDocumentsFromScrape,
@@ -692,6 +693,10 @@ async function startServer() {
         console.log(`[PostgreSQL] ${schema.message}`);
         const hydrated = await hydrateMemoryFromPostgres();
         console.log(`[PostgreSQL] ${hydrated.message}`);
+        const verified = await seedVerifiedResearchRecords();
+        console.log(
+          `[VerifiedResearch] ${verified.alreadySeeded ? "zaten yüklü" : `${verified.inserted} kayıt yüklendi`}.`,
+        );
       } catch (err) {
         console.warn(
           "[PostgreSQL]",

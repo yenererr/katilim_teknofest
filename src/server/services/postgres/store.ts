@@ -1,6 +1,7 @@
 import pg from "pg";
 import { BANK_SOURCE_CONFIGS } from "../scraper/bankSourceConfig";
 import type { ExtractedFinancialRecord } from "../scraper/scraperTypes";
+import { VERIFIED_RESEARCH_RECORDS } from "../verifiedResearch/records";
 import {
   dedupeCampaignRecords,
   inferCampaignTheme,
@@ -15,6 +16,7 @@ const { Pool } = pg;
 
 let pool: pg.Pool | null = null;
 let postgresWritePausedUntil = 0;
+let verifiedResearchSeeded = false;
 
 function isTransientPostgresError(message: string): boolean {
   return /ENOTFOUND|ECONNREFUSED|ETIMEDOUT|timeout|getaddrinfo|Connection terminated/i.test(
@@ -145,14 +147,15 @@ export async function upsertExtractedRecords(
     }
     let r: ExtractedFinancialRecord = raw;
     const isCampaign =
-      r.recordType === "campaign" ||
-      /kampanya/i.test(r.sourceUrl) ||
-      [
-        "financing_campaign",
-        "card_campaign",
-        "discount_campaign",
-        "new_customer_financing",
-      ].includes(r.category);
+      r.recordType !== "product" &&
+      (r.recordType === "campaign" ||
+        /kampanya/i.test(r.sourceUrl) ||
+        [
+          "financing_campaign",
+          "card_campaign",
+          "discount_campaign",
+          "new_customer_financing",
+        ].includes(r.category));
     const recordType = isCampaign ? "campaign" : r.recordType;
 
     if (recordType === "campaign") {
@@ -264,6 +267,18 @@ export async function upsertExtractedRecords(
     count += 1;
   }
   return count;
+}
+
+export async function seedVerifiedResearchRecords(): Promise<{
+  inserted: number;
+  alreadySeeded: boolean;
+}> {
+  if (verifiedResearchSeeded) {
+    return { inserted: 0, alreadySeeded: true };
+  }
+  const inserted = await upsertExtractedRecords(VERIFIED_RESEARCH_RECORDS);
+  verifiedResearchSeeded = true;
+  return { inserted, alreadySeeded: false };
 }
 
 export function listMemoryProducts(filter?: {
