@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { Bell, Bookmark, ChevronDown, Moon, Sun, Download } from 'lucide-react';
 import { ANA_NAV, TabKey } from './nav';
-import { BRAND_LOGO, BRAND_NAME, BRAND_TAGLINE } from '../lib/brand';
+import { BRAND_NAME, BRAND_TAGLINE, HEADER_LOGO } from '../lib/brand';
 
 interface TopNavProps {
   activeTab: TabKey;
@@ -52,14 +52,14 @@ export const TopNav: React.FC<TopNavProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('home')}
-          className="flex shrink-0 items-center gap-2.5 rounded-lg pr-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:ring-offset-canvas"
+          className="flex shrink-0 items-center gap-3 rounded-lg pr-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:ring-offset-canvas"
         >
           <img
-            src={BRAND_LOGO}
+            src={HEADER_LOGO}
             alt={BRAND_NAME}
-            className="h-9 w-9 shrink-0 object-contain"
+            className="h-10 w-auto max-w-[min(14rem,52vw)] object-contain object-left"
           />
-          <span className="text-base font-bold tracking-tight text-txt">{BRAND_NAME}</span>
+          <span className="sr-only">{BRAND_TAGLINE}</span>
         </button>
 
         {/* Ana gezinme — masaüstü */}
