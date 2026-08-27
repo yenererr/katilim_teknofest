@@ -6,6 +6,7 @@ import {
   MessagesSquare,
   Calculator,
   Percent,
+  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { ARAC_NAV, TabKey } from './nav';
@@ -46,6 +47,12 @@ const IHTIYACLAR: IhtiyacKarti[] = [
     baslik: 'Kâr Payı Hesapla',
     aciklama: 'Katılma hesabı getiri',
     icon: Percent,
+  },
+  {
+    key: 'findeks',
+    baslik: 'Findeks Risk Analizi',
+    aciklama: 'Kredi skoru & onay matrisi',
+    icon: ShieldCheck,
   },
   { key: 'kampanyalar', baslik: 'Kampanya Bul', aciklama: 'İndirim, taksit, puan vb.', icon: Tag },
   {
