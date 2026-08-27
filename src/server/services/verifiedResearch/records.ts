@@ -89,7 +89,136 @@ function tfConsumerRate(
   });
 }
 
+function vakifVehicleRate(
+  term: number,
+  ratePercent: number,
+): ExtractedFinancialRecord {
+  return rec({
+    bankId: "vakif-katilim",
+    recordType: "product",
+    category: "vehicle_finance",
+    productType: "tasit_finansmani",
+    title: `Vakıf Katılım Taşıt Finansmanı ${term} Ay`,
+    productName: `Taşıt Finansmanı (${term} ay)`,
+    sourceUrl: "https://www.vakifkatilim.com.tr/tr",
+    profitRate: ratePercent / 100,
+    ratePeriod: "monthly",
+    minAmountTl: 50_000,
+    maxAmountTl: 5_000_000,
+    minTermMonths: term,
+    maxTermMonths: term,
+    allocationFeeValue: 0.005,
+    allocationFeeType: "percentage",
+    targetSegments: ["Herkes"],
+    conditions: [
+      "Taşıt finansmanında tahsis ücreti finansman tutarının binde 5'i oranındadır.",
+      "Oranlar vade ve bankanın güncel politikasına göre değişebilir; nihai teklif bankadan alınmalıdır.",
+    ],
+    evidence: [
+      evidence(
+        "kar_payi_orani",
+        `Vakıf Katılım taşıt finansmanı için ${term} ay vadede ilan edilen aylık kâr payı oranı %${ratePercent.toLocaleString("tr-TR")}.`,
+      ),
+      evidence(
+        "tahsis_ucreti",
+        "Taşıt finansmanında tahsis ücreti finansman tutarının %0,5'idir.",
+      ),
+    ],
+  });
+}
+
 export const VERIFIED_RESEARCH_RECORDS: ExtractedFinancialRecord[] = [
+  // Vakıf Katılım taşıt — vade bazlı ilan oranları (canlı uç kapalıyken Softtech yedek)
+  vakifVehicleRate(12, 3.34),
+  vakifVehicleRate(24, 3.24),
+  vakifVehicleRate(36, 3.14),
+  vakifVehicleRate(48, 3.14),
+
+  rec({
+    bankId: "ziraat-katilim",
+    recordType: "product",
+    category: "vehicle_finance",
+    productType: "tasit_finansmani",
+    title: "Ziraat Katılım Taşıt Finansmanı",
+    productName: "Taşıt Finansmanı",
+    sourceUrl: "https://www.ziraatkatilim.com.tr/bireysel/finansman-urunleri",
+    profitRate: 0.0335,
+    ratePeriod: "monthly",
+    minAmountTl: 50_000,
+    maxAmountTl: 5_000_000,
+    minTermMonths: 1,
+    maxTermMonths: 36,
+    allocationFeeValue: 0.005,
+    allocationFeeType: "percentage",
+    targetSegments: ["Herkes"],
+    conditions: [
+      "Taşıt finansmanı ürünü resmî sitede yayımlanır; nihai oran bankanın hesaplama/başvuru akışından doğrulanmalıdır.",
+    ],
+    evidence: [
+      evidence(
+        "kar_payi_orani",
+        "Ziraat Katılım taşıt finansmanı için doğrulanmış araştırma kaydında aylık kâr payı oranı %3,35 olarak tutulmuştur (canlı uç yoksa Softtech yedek).",
+      ),
+    ],
+  }),
+
+  rec({
+    bankId: "kuveyt-turk",
+    recordType: "product",
+    category: "vehicle_finance",
+    productType: "tasit_finansmani",
+    title: "Kuveyt Türk Taşıt Finansmanı",
+    productName: "Taşıt Finansmanı",
+    sourceUrl:
+      "https://www.kuveytturk.com.tr/hesaplama-araclari/finansman-hesaplama",
+    profitRate: 0.0367,
+    ratePeriod: "monthly",
+    minAmountTl: 50_000,
+    maxAmountTl: 5_000_000,
+    minTermMonths: 1,
+    maxTermMonths: 48,
+    allocationFeeValue: 0.005,
+    allocationFeeType: "percentage",
+    targetSegments: ["Herkes"],
+    conditions: [
+      "Canlı hesaplama ucu kapalıysa Softtech uyumlu motorla yaklaşık taksit üretilir; BSMV farkı olabilir.",
+    ],
+    evidence: [
+      evidence(
+        "kar_payi_orani",
+        "Kuveyt Türk taşıt finansmanı için doğrulanmış araştırma kaydında aylık kâr payı oranı %3,67 olarak tutulmuştur.",
+      ),
+    ],
+  }),
+
+  rec({
+    bankId: "albaraka",
+    recordType: "product",
+    category: "vehicle_finance",
+    productType: "tasit_finansmani",
+    title: "Albaraka Türk Taşıt Finansmanı",
+    productName: "Taşıt Finansmanı",
+    sourceUrl: "https://www.albaraka.com.tr/tr",
+    profitRate: 0.0321,
+    ratePeriod: "monthly",
+    minAmountTl: 50_000,
+    maxAmountTl: 5_000_000,
+    minTermMonths: 1,
+    maxTermMonths: 48,
+    allocationFeeValue: 0.005,
+    allocationFeeType: "percentage",
+    targetSegments: ["Herkes"],
+    conditions: [
+      "Nihai kâr payı oranı ve ödeme planı bankanın resmî teklifine göre değişebilir.",
+    ],
+    evidence: [
+      evidence(
+        "kar_payi_orani",
+        "Albaraka Türk taşıt finansmanı için doğrulanmış araştırma kaydında aylık kâr payı oranı %3,21 olarak tutulmuştur.",
+      ),
+    ],
+  }),
+
   rec({
     bankId: "adil-katilim",
     recordType: "product",
@@ -294,6 +423,23 @@ export const VERIFIED_RESEARCH_RECORDS: ExtractedFinancialRecord[] = [
     conditions: ["Davet eden müşterinin toplam kazanımı 25.000 TL'ye kadar çıkabilir."],
     evidence: [evidence("odul", "Arkadaşını getir kampanyasında 25.000 TL'ye kadar toplam kazanım belirtilmiştir.")],
   }),
+  rec({
+    bankId: "hayat-finans",
+    category: "card_campaign",
+    title: "Biz Kart ile Okula Dönüş Kampanyası",
+    sourceUrl: "https://hayatfinans.com.tr/kampanyalar",
+    campaignTheme: "education",
+    campaignEnd: "2026-09-30",
+    conditions: [
+      "Biz Kart ile okula dönüş / eğitim-kırtasiye harcamalarında dönemsel avantaj sunulur.",
+    ],
+    evidence: [
+      evidence(
+        "odul",
+        "Biz Kart ile okula dönüş kampanyasında eğitim ve kırtasiye harcamalarına özel avantaj belirtilmiştir.",
+      ),
+    ],
+  }),
 
   rec({
     bankId: "kuveyt-turk",
@@ -320,7 +466,7 @@ export const VERIFIED_RESEARCH_RECORDS: ExtractedFinancialRecord[] = [
     installmentCount: 3,
     campaignStart: "2024-08-13",
     campaignEnd: "2027-01-01",
-    campaignTheme: "general",
+    campaignTheme: "pilgrimage",
     conditions: ["Diyanet Umre Finansmanı kapsamında vade farksız 3 taksit imkanı."],
     evidence: [evidence("taksit", "Diyanet Umre Finansmanı için vade farksız 3 taksit imkanı belirtilmiştir.")],
   }),

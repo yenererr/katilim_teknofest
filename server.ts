@@ -669,7 +669,12 @@ function fallbackRuleExtractor(text: string) {
 
 // Start server function with Vite middleware
 async function startServer() {
-  if (process.env.NODE_ENV !== "production") {
+  // `.env` içinde NODE_ENV=production olsa bile `npm run dev` Vite + public/ kullanmalı.
+  const useVite =
+    process.env.npm_lifecycle_event === "dev" ||
+    process.env.NODE_ENV !== "production";
+
+  if (useVite) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

@@ -34,7 +34,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
       if (e.key === "Escape") setOpen(false);
     };
     window.addEventListener("keydown", onKey);
-    closeRef.current?.focus();
+    // Kapat düğmesine odaklama — yazma kutusunu çalmasın
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
@@ -63,7 +63,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
               <img
                 src={AGENT_LOGO}
                 alt=""
-                className="h-8 w-16 rounded-lg object-contain object-left"
+                className="h-8 w-20 rounded-lg bg-white object-contain object-left p-0.5"
               />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-txt">
@@ -127,7 +127,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
           <img
             src={AGENT_LOGO}
             alt=""
-            className="h-10 w-10 rounded-full bg-white object-contain p-1"
+            className="h-10 w-10 rounded-full bg-white object-cover object-left p-1"
           />
         )}
       </motion.button>

@@ -10,7 +10,11 @@ import { BANK_SOURCE_CONFIGS } from "../scraper/bankSourceConfig";
 import { listMemoryCampaigns } from "../postgres/store";
 import { getLiveBankStates } from "../liveData/liveDataBridge";
 import { asciiKatla } from "../../../nlp/normalize";
-import { BANKA_INDEKS, UCRETLER, VERI_TARIHI } from "../../../data/piyasa";
+import { BANKA_INDEKS } from "../../../data/piyasa";
+import {
+  FEE_MATRIX_DATE_TR,
+  VERIFIED_FEES as UCRETLER,
+} from "../../../data/verifiedFees";
 import {
   CAMPAIGN_THEME_LABEL,
   campaignMatchesTheme,
@@ -146,12 +150,13 @@ export function rehberNiyetiTespit(mesaj: string): RehberNiyeti {
 
   // Tüm bankaların kampanyalarını listeleme (belirli banka belirtilmeden)
   // "eğitim kampanyaları" → tema var; ekstra fiil gerekmez
+  // "ev alcam ne kampanyalar var" → kampanya + soru kalıbı
   const kampanyaTemasi = parseCampaignThemeFromMessage(mesaj);
   if (
-    kampanya &&
+    (kampanya || kampanyaTemasi != null) &&
     !bankaBul(mesaj) &&
     (kampanyaTemasi != null ||
-      /(hangi|listele|neler|goster|tumu|hepsi|aktif|guncel|karsilastir|var mi|var\?|ne tur|ne cesit|hakkinda|bilgi|ogren|anlat|istiyorum|sirala)/.test(
+      /(hangi|listele|neler|\bne\b|goster|tumu|hepsi|aktif|guncel|karsilastir|var\s*m[iı]|var\?|\bvar\b|ne tur|ne cesit|hakkinda|bilgi|ogren|anlat|istiyorum|sirala|kendim)/.test(
         t,
       ))
   ) {
@@ -258,9 +263,10 @@ function ucretYaniti(mesaj: string): RehberSonucu {
   }
 
   const satirlar = Object.entries(kalem.degerler)
+    .filter(([, tutar]) => tutar != null)
     .map(([bankaId, tutar]) => ({
       ad: BANKA_INDEKS[bankaId]?.ad || bankaId,
-      tutar,
+      tutar: tutar as number,
     }))
     .sort((a, b) => a.tutar - b.tutar)
     .map(
@@ -268,14 +274,86 @@ function ucretYaniti(mesaj: string): RehberSonucu {
         `• ${s.ad}: ${s.tutar === 0 ? "ücretsiz" : `${s.tutar.toLocaleString("tr-TR")} TL`}`,
     );
 
+  if (satirlar.length === 0) {
+    return {
+      message:
+        `**${kalem.etiket}** için henüz doğrulanmış tarife satırı yok. ` +
+        "İlgili bankanın resmî ücret sayfasını kontrol edin.",
+      citations: [],
+    };
+  }
+
   return {
     message:
       `**${kalem.etiket}** — ${kalem.aciklama}\n\n` +
       satirlar.join("\n") +
-      `\n\nVeri tarihi: ${VERI_TARIHI}. Bankaların ilan ettiği tarifelerden derlendi; ` +
-      `işlem öncesi bankadan teyit etmekte fayda var.`,
+      `\n\nVeri tarihi: ${FEE_MATRIX_DATE_TR}. Yalnızca kaynakla doğrulanmış bankalar listelenir; ` +
+      `işlem öncesi bankadan teyit edin.`,
     citations: [],
   };
+}
+
+function kisaltMetin(metin: string, max = 140): string {
+  const temiz = metin.replace(/\s+/g, " ").trim();
+  if (temiz.length <= max) return temiz;
+  const kes = temiz.slice(0, max - 1);
+  const sonBosluk = kes.lastIndexOf(" ");
+  return `${(sonBosluk > 80 ? kes.slice(0, sonBosluk) : kes).trim()}…`;
+}
+
+/** Kampanya kaydından tek cümlelik özet (koşul / kanıt / yapılandırılmış alan). */
+function kisaKampanyaAciklama(c: Record<string, unknown>): string | null {
+  const conditions = Array.isArray(c.conditions)
+    ? c.conditions.map((x) => String(x || "").trim()).filter(Boolean)
+    : [];
+  if (conditions[0]) return kisaltMetin(conditions[0]);
+
+  const evidence = Array.isArray(c.evidence) ? c.evidence : [];
+  for (const ev of evidence) {
+    if (typeof ev === "string" && ev.trim()) return kisaltMetin(ev);
+    if (ev && typeof ev === "object" && "text" in ev) {
+      const t = String((ev as { text?: unknown }).text || "").trim();
+      if (t) return kisaltMetin(t);
+    }
+  }
+
+  const parts: string[] = [];
+  const taksit = c.installmentCount ?? c.maxTermMonths;
+  if (taksit != null && Number(taksit) > 0) {
+    parts.push(`vade farksız ${Number(taksit)} taksit`);
+  }
+  const minTl = c.minAmountTl != null ? Number(c.minAmountTl) : null;
+  const maxTl = c.maxAmountTl != null ? Number(c.maxAmountTl) : null;
+  if (minTl != null && maxTl != null && !Number.isNaN(minTl) && !Number.isNaN(maxTl)) {
+    parts.push(
+      `${minTl.toLocaleString("tr-TR")}–${maxTl.toLocaleString("tr-TR")} TL arası`,
+    );
+  } else if (maxTl != null && !Number.isNaN(maxTl)) {
+    parts.push(`${maxTl.toLocaleString("tr-TR")} TL'ye kadar`);
+  }
+  if (c.rewardAmountTl != null && !Number.isNaN(Number(c.rewardAmountTl))) {
+    const tip = String(c.rewardType || "ödül").trim();
+    parts.push(
+      `${Number(c.rewardAmountTl).toLocaleString("tr-TR")} TL ${tip}`,
+    );
+  }
+  if (c.participationMethod) {
+    parts.push(String(c.participationMethod).trim());
+  }
+  if (parts.length) return kisaltMetin(parts.join("; "));
+
+  // Başlıktan kaba ama dürüst özet (scrapede koşul yoksa)
+  const baslik = asciiKatla(String(c.title || c.productName || ""));
+  if (/kirtasiye/.test(baslik) && /taksit/.test(baslik)) {
+    return "Uygun kırtasiye harcamalarında vade farksız taksit.";
+  }
+  if (/egitim|okul/.test(baslik) && /taksit/.test(baslik)) {
+    return "Uygun eğitim/okul harcamalarında vade farksız taksit.";
+  }
+  if (/okula\s*don/.test(baslik)) {
+    return "Okula dönüş dönemine özel kart/kampanya avantajı.";
+  }
+  return null;
 }
 
 function kampanyaSatiri(c: Record<string, unknown>): string {
@@ -285,7 +363,9 @@ function kampanyaSatiri(c: Record<string, unknown>): string {
   const url = String(c.sourceUrl || "").trim();
   const bitis = c.campaignEnd ? String(c.campaignEnd).slice(0, 10) : null;
   const metin = url ? `[${baslik}](${url})` : baslik;
-  return bitis ? `• ${metin} (bitiş: ${bitis})` : `• ${metin}`;
+  const ust = bitis ? `• ${metin} (bitiş: ${bitis})` : `• ${metin}`;
+  const aciklama = kisaKampanyaAciklama(c);
+  return aciklama ? `${ust}\n  ${aciklama}` : ust;
 }
 
 function yeniMusteriKampanyaYaniti(): RehberSonucu {
@@ -382,9 +462,17 @@ function yeniMusteriKampanyaYaniti(): RehberSonucu {
 
 function genelKampanyaYaniti(mesaj?: string): RehberSonucu {
   const tema = mesaj ? parseCampaignThemeFromMessage(mesaj) : null;
-  const tumKampanyalar = listMemoryCampaigns({ activeOnly: true }).filter(
-    (c) => (tema ? campaignMatchesTheme(c, tema) : true),
+  const tumAktif = listMemoryCampaigns({ activeOnly: true });
+  let tumKampanyalar = tumAktif.filter((c) =>
+    tema ? campaignMatchesTheme(c, tema) : true,
   );
+
+  // Tema filtresi boşsa tüm aktif kampanyaları göster (haberdar olsun)
+  let temaBosFallback = false;
+  if (tema && !tumKampanyalar.length && tumAktif.length) {
+    tumKampanyalar = tumAktif;
+    temaBosFallback = true;
+  }
 
   if (!tumKampanyalar.length) {
     const temaEtiket = tema ? CAMPAIGN_THEME_LABEL[tema] : null;
@@ -420,17 +508,19 @@ function genelKampanyaYaniti(mesaj?: string): RehberSonucu {
   }
 
   const temaEtiket = tema ? CAMPAIGN_THEME_LABEL[tema] : null;
-  const baslik = temaEtiket
-    ? `${bankaGrup.size} bankada ${tumKampanyalar.length} ${temaEtiket.toLocaleLowerCase("tr-TR")} kampanyası buldum`
-    : `${bankaGrup.size} katılım bankasında toplam ${tumKampanyalar.length} aktif kampanya var`;
+  const baslik = temaBosFallback
+    ? `Tam eşleşen “${temaEtiket?.toLocaleLowerCase("tr-TR")}” kampanyası bulamadım; kayıtlı ${tumKampanyalar.length} aktif kampanyayı paylaşıyorum`
+    : temaEtiket
+      ? `${bankaGrup.size} bankada ${tumKampanyalar.length} ${temaEtiket.toLocaleLowerCase("tr-TR")} kampanyası buldum`
+      : `${bankaGrup.size} katılım bankasında toplam ${tumKampanyalar.length} aktif kampanya var`;
 
   return {
     message:
       `${baslik}:\n\n` +
       satirlar.join("\n").trim() +
-      (tema
-        ? `\n\nBaşka kategori için “kart kampanyaları” veya banka adı yazabilirsiniz.`
-        : `\n\nBelirli bir bankanın kampanyalarını detaylı görmek isterseniz banka adını yazın.`),
+      (tema && !temaBosFallback
+        ? `\n\nBaşka kategori için “kart kampanyaları”, “kırtasiye kampanyaları” veya banka adı yazabilirsiniz.`
+        : `\n\nBelirli bir bankanın kampanyalarını detaylı görmek isterseniz banka adını yazın. Kırtasiye, eğitim, kart veya yeni müşteri diye de daraltabilirsiniz.`),
     citations: tumKampanyalar.slice(0, 10).map((c: Record<string, unknown>, i: number) => ({
       id: i + 1,
       bankName: prettifyCampaignTitle(String(c.title || c.productName || c.bankName || "")),

@@ -3,9 +3,12 @@ import {
   parseTurkishAmount,
   parseTermMonths,
   parseFinancingType,
+  parseProfitRatePercent,
+  classifyTurn,
   mergeMessageIntoState,
   missingRequiredFields,
   createEmptyState,
+  parseLimitInquiry,
 } from "../finansmanNlu";
 import { calculateFinancingPayments } from "../finansmanCalculator";
 import {
@@ -82,6 +85,27 @@ describe("finansman NLU", () => {
     expect(parseFinancingType("bir araç almak")).toBe("vehicle");
     expect(parseFinancingType("eğitim kampanyaları")).toBeNull();
     expect(parseFinancingType("eğitim finansmanı")).toBe("education");
+    expect(parseFinancingType("ev alcam")).toBe("housing");
+    expect(parseFinancingType("ev alacagım")).toBe("housing");
+    expect(parseFinancingType("ev kredisi almak istiyorum")).toBe("housing");
+    expect(parseFinancingType("ev")).toBe("housing");
+    expect(parseFinancingType("konut")).toBe("housing");
+    expect(classifyTurn("ev")).toBe("param_update");
+    expect(classifyTurn("ev alacagım")).toBe("param_update");
+    expect(classifyTurn("ev kredisi almak istiyorum en iyisi hangisi")).toBe(
+      "param_update",
+    );
+
+    let housing = createEmptyState("housing-flow");
+    housing = mergeMessageIntoState(
+      housing,
+      "ev kredisi almak istiyorum en iyisi hangisi",
+    );
+    expect(housing.financingType).toBe("housing");
+    housing = mergeMessageIntoState(housing, "5 milyon 120 ay");
+    expect(housing.requestedAmountTl).toBe(5_000_000);
+    expect(housing.preferredTermMonths).toBe(120);
+    expect(missingRequiredFields(housing)).toEqual([]);
   });
 
   it("yalnızca 24 yazınca vade tamamlanır, tutar korunur", () => {
@@ -104,9 +128,19 @@ describe("finansman NLU", () => {
       "campaign_search",
     );
     expect(classifyTurn("hacca gideceğim")).toBe("ambiguous_purpose");
+    expect(classifyTurn("hacca gitmek için özel bir şey var mı")).toBe(
+      "campaign_search",
+    );
     expect(classifyTurn("araba alcam")).toBe("param_update");
     expect(classifyTurn("ev alcam")).toBe("param_update");
     expect(parseFinancingType("ev alcam")).toBe("housing");
+    expect(parseFinancingType("bisiklet alcam")).toBe("shopping");
+    expect(classifyTurn("oğluma bisiklet alacağım")).toBe("param_update");
+    expect(classifyTurn("bisiklet alcam")).toBe("param_update");
+    expect(parseFinancingType("yemek yiyeceğim para lazım")).toBe("consumer");
+    expect(classifyTurn("yemek yiyeceğim para lazım")).toBe("param_update");
+    expect(classifyTurn("acil nakit lazım")).toBe("param_update");
+    expect(classifyTurn("faturaları ödeyeceğim para lazım")).toBe("param_update");
     expect(classifyTurn("pardon 24 ay")).toBe("param_update");
     expect(classifyTurn("merhaba")).toBe("greeting");
     expect(classifyTurn("merhaba yardıma ihtiyacım var")).toBe("greeting");
@@ -138,6 +172,16 @@ describe("finansman NLU", () => {
     expect(liste.assistantMessage).not.toMatch(/Bu konuda yardımcı olamam/);
   });
 
+  it("azami vade/tutar sorularını limit_inquiry sayar", () => {
+    expect(classifyTurn("en fazla ne kadar oluyor")).toBe("limit_inquiry");
+    expect(classifyTurn("en fazla kac ay oluyor")).toBe("limit_inquiry");
+    expect(classifyTurn("en fazla kac aylik kredi alabiliyorum")).toBe(
+      "limit_inquiry",
+    );
+    expect(parseLimitInquiry("en fazla ne kadar oluyor")).toBe("amount");
+    expect(parseLimitInquiry("en fazla kac ay oluyor")).toBe("term");
+  });
+
   it("nasılsın ve neler yapabilirsin anlamlı yanıt verir", async () => {
     resetConversationsForTests();
     const how = await runFinansmanAssistantChat({ message: "nasılsın" });
@@ -150,6 +194,30 @@ describe("finansman NLU", () => {
     });
     expect(caps.assistantMessage).toMatch(/Finansman karşılaştırma|karşılaştır/i);
     expect(caps.assistantMessage).toMatch(/Ödeme planı|ödeme planı/i);
+  });
+
+  it("konut bağlamında azami vade sorusuna yanıt verir", async () => {
+    resetConversationsForTests();
+    const first = await runFinansmanAssistantChat({
+      message: "ev almak istiyorum",
+    });
+    expect(first.query.financingType).toBe("housing");
+    expect(first.assistantMessage).not.toMatch(/yardımcı olamam/);
+
+    const maxTerm = await runFinansmanAssistantChat({
+      conversationId: first.conversationId,
+      message: "en fazla kac ay oluyor",
+    });
+    expect(maxTerm.assistantMessage).not.toMatch(/yardımcı olamam/);
+    expect(maxTerm.assistantMessage).toMatch(/vade|ay/i);
+    expect(maxTerm.query.financingType).toBe("housing");
+
+    const maxAmt = await runFinansmanAssistantChat({
+      conversationId: first.conversationId,
+      message: "en fazla ne kadar oluyor",
+    });
+    expect(maxAmt.assistantMessage).not.toMatch(/yardımcı olamam/);
+    expect(maxAmt.assistantMessage).toMatch(/tutar|TL|milyon/i);
   });
 
   it("selamlaşma önceki aramayı yeniden çalıştırmaz", async () => {
@@ -585,6 +653,68 @@ describe("doğrulanmış araştırma kayıtları", () => {
     );
     expect(result.exactMatches[0].profitRate).toBeCloseTo(0.0399);
     expect(result.exactMatches[0].allocationFeeTl).toBe(1000);
+  });
+
+  it("Vakıf Katılım taşıt 24 ay kaydını tam eşleşme olarak döner", () => {
+    const state = createEmptyState("verified-vehicle");
+    state.financingType = "vehicle";
+    state.requestedAmountTl = 200000;
+    state.preferredTermMonths = 24;
+
+    const result = runFinancingMatchEngine({
+      state,
+      states: [],
+      memoryProducts: VERIFIED_RESEARCH_RECORDS.filter(
+        (r) => r.recordType === "product",
+      ),
+      memoryCampaigns: [],
+    });
+
+    expect(result.hasVerifiedData).toBe(true);
+    expect(result.exactMatches.length).toBeGreaterThanOrEqual(1);
+    const vakif = result.exactMatches.find((m) => m.bankId === "vakif-katilim");
+    expect(vakif).toBeTruthy();
+    expect(vakif!.profitRate).toBeCloseTo(0.0324);
+    expect(vakif!.estimatedMonthlyPaymentTl).not.toBeNull();
+  });
+
+  it("Oranı %3 yap parametre güncellemesi olarak sınıflanır", () => {
+    expect(parseProfitRatePercent("Oranı %3 yap")).toBe(3);
+    expect(classifyTurn("Oranı %3 yap")).toBe("param_update");
+    const s = createEmptyState("rate-only");
+    s.financingType = "vehicle";
+    s.requestedAmountTl = 200000;
+    s.preferredTermMonths = 24;
+    const next = mergeMessageIntoState(s, "Oranı %3 yap");
+    expect(next.customProfitRatePercent).toBe(3);
+    expect(next.financingType).toBe("vehicle");
+  });
+
+  it("taşıt sorgusunda ihtiyaç yeni-müşteri kampanyalarını esnek alternatif olarak göstermez", () => {
+    const state = createEmptyState("vehicle-no-ihtiyac-flex");
+    state.financingType = "vehicle";
+    state.requestedAmountTl = 200000;
+    state.preferredTermMonths = 24;
+    state.customerStatus = "unknown";
+
+    const result = runFinancingMatchEngine({
+      state,
+      states: [],
+      memoryProducts: [],
+      memoryCampaigns: VERIFIED_RESEARCH_RECORDS.filter(
+        (r) =>
+          r.recordType === "campaign" ||
+          r.category === "new_customer_financing",
+      ),
+    });
+
+    expect(
+      result.flexibleMatches.every(
+        (f) =>
+          !/ihtiya[cç]|pratik finansman|50\.000/i.test(f.campaignName) &&
+          !/vade farks[iı]z.*140/i.test(f.campaignName),
+      ),
+    ).toBe(true);
   });
 });
 

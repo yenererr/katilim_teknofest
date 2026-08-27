@@ -131,17 +131,8 @@ export const TEKLIFLER: Record<FinansmanTuru, FinansmanTeklifi[]> = {
   ihtiyac_finansmani: [],
 };
 
-export interface UcretKalemi {
-  key: string;
-  etiket: string;
-  aciklama: string;
-  /** bankaId -> ücret (TL). 0 = ücretsiz */
-  degerler: Record<string, number>;
-}
-
-/** Statik ücret tarifesi yok — doğrulanmış scrape kaynağı gelene kadar boş. */
-export const UCRETLER: UcretKalemi[] = [];
-
+export type { UcretKalemi, FeeValue } from './verifiedFees';
+export { VERIFIED_FEES as UCRETLER, getVerifiedFeeMatrix } from './verifiedFees';
 export type KampanyaEtiketi = 'TAKSİT' | 'İNDİRİM' | 'YENİ MÜŞTERİ' | 'PUAN' | 'NAKİT İADE';
 
 export interface Kampanya {

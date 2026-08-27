@@ -453,26 +453,54 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
   const [conversationId, setConversationId] = useState(() =>
     crypto.randomUUID(),
   );
-  const [latest, setLatest] = useState<FinansmanChatResponse | null>(null);
-  /** Sonuç paneli sohbeti ezmesin diye daraltılabilir + max yükseklik */
-  const [resultsOpen, setResultsOpen] = useState(true);
   const listRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  /** Kullanıcı sohbet dışına tıklayana kadar imleç kutuda kalsın. */
+  const preferInputFocus = useRef(true);
   const inputId = useId();
   const bootstrapped = useRef(false);
 
-  useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
-  }, [turns, loading]);
+  const focusInput = () => {
+    if (!preferInputFocus.current) return;
+    // disabled/readOnly geçişi ve DOM güncellemesi sonrası odakla
+    requestAnimationFrame(() => {
+      if (!preferInputFocus.current) return;
+      inputRef.current?.focus({ preventScroll: true });
+    });
+  };
 
   useEffect(() => {
-    if (
-      latest &&
-      (latest.exactMatches.length > 0 || latest.flexibleMatches.length > 0)
-    ) {
-      setResultsOpen(true);
+    preferInputFocus.current = true;
+    focusInput();
+  }, []);
+
+  useEffect(() => {
+    if (!loading) focusInput();
+  }, [loading, turns.length]);
+
+  useEffect(() => {
+    const onPointerDown = (e: PointerEvent) => {
+      const root = rootRef.current;
+      preferInputFocus.current = Boolean(
+        root && root.contains(e.target as Node),
+      );
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, []);
+
+  useEffect(() => {
+    if (isWidget) {
+      listRef.current?.scrollTo({
+        top: listRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+      return;
     }
-  }, [latest]);
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [turns, loading, isWidget]);
 
   useEffect(() => {
     if (bootstrapped.current) return;
@@ -531,7 +559,6 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
         throw new Error(data.error || "Yanıt alınamadı");
       }
       if (data.conversationId) setConversationId(data.conversationId);
-      setLatest(data);
       setTurns((prev) => [
         ...prev,
         {
@@ -545,7 +572,8 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
       setError(err instanceof Error ? err.message : "Bağlantı hatası");
     } finally {
       setLoading(false);
-      inputRef.current?.focus();
+      preferInputFocus.current = true;
+      focusInput();
     }
   };
 
@@ -583,50 +611,159 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
       ? turns[turns.length - 1]?.payload?.quickReplies
       : undefined;
 
-  const hasResults =
-    latest &&
-    (latest.exactMatches.length > 0 || latest.flexibleMatches.length > 0);
-
   const showStarters =
     turns.length === 1 && turns[0]?.id === WELCOME_TURN_ID && !loading;
 
   return (
     <div
+      ref={rootRef}
       className={
         isWidget
           ? "flex h-full min-h-0 flex-col overflow-hidden"
-          : "mx-auto flex h-[calc(100dvh-7rem)] min-h-[28rem] max-w-4xl flex-col overflow-hidden"
+          : "mx-auto max-w-4xl pb-24"
       }
     >
-      {/* Chat Area — alt paneller büyürken sohbet görünür kalsın */}
       <div
         ref={listRef}
-        className={`min-h-[38%] flex-1 overflow-y-auto ${isWidget ? "px-2 py-3" : "px-2 py-4 sm:px-4"}`}
+        className={
+          isWidget
+            ? "min-h-0 flex-1 overflow-y-auto px-2 py-3"
+            : "overflow-visible px-2 py-4 sm:px-4"
+        }
       >
-        {/* Konuşma geçmişi */}
-        {turns.map((t) => (
-          <div
-            key={t.id}
-            className={`mb-4 flex gap-2.5 ${t.role === "user" ? "justify-end" : ""}`}
-          >
-            {t.role === "assistant" && (
+        {turns.map((t, turnIndex) => {
+          const payload = t.payload;
+          const hasTurnResults =
+            t.role === "assistant" &&
+            payload &&
+            (payload.exactMatches.length > 0 ||
+              payload.flexibleMatches.length > 0);
+          const isLatestAssistant =
+            t.role === "assistant" && turnIndex === turns.length - 1;
+
+          if (t.role === "user") {
+            return (
+              <div key={t.id} className="mb-4 flex justify-end">
+                <div className="max-w-[min(100%,42rem)] rounded-2xl rounded-tr-md bg-brand-600 px-3.5 py-2.5 text-sm leading-relaxed text-white">
+                  {t.text}
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div key={t.id} className="mb-5 flex gap-2.5">
               <img
                 src={AGENT_LOGO}
                 alt=""
-                className="mt-1 h-7 w-7 shrink-0 rounded-full bg-white object-contain p-0.5"
+                className="mt-1 h-7 w-7 shrink-0 rounded-full bg-white object-cover object-left p-0.5"
               />
-            )}
-            <div
-              className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                t.role === "user"
-                  ? "rounded-tr-md bg-brand-600 text-white"
-                  : "rounded-tl-md border border-line bg-surface text-txt shadow-flat"
-              }`}
-            >
-              {t.role === "assistant" ? renderMarkdown(t.text) : t.text}
+              <div className="min-w-0 flex-1 space-y-3">
+                {/* Tek sohbet kartı: metin + seçenekler birlikte */}
+                <div className="rounded-2xl rounded-tl-md border border-line bg-surface text-txt shadow-flat">
+                  <div className="px-3.5 py-2.5 text-sm leading-relaxed">
+                    {renderMarkdown(t.text)}
+                  </div>
+
+                  {hasTurnResults && payload && (
+                    <div className="space-y-2.5 border-t border-line px-3.5 py-3">
+                      {payload.exactMatches.length > 0 && (
+                        <p className="text-xs font-medium text-txt-muted">
+                          {payload.summary.exactMatchBankCount} uygun seçenek
+                        </p>
+                      )}
+                      {payload.exactMatches.map((r, i) => (
+                        <MatchCard key={r.productId} row={r} rank={i + 1} />
+                      ))}
+
+                      {payload.flexibleMatches.length > 0 && (
+                        <div className="space-y-2 pt-1">
+                          <p className="text-xs font-medium text-txt-muted">
+                            Esnek alternatifler
+                          </p>
+                          <div
+                            className={`grid gap-2 ${isWidget ? "grid-cols-1" : "sm:grid-cols-2"}`}
+                          >
+                            {payload.flexibleMatches.map((r) => (
+                              <FlexCard
+                                key={r.campaignId}
+                                row={r}
+                                onSelect={() => onFlexSelect(r)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {isLatestAssistant && !loading && payload && (
+                  <div className="space-y-2.5">
+                    {(payload.warnings?.length > 0 ||
+                      payload.citations?.length > 0) && (
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-txt-muted">
+                        {payload.warnings.length > 0 && (
+                          <span className="inline-flex items-center gap-1 text-warn-700 dark:text-warn-300">
+                            <AlertTriangle className="h-3 w-3" />
+                            {payload.warnings.length} uyarı
+                          </span>
+                        )}
+                        {groupCitations(payload.citations).map((c) => (
+                          <a
+                            key={c.key}
+                            href={c.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-brand-600 hover:text-brand-700 dark:text-brand-400"
+                          >
+                            {c.bankName}
+                            <ExternalLink className="h-2.5 w-2.5" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+
+                    {lastQuick && lastQuick.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {lastQuick.map((q) => (
+                          <button
+                            key={q.id}
+                            type="button"
+                            onClick={() => void send(q.value, q.value)}
+                            className={`min-h-11 rounded-lg border px-3.5 py-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+                              q.value.startsWith("__navigate__:")
+                                ? "border-brand-400 bg-brand-50 text-brand-800 hover:bg-brand-100 dark:border-brand-700 dark:bg-brand-950 dark:text-brand-200"
+                                : "border-line bg-sunken text-txt hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950"
+                            }`}
+                          >
+                            {q.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {payload.actions && payload.actions.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {payload.actions.map((a) => (
+                          <button
+                            key={a.href + a.label}
+                            type="button"
+                            onClick={() => navigateFromAssistant(a.href)}
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-medium text-white transition-colors hover:bg-brand-700"
+                          >
+                            {a.label}
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {showStarters && (
           <div
@@ -641,8 +778,12 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
                   onClick={() => void send(s.value)}
                   className={`flex min-h-11 items-start gap-2 rounded-xl border border-line bg-surface text-left transition-colors hover:border-brand-300 hover:bg-brand-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-brand-950/30 ${isWidget ? "p-2.5" : "gap-2.5 p-3"}`}
                 >
-                  <Icon className={`mt-0.5 shrink-0 ${s.color} ${isWidget ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
-                  <span className={`font-medium text-txt ${isWidget ? "text-xs" : "text-sm"}`}>
+                  <Icon
+                    className={`mt-0.5 shrink-0 ${s.color} ${isWidget ? "h-3.5 w-3.5" : "h-4 w-4"}`}
+                  />
+                  <span
+                    className={`font-medium text-txt ${isWidget ? "text-xs" : "text-sm"}`}
+                  >
                     {s.label}
                   </span>
                 </button>
@@ -651,13 +792,12 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
           </div>
         )}
 
-        {/* Yükleniyor */}
         {loading && (
           <div className="mb-4 flex gap-2.5">
             <img
               src={AGENT_LOGO}
               alt=""
-              className="mt-1 h-7 w-7 shrink-0 rounded-full bg-white object-contain p-0.5"
+              className="mt-1 h-7 w-7 shrink-0 rounded-full bg-white object-cover object-left p-0.5"
             />
             <div className="flex items-center gap-2 rounded-2xl rounded-tl-md border border-line bg-surface px-4 py-3 shadow-flat">
               <Loader2 className="h-4 w-4 animate-spin text-brand-500" />
@@ -665,150 +805,25 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
             </div>
           </div>
         )}
+
+        {error && (
+          <div className="mb-3 rounded-xl border border-risk-200 bg-risk-50 px-4 py-2.5 text-xs text-risk-700 dark:border-risk-800 dark:bg-risk-950 dark:text-risk-300">
+            {error}
+          </div>
+        )}
+
+        {!isWidget && <div ref={endRef} className="h-2" aria-hidden="true" />}
       </div>
 
-      {/* Sonuç kartları — sabit tavan; Detay açılınca paneli kaydır, sohbeti ezme */}
-      {hasResults && (
-        <div
-          className={`flex shrink-0 flex-col border-t border-line bg-sunken/30 ${
-            resultsOpen
-              ? isWidget
-                ? "max-h-40"
-                : "max-h-[min(34dvh,18rem)]"
-              : ""
-          }`}
-        >
-          <button
-            type="button"
-            onClick={() => setResultsOpen((v) => !v)}
-            className="flex min-h-11 w-full shrink-0 items-center justify-between gap-2 px-3 py-2.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 sm:px-4"
-            aria-expanded={resultsOpen}
-          >
-            <span className="text-xs font-medium text-txt-muted">
-              {latest.exactMatches.length > 0
-                ? `${latest.summary.exactMatchBankCount} uygun seçenek`
-                : "Esnek alternatifler"}
-              {latest.flexibleMatches.length > 0 &&
-                latest.exactMatches.length > 0 &&
-                ` · ${latest.flexibleMatches.length} alternatif`}
-            </span>
-            {resultsOpen ? (
-              <ChevronDown className="h-4 w-4 shrink-0 text-txt-muted" />
-            ) : (
-              <ChevronUp className="h-4 w-4 shrink-0 text-txt-muted" />
-            )}
-          </button>
-          {resultsOpen && (
-            <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto overscroll-contain px-2 pb-3 sm:px-4">
-              {latest.exactMatches.length > 0 &&
-                latest.exactMatches.map((r, i) => (
-                  <MatchCard key={r.productId} row={r} rank={i + 1} />
-                ))}
-
-              {latest.flexibleMatches.length > 0 && (
-                <div className="space-y-2 pt-1">
-                  {latest.exactMatches.length > 0 && (
-                    <p className="text-xs font-medium text-txt-muted">
-                      Esnek alternatifler
-                    </p>
-                  )}
-                  <div
-                    className={`grid gap-2 ${isWidget ? "grid-cols-1" : "sm:grid-cols-2"}`}
-                  >
-                    {latest.flexibleMatches.map((r) => (
-                      <FlexCard
-                        key={r.campaignId}
-                        row={r}
-                        onSelect={() => onFlexSelect(r)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Kaynaklar ve uyarılar — kompakt şerit */}
-      {latest &&
-        (latest.warnings?.length > 0 || latest.citations?.length > 0) && (
-          <div className="shrink-0 border-t border-line bg-surface px-4 py-2.5">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-txt-muted">
-              {latest.warnings.length > 0 && (
-                <span className="inline-flex items-center gap-1 text-warn-700 dark:text-warn-300">
-                  <AlertTriangle className="h-3 w-3" />
-                  {latest.warnings.length} uyarı
-                </span>
-              )}
-              {groupCitations(latest.citations).map((c) => (
-                <a
-                  key={c.key}
-                  href={c.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-brand-600 hover:text-brand-700 dark:text-brand-400"
-                >
-                  {c.bankName}
-                  <ExternalLink className="h-2.5 w-2.5" />
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-      {/* Hızlı yanıtlar */}
-      {lastQuick && lastQuick.length > 0 && !loading && (
-        <div className="flex shrink-0 flex-wrap gap-1.5 border-t border-line bg-surface px-4 py-2.5">
-          {lastQuick.map((q) => (
-            <button
-              key={q.id}
-              type="button"
-              onClick={() => void send(q.value, q.value)}
-              className={`min-h-11 rounded-lg border px-3.5 py-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
-                q.value.startsWith("__navigate__:")
-                  ? "border-brand-400 bg-brand-50 text-brand-800 hover:bg-brand-100 dark:border-brand-700 dark:bg-brand-950 dark:text-brand-200"
-                  : "border-line bg-sunken text-txt hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950"
-              }`}
-            >
-              {q.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Yönlendirme aksiyonları (ödeme planı → Hesaplama) */}
-      {turns.length > 0 &&
-        turns[turns.length - 1]?.role === "assistant" &&
-        turns[turns.length - 1]?.payload?.actions &&
-        turns[turns.length - 1]!.payload!.actions!.length > 0 &&
-        !loading && (
-          <div className="flex shrink-0 flex-wrap gap-2 border-t border-line bg-surface px-4 py-2.5">
-            {turns[turns.length - 1]!.payload!.actions!.map((a) => (
-              <button
-                key={a.href + a.label}
-                type="button"
-                onClick={() => navigateFromAssistant(a.href)}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-medium text-white transition-colors hover:bg-brand-700"
-              >
-                {a.label}
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            ))}
-          </div>
-        )}
-
-      {/* Hata */}
-      {error && (
-        <div className="border-t border-risk-200 bg-risk-50 px-4 py-2.5 text-xs text-risk-700 dark:border-risk-800 dark:bg-risk-950 dark:text-risk-300">
-          {error}
-        </div>
-      )}
-
-      {/* Giriş alanı */}
-      <div className="shrink-0 border-t border-line bg-surface px-3 py-3 sm:px-4">
+      <div
+        className={
+          isWidget
+            ? "shrink-0 border-t border-line bg-surface px-3 py-3"
+            : "fixed inset-x-0 bottom-0 z-30 border-t border-line bg-canvas/95 px-3 py-3 backdrop-blur-md sm:px-4 lg:left-72"
+        }
+      >
         <form
-          className="flex items-end gap-2"
+          className={`mx-auto flex items-end gap-2 ${isWidget ? "" : "max-w-4xl"}`}
           onSubmit={(e) => {
             e.preventDefault();
             void send(input);
@@ -823,10 +838,17 @@ export const FinansmanAsistaniView: React.FC<FinansmanAsistaniViewProps> = ({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
+            onFocus={() => {
+              preferInputFocus.current = true;
+            }}
+            onBlur={() => {
+              if (preferInputFocus.current) focusInput();
+            }}
             rows={1}
             placeholder="Sorunuzu yazın..."
-            className="max-h-32 min-h-11 flex-1 resize-none rounded-xl border border-line bg-sunken px-3.5 py-2.5 text-sm text-txt placeholder:text-txt-muted focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900"
-            disabled={loading}
+            className="max-h-32 min-h-11 flex-1 resize-none rounded-xl border border-line bg-sunken px-3.5 py-2.5 text-sm text-txt placeholder:text-txt-muted focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900 read-only:opacity-80"
+            readOnly={loading}
+            aria-busy={loading}
           />
           <button
             type="submit"

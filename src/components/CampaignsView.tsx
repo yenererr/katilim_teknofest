@@ -30,6 +30,7 @@ type ThemeKey =
   | 'housing'
   | 'vehicle'
   | 'new_customer'
+  | 'pilgrimage'
   | 'general';
 
 const TEMALAR: { key: ThemeKey; etiket: string }[] = [
@@ -39,6 +40,7 @@ const TEMALAR: { key: ThemeKey; etiket: string }[] = [
   { key: 'housing', etiket: 'Konut' },
   { key: 'vehicle', etiket: 'Taşıt' },
   { key: 'new_customer', etiket: 'Yeni müşteri' },
+  { key: 'pilgrimage', etiket: 'Hac / Umre' },
   { key: 'general', etiket: 'Genel' },
 ];
 
@@ -48,6 +50,7 @@ const TEMA_ETIKET: Record<string, string> = {
   housing: 'KONUT',
   vehicle: 'TAŞIT',
   new_customer: 'YENİ MÜŞTERİ',
+  pilgrimage: 'HAC / UMRE',
   general: 'GENEL',
 };
 

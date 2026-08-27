@@ -679,7 +679,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
           </section>
 
-          {/* Ücret — statik tarife yok */}
+          {/* Ücret — doğrulanmış tarife özeti */}
           <section className="rounded-xl border border-line bg-surface p-4 shadow-flat">
             <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
               <h2 className="text-base font-semibold tracking-tight text-txt">
@@ -695,9 +695,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </button>
             </div>
             <p className="text-sm leading-relaxed text-txt-secondary">
-              FAST, EFT ve aidat gibi ücretler için doğrulanmış canlı tarife kaynağı henüz yok.
-              Yanlış bilgi vermemek için örnek rakam gösterilmiyor; bankanın kendi ücret sayfasını
-              kontrol edin.
+              FAST, EFT ve hesap işletim için doğrulanmış dijital kanal tarifeleri bağlı.
+              Bilinmeyen bankalar tire ile gösterilir; ayrıntılı tablo Ücretler sekmesinde.
             </p>
           </section>
         </div>

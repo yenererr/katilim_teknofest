@@ -37,6 +37,12 @@ describe("campaignNormalize", () => {
     );
     expect(parseCampaignThemeFromMessage("kart kampanyası var mı")).toBe("card");
     expect(parseCampaignThemeFromMessage("200 bin eğitim finansmanı")).toBeNull();
+    expect(parseCampaignThemeFromMessage("kırtasiye için var mı")).toBe(
+      "education",
+    );
+    expect(
+      parseCampaignThemeFromMessage("ev alcam kendime ne kampanyalar var"),
+    ).toBe("housing");
   });
 
   it("başlıktan eğitim temasını çıkarır", () => {

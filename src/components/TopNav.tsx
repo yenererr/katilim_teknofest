@@ -57,7 +57,7 @@ export const TopNav: React.FC<TopNavProps> = ({
           <img
             src={BRAND_LOGO}
             alt={BRAND_NAME}
-            className="h-10 w-[min(13rem,48vw)] object-contain object-left"
+            className="h-10 w-[min(14rem,52vw)] object-contain object-left"
           />
           <span className="sr-only">{BRAND_TAGLINE}</span>
         </button>

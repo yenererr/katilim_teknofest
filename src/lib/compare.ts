@@ -313,7 +313,10 @@ export const yaklasanBitisler = (
 ): { oge: KarsilastirmaOgesi; kalan: number }[] =>
   ogeler
     .map((oge) => ({ oge, kalan: kalanGun(oge.product.kampanya_bitis) }))
-    .filter((x): x is { oge: KarsilastirmaOgesi; kalan: number } => x.kalan !== null && x.kalan <= gunEsigi)
+    .filter(
+      (x): x is { oge: KarsilastirmaOgesi; kalan: number } =>
+        x.kalan !== null && x.kalan >= 0 && x.kalan <= gunEsigi,
+    )
     .sort((a, b) => a.kalan - b.kalan);
 
 export interface Bulgu {

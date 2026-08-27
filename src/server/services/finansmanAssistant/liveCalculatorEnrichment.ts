@@ -20,6 +20,7 @@ import {
   hesaplaKuveytTurk,
   resolveKuveytProduct,
 } from "../calculators/kuveytTurkCalculator";
+import { listMemoryProducts } from "../postgres/store";
 import type {
   FinancingConversationState,
   FinancingMatch,
@@ -42,6 +43,60 @@ function mapFinancingKey(type: FinancingType | null): string {
 
 function bankName(id: string): string {
   return BANKA_INDEKS[id]?.ad || id;
+}
+
+/**
+ * Canlı uç kapalıyken doğrulanmış bellek/ilan oranını bul (yüzde, örn. 3.24).
+ */
+function memoryPublishedRatePercent(
+  bankId: string,
+  financingKey: string,
+  termMonths: number,
+): { ratePercent: number; sourceUrl: string } | null {
+  const rows = listMemoryProducts({ primaryOnly: false });
+  const scored: Array<{
+    ratePercent: number;
+    sourceUrl: string;
+    termDist: number;
+  }> = [];
+  for (const row of rows) {
+    if (row.bankId !== bankId) continue;
+    const mapped =
+      row.payload && typeof row.payload === "object"
+        ? row.payload
+        : row;
+    const productType =
+      mapped.productType ||
+      (mapped.category === "vehicle_finance"
+        ? "tasit_finansmani"
+        : mapped.category === "housing_finance"
+          ? "konut_finansmani"
+          : mapped.category === "consumer_finance"
+            ? "ihtiyac_finansmani"
+            : null);
+    if (productType !== financingKey) continue;
+    const rate =
+      typeof mapped.profitRate === "number"
+        ? mapped.profitRate
+        : typeof mapped.terimler?.kar_payi_orani?.deger === "number"
+          ? mapped.terimler.kar_payi_orani.deger
+          : null;
+    if (rate == null || !(rate > 0)) continue;
+    const minT = mapped.minTermMonths ?? mapped.terimler?.vade_ay?.min ?? null;
+    const maxT = mapped.maxTermMonths ?? mapped.terimler?.vade_ay?.max ?? null;
+    if (minT != null && termMonths < minT) continue;
+    if (maxT != null && termMonths > maxT) continue;
+    const mid =
+      minT != null && maxT != null ? (minT + maxT) / 2 : termMonths;
+    scored.push({
+      ratePercent: rate <= 1 ? rate * 100 : rate,
+      sourceUrl: String(mapped.sourceUrl || row.sourceUrl || ""),
+      termDist: Math.abs(mid - termMonths),
+    });
+  }
+  if (!scored.length) return null;
+  scored.sort((a, b) => a.termDist - b.termDist);
+  return { ratePercent: scored[0].ratePercent, sourceUrl: scored[0].sourceUrl };
 }
 
 function softtechLocal(opts: {
@@ -230,6 +285,18 @@ async function calcVakif(
       label: "Vakıf Katılım (özel oran + yerel motor)",
     });
   }
+  const published = memoryPublishedRatePercent("vakif-katilim", financingKey, term);
+  if (published) {
+    return softtechLocal({
+      bankId: "vakif-katilim",
+      financingKey,
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: published.ratePercent,
+      sourceUrl: published.sourceUrl || "https://www.vakifkatilim.com.tr/tr",
+      label: "Vakıf Katılım (ilan oranı + Softtech motor)",
+    });
+  }
   return null;
 }
 
@@ -296,6 +363,20 @@ async function calcZiraat(
       label: "Ziraat Katılım (özel oran + Softtech motor)",
     });
   }
+  const published = memoryPublishedRatePercent("ziraat-katilim", financingKey, term);
+  if (published) {
+    return softtechLocal({
+      bankId: "ziraat-katilim",
+      financingKey,
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: published.ratePercent,
+      sourceUrl:
+        published.sourceUrl ||
+        "https://www.ziraatkatilim.com.tr/bireysel/finansman-urunleri",
+      label: "Ziraat Katılım (ilan oranı + Softtech motor)",
+    });
+  }
   return null;
 }
 
@@ -348,6 +429,25 @@ async function calcKuveyt(
     }
     return row;
   }
+  const published = memoryPublishedRatePercent("kuveyt-turk", financingKey, term);
+  if (published) {
+    const row = softtechLocal({
+      bankId: "kuveyt-turk",
+      financingKey,
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: published.ratePercent,
+      sourceUrl:
+        published.sourceUrl ||
+        "https://www.kuveytturk.com.tr/hesaplama-araclari/finansman-hesaplama",
+      label: "Kuveyt Türk (ilan oranı + yaklaşık Softtech motor)",
+    });
+    if (row) {
+      row.calculationWarning =
+        "Kuveyt Türk canlı ucuna ulaşılamadı; ilan oranı Softtech formülüyle yaklaşık hesaplandı.";
+    }
+    return row;
+  }
   return null;
 }
 
@@ -385,13 +485,14 @@ export async function enrichWithLiveCalculators(
 
   if (liveRows.length === 0) {
     warnings.push(
-      "Vakıf, Ziraat ve Kuveyt canlı hesaplama uçlarına şu an ulaşılamadı. “Oranı %3,99 yap” diyerek yerel motorla taksit hesaplatabilirsiniz.",
+      "Vakıf, Ziraat ve Kuveyt canlı hesaplama uçlarına şu an ulaşılamadı. Doğrulanmış ilan oranı varsa Softtech motoruyla taksit üretildi; yoksa “Oranı %3,99 yap” diyerek yerel motorla hesaplatabilirsiniz.",
     );
     return { matches, liveBankIds, warnings };
   }
 
   // Hesaplanmış satırlar varsa oranı olmayan scrape satırlarını listeden düşür
   // (kullanıcı “Teklif alınmalı” kalabalığı görmesin).
+  // Softtech/ilan yedekleri de calculationAvailable=true olduğu için korunur.
   const merged = mergeLive(matches, liveRows);
   const onlyCalculated = merged.filter((m) => m.calculationAvailable);
   return {

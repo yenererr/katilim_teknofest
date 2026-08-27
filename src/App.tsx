@@ -381,7 +381,7 @@ function AppInner() {
             id="main-content"
             className={`mx-auto w-full max-w-[1280px] flex-1 px-4 sm:px-6 lg:px-8 ${
               activeTab === 'finansman-asistani'
-                ? 'min-h-0 pt-5 pb-4'
+                ? 'pt-5 pb-0'
                 : 'pt-7 pb-12'
             }`}
           >

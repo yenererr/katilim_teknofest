@@ -75,7 +75,7 @@ export const SideRail: React.FC<SideRailProps> = ({
       <img
         src={BRAND_LOGO}
         alt={BRAND_NAME}
-        className="h-9 w-44 object-contain object-left"
+        className="h-10 w-52 object-contain object-left"
       />
       <p className="sr-only">{BRAND_TAGLINE}</p>
     </section>

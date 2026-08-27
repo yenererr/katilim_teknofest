@@ -91,6 +91,57 @@ function productTypeMatches(
   return allowed.includes(urunTuru);
 }
 
+/** Kampanya satırını sorgu finansman türüne göre filtrele (ihtiyaç kampanyası taşıta sızmasın). */
+function campaignMatchesFinancingType(
+  camp: {
+    productType?: string | null;
+    category?: string | null;
+    title?: string | null;
+    productName?: string | null;
+  },
+  financingType: FinancingConversationState["financingType"],
+): boolean {
+  if (!financingType) return true;
+  const allowed = PRODUCT_TYPE_MAP[financingType] || [];
+  if (camp.productType && allowed.includes(String(camp.productType))) {
+    return true;
+  }
+
+  const blob = `${camp.title || ""} ${camp.productName || ""} ${camp.category || ""}`;
+  const t = blob.toLocaleLowerCase("tr-TR");
+
+  if (financingType === "vehicle") {
+    if (/ta[sş][iı]t|ara[cç]|araba|otomobil|binek/.test(t)) return true;
+    if (
+      camp.productType === "ihtiyac_finansmani" ||
+      /ihtiya[cç]|pratik finansman|kart/.test(t) ||
+      [
+        "card_campaign",
+        "discount_campaign",
+        "new_customer_financing",
+        "consumer_finance",
+        "shopping_finance",
+      ].includes(String(camp.category || ""))
+    ) {
+      return false;
+    }
+    return false;
+  }
+
+  if (financingType === "housing") {
+    return /konut|mortgage|ev\b|konut finans/.test(t) || camp.category === "housing_finance";
+  }
+
+  if (financingType === "consumer") {
+    if (/ta[sş][iı]t|ara[cç]|otomobil|binek/.test(t) && !/ihtiya[cç]/.test(t)) {
+      return false;
+    }
+    return true;
+  }
+
+  return true;
+}
+
 function segmentOk(
   segs: string[],
   customerStatus: FinancingConversationState["customerStatus"],
@@ -472,7 +523,11 @@ export function runFinancingMatchEngine(
   }
 
   const candidates = collectProductCandidates({ ...input, allowDemoData: false });
-  const hasVerifiedData = candidates.length > 0;
+  const typeMatchedCandidates = candidates.filter((c) =>
+    productTypeMatches(String(c.product.urun_turu || ""), state.financingType),
+  );
+  // Yalnızca sorgu türüyle eşleşen ürünler “doğrulanmış veri” sayılır.
+  const hasVerifiedData = typeMatchedCandidates.length > 0;
 
   const amount = state.requestedAmountTl;
   const term = state.preferredTermMonths;
@@ -656,6 +711,7 @@ export function runFinancingMatchEngine(
     if (!isAllowedParticipationBank(camp.bankId)) continue;
     if (camp.campaignStatus === "expired") continue;
     if (!campaignActive(camp.campaignEnd, camp.campaignStatus)) continue;
+    if (!campaignMatchesFinancingType(camp, state.financingType)) continue;
     const segs: string[] = camp.targetSegments || [];
     const isNew = segs.some((s) => /yeni/i.test(String(s)));
     if (state.customerStatus === "new" || !isNew) {

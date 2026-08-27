@@ -11,10 +11,16 @@ import {
 import { listMemoryCampaigns, listMemoryProducts, isPostgresConfigured, ensureSchema, hydrateMemoryFromPostgres } from "../services/postgres/store";
 import { getCollectionHealth, isQdrantConfigured } from "../services/qdrant";
 import { BANK_SOURCE_CONFIGS } from "../services/scraper/bankSourceConfig";
+import { getVerifiedFeeMatrix } from "../../data/verifiedFees";
 
 export function createLiveDataRouter(): Router {
   const router = Router();
   router.use(qdrantRateLimiter);
+
+  /** Doğrulanmış FAST / EFT / aidat matrisi — tahmin yok. */
+  router.get("/fees", (_req, res) => {
+    res.json(getVerifiedFeeMatrix());
+  });
 
   router.get("/sources", (_req, res) => {
     res.json({

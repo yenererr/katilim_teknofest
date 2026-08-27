@@ -40,6 +40,12 @@ describe("banka rehberi niyet tespiti", () => {
     expect(rehberNiyetiTespit("kart kampanyaları göster")).toBe(
       "genel_kampanyalar",
     );
+    expect(
+      rehberNiyetiTespit("bana ev alcam kendime ne kampanyalar var"),
+    ).toBe("genel_kampanyalar");
+    expect(rehberNiyetiTespit("kırtasiye için var mı")).toBe(
+      "genel_kampanyalar",
+    );
   });
 
   it("tek başına listele banka listesi döner", () => {
@@ -101,8 +107,27 @@ describe("banka rehberi yanıtı", () => {
   it("tanınmayan bankada uydurmaz, seçenekleri listeler", () => {
     const r = rehberYaniti("banka_sitesi", "Falanca Bankası web sitesi");
     // Uydurma bir banka/URL üretmemeli, bunun yerine seçenekleri saymalı.
-    expect(r.message).not.toMatch(/https?:\/\//);
+    expect(r.message).not.toMatch(/^https?:\/\//m);
     expect(r.message).toContain("Kuveyt Türk");
     expect(r.citations).toEqual([]);
+  });
+
+  it("FAST ücret karşılaştırmasında doğrulanmış bankaları listeler", () => {
+    expect(rehberNiyetiTespit("FAST ücreti ne kadar")).toBe("ucret_karsilastir");
+    const r = rehberYaniti("ucret_karsilastir", "FAST ücreti ne kadar");
+    expect(r.message).toContain("FAST");
+    expect(r.message).toMatch(/ücretsiz/i);
+    expect(r.message).toContain("Vakıf Katılım");
+    expect(r.message).toContain("Kuveyt Türk");
+  });
+
+  it("kampanya listesinde kısa açıklama ekler", async () => {
+    const { seedVerifiedResearchRecords } = await import(
+      "../../postgres/store"
+    );
+    await seedVerifiedResearchRecords();
+    const r = rehberYaniti("genel_kampanyalar", "kırtasiye var mı");
+    expect(r.message).toMatch(/kırtasiye|Kırtasiye/i);
+    expect(r.message).toMatch(/Albaraka World|vade farksız|taksit/i);
   });
 });

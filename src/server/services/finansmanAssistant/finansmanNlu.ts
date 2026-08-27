@@ -2,6 +2,7 @@ import { asciiKatla, yaziliSayiCoz } from "../../../nlp/normalize";
 import { BANK_NAME_TO_ID } from "../rag/ragTypes";
 import type { FinancingConversationState, FinancingType } from "./finansmanTypes";
 import { bankaBul, kampanyaSinyaliVar } from "./bankDirectory";
+import { parseCampaignThemeFromMessage } from "../scraper/campaignNormalize";
 
 /** Yazıyla tutar: "beş yüz bin", "iki milyon" … */
 const YAZILI_TUTAR_RE =
@@ -136,7 +137,7 @@ export function isPaymentPlanRequest(text: string): boolean {
 }
 
 export function parseFinancingType(text: string): FinancingType | null {
-  const t = asciiKatla(text);
+  const t = asciiKatla(text).replace(/\s+/g, " ").trim();
   // "eğitim kampanyaları" → finansman türü değil; kampanya teması
   if (
     /kampanya|kmapnaya|kmapanya|kampnya|kampnyal|kampanyal/.test(t) &&
@@ -144,17 +145,34 @@ export function parseFinancingType(text: string): FinancingType | null {
   ) {
     return null;
   }
-  // "ev alcam", "ev alacağım", "ev bakıyorum"
+  // Konut: "ev", "ev kredisi", "ev alacağım/alcam", "konut finansmanı"
   if (
-    /konut|mortgage|gayrimenkul|\bev\s+alc|\bev\s+al[iı]|\bev almak|\bev bak|\bev istiyorum/.test(
+    /konut|mortgage|gayrimenkul/.test(t) ||
+    /\bev\s*(kredi|finansman)/.test(t) ||
+    /\bev\s+(alc|alacag|alacak|almak|aliyorum|aliyom|bak|istiyorum|istiyom)/.test(
       t,
-    )
+    ) ||
+    /\bev\s+al\b/.test(t) ||
+    /^ev$/.test(t) ||
+    /\b(bir\s+)?ev\b/.test(t) &&
+      /(al|kredi|finansman|istiyorum|bakiyorum|lazim|icin)/.test(t)
   ) {
     return "housing";
   }
   if (/tasit|arac|otomobil|araba/.test(t)) return "vehicle";
   if (/egitim|okul|universite/.test(t)) return "education";
   if (/alisveris|magaza|taksitle/.test(t)) return "shopping";
+  // Dayanıklı tüketim / hediye alışverişi → alışveriş veya ihtiyaç
+  if (
+    /(bisiklet|scooter|telefon|laptop|bilgisayar|tablet|mobilya|beyaz\s*esya|buzdolabi|camasir|televizyon|\btv\b|koltuk|yatak|klima|buzdolab)/.test(
+      t,
+    ) &&
+    /(al|ald[iı]|alicam|alacam|alacag|almak|lazim|icin|oglum|kizim|cocuk|kendim)/.test(
+      t,
+    )
+  ) {
+    return "shopping";
+  }
   if (/ticari|kobi|isletme|mikro/.test(t)) return "commercial";
   if (
     /ihtiyac finansman|ihtiyac kredi|tuketici finansman|bireysel finansman|nakit finansman/.test(
@@ -166,7 +184,36 @@ export function parseFinancingType(text: string): FinancingType | null {
   ) {
     return "consumer";
   }
+  // Günlük nakit ihtiyacı: "yemek için para lazım", "faturaları ödeyeceğim", "acil nakit"
+  if (isConsumerCashNeed(t)) return "consumer";
   return null;
+}
+
+/**
+ * Konut/taşıt/hac dışı günlük para ihtiyacı → ihtiyaç finansmanı.
+ * Örn. "yemek yiyeceğim para lazım", "fatura ödeyeceğim", "acil nakit lazım".
+ */
+export function isConsumerCashNeed(text: string): boolean {
+  const t = asciiKatla(text).replace(/\s+/g, " ").trim();
+  if (!t) return false;
+  // Konut / taşıt / hac-umre vb. başka kola gitsin
+  if (
+    isAmbiguousPurpose(t) ||
+    /konut|mortgage|\bev\b|tasit|araba|otomobil|\barac\b|bisiklet|telefon|laptop/.test(
+      t,
+    )
+  ) {
+    return false;
+  }
+  const cashSignal =
+    /para\s*lazim|nakit\s*lazim|param\s*yok|paran\s*yok|paraya\s*ihtiyac|nakde\s*ihtiyac|acil\s*(para|nakit)|bor[cç]\s*(ode|odeme|icin)|fatura|kira\s*(ode|odeme|icin|lazim)|market(\s|$)|yemek|mutfak|bakkal|marketten|nakit\s*ihtiyac/.test(
+      t,
+    );
+  const needSignal =
+    /lazim|lazım|ihtiyac|yok|odeyece|odeycem|odemem|yapacag|yapcam|icin\b|para|nakit/.test(
+      t,
+    );
+  return cashSignal && needSignal;
 }
 
 /** Hac, düğün, tatil gibi amaç — finansman türü net değil */
@@ -175,6 +222,11 @@ export function isAmbiguousPurpose(text: string): boolean {
   return /hac\b|hacca|umre|dugun|nikah|tatil|seyahat|bayram|askeri|bedelli/.test(
     t,
   );
+}
+
+export function isPilgrimagePurpose(text: string): boolean {
+  const t = asciiKatla(text);
+  return /\bhac\b|hacca|umre/.test(t);
 }
 
 export function parseCustomerStatus(
@@ -269,7 +321,42 @@ export type TurnKind =
   | "bank_focus"
   | "general_question"
   | "sort_only"
-  | "payment_plan";
+  | "payment_plan"
+  | "limit_inquiry";
+
+/** “En fazla kaç ay / ne kadar tutar” — azami vade veya tutar sorusu */
+export type LimitInquiryKind = "term" | "amount" | "both";
+
+export function parseLimitInquiry(text: string): LimitInquiryKind | null {
+  const t = asciiKatla(text).trim();
+  if (!t) return null;
+
+  const asksLimit =
+    /en fazla|azami|ust sinir|maksimum|\bmax\b|en cok|limit\b|ne kadar (oluyor|cikiyor|veriliyor|alinabilir|cekebilir|olabiliyor)|kac ay|kac aylik/.test(
+      t,
+    );
+  if (!asksLimit) return null;
+
+  const termFocus =
+    /\bay\b|aylik|vade|taksit|sure\b|kac ay|kac aylik/.test(t);
+  const amountFocus =
+    /ne kadar|tutar|milyon|\bbin\b|\btl\b|limit|kredi|finansman/.test(t);
+
+  if (termFocus && !amountFocus) return "term";
+  if (termFocus && /kac ay|kac aylik|vade|aylik kredi|ay oluyor|ay alabil/.test(t)) {
+    return "term";
+  }
+  if (amountFocus && !termFocus) return "amount";
+  if (termFocus && amountFocus) {
+    // "en fazla ne kadar oluyor" — tutar; "kaç aylık kredi" — vade
+    if (/kac ay|kac aylik|vade/.test(t)) return "term";
+    if (/ne kadar/.test(t)) return "amount";
+    return "both";
+  }
+  if (termFocus) return "term";
+  if (amountFocus) return "amount";
+  return "both";
+}
 
 /** Selam / sohbet / yardım — finansman parametresi yok */
 export function isGreetingOrHelpRequest(text: string): boolean {
@@ -363,15 +450,20 @@ export function classifyTurn(
   if (!t) return "unsupported";
 
   if (
-    /tarif|yemek|kek|pasta|corba|hava durumu|f[iı]kra|saka|siir|sarki|oyun|film|spor sonucu/.test(
+    /tarif|kek tarifi|pasta tarifi|corba tarifi|hava durumu|f[iı]kra|saka|siir|sarki|oyun|film|spor sonucu/.test(
       t,
-    )
+    ) ||
+    (/^(yemek|kek|pasta|corba)\b/.test(t) && /tarif|nasil yap|yapilis|malzeme/.test(t))
   ) {
     return "unsupported";
   }
 
   if (isGreetingOrHelpRequest(t)) {
     return "greeting";
+  }
+
+  if (parseLimitInquiry(t)) {
+    return "limit_inquiry";
   }
 
   if (isPaymentPlanRequest(t)) {
@@ -385,6 +477,10 @@ export function classifyTurn(
   if (isBankRateQuestion(t)) {
     return "bank_focus";
   }
+
+  // Kampanya / “özel bir şey var mı” (hac, kırtasiye…) belirsiz amaçtan ÖNCE
+  if (kampanyaSinyaliVar(t)) return "campaign_search";
+  if (parseCampaignThemeFromMessage(text)) return "campaign_search";
 
   if (isAmbiguousPurpose(t) && !parseFinancingType(t)) {
     return "ambiguous_purpose";
@@ -406,7 +502,6 @@ export function classifyTurn(
     return "general_question";
   }
 
-  if (kampanyaSinyaliVar(t)) return "campaign_search";
   if (/kar[sş]ila[sş]tir/.test(t)) return "comparison";
   if (parseSortPreference(t)) return "sort_only";
 
@@ -433,12 +528,15 @@ export function classifyTurn(
   }
 
   const hasFinanceSignal =
-    /finansman|kredi|faiz|kar pay|vade|tutar|\btl\b|\bbin\b|milyon|banka|kat[iı]l[iı]m|ihtiyac finansman|ihtiyac kredi|\bihtiyac\b(?!\s*im)|konut|tasit|araba|arac|otomobil|\bev\s+alc|alcam|alacag|alaca[gğ]|karsilastir|sirala|masraf|tahsis|musteri|pardon|uye olmak|hesap ac|muster[iı] olmak|kampanya|kmapnaya|kmapanya|kampnya|avantaj|ucret|aidat|komisyon|murabaha|tekaf[uü]l|icara|selem|mudarebe|musareke|katilma hesab|faizsiz/.test(
+    /finansman|kredi|faiz|kar pay|vade|tutar|\btl\b|\bbin\b|milyon|banka|kat[iı]l[iı]m|ihtiyac finansman|ihtiyac kredi|\bihtiyac\b(?!\s*im)|konut|tasit|araba|arac|otomobil|\bev\b|alcam|alacag|alaca[gğ]|karsilastir|sirala|masraf|tahsis|musteri|pardon|uye olmak|hesap ac|muster[iı] olmak|kampanya|kmapnaya|kmapanya|kampnya|avantaj|ucret|aidat|komisyon|murabaha|tekaf[uü]l|icara|selem|mudarebe|musareke|katilma hesab|faizsiz|\boran\b|para\s*lazim|nakit\s*lazim|param\s*yok|acil\s*nakit|fatura|yemek/.test(
       t,
     ) ||
     parseTurkishAmount(t) != null ||
     parseTermMonths(t) != null ||
     parseFinancingType(t) != null ||
+    parseProfitRatePercent(t) != null ||
+    isPaymentPlanRequest(t) ||
+    isConsumerCashNeed(t) ||
     /^\d{1,3}$/.test(t);
 
   if (!hasFinanceSignal) return "unsupported";
@@ -498,6 +596,11 @@ export function mergeMessageIntoState(
     next.intent = "general_question";
     return next;
   }
+  if (turn === "limit_inquiry") {
+    next.intent = "follow_up";
+    // Azami sorusu mevcut amacı silmesin; tutar/vade slotlarını da zorla doldurma
+    return next;
+  }
   if (turn === "ambiguous_purpose") {
     next.intent = "general_question";
     return next;
@@ -527,7 +630,9 @@ export function mergeMessageIntoState(
   const qr = asciiKatla(selectedQuickReply || "");
   if (qr === "ihtiyac" || qr === "ihtiyac finansmani") next.financingType = "consumer";
   if (qr === "tasit" || qr === "tasit finansmani") next.financingType = "vehicle";
-  if (qr === "konut" || qr === "konut finansmani") next.financingType = "housing";
+  if (qr === "konut" || qr === "konut finansmani" || qr === "ev") {
+    next.financingType = "housing";
+  }
   if (qr === "alisveris") next.financingType = "shopping";
   if (qr === "egitim") next.financingType = "education";
   if (qr === "ticari") next.financingType = "commercial";

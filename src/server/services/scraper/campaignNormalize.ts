@@ -7,6 +7,7 @@ export type CampaignTheme =
   | "housing"
   | "vehicle"
   | "new_customer"
+  | "pilgrimage"
   | "general";
 
 export const CAMPAIGN_THEME_LABEL: Record<CampaignTheme, string> = {
@@ -15,10 +16,15 @@ export const CAMPAIGN_THEME_LABEL: Record<CampaignTheme, string> = {
   housing: "Konut",
   vehicle: "Taşıt",
   new_customer: "Yeni müşteri",
+  pilgrimage: "Hac / Umre",
   general: "Genel",
 };
 
 const THEME_PATTERNS: Array<{ theme: CampaignTheme; re: RegExp }> = [
+  {
+    theme: "pilgrimage",
+    re: /\bhac\b|hacca|umre|diyanet\s*umre|hac\s*finans|umre\s*finans/,
+  },
   {
     theme: "education",
     re: /egitim|okul|universite|ogrenci|burs|okula\s*don|dershane|ogrenci\s*yurd|yurt\s*(ucret|aidat|finans)|kitap|kirtasiye/,
@@ -33,11 +39,11 @@ const THEME_PATTERNS: Array<{ theme: CampaignTheme; re: RegExp }> = [
   },
   {
     theme: "housing",
-    re: /konut|mortgage|gayrimenkul|ev\s*finans|konut\s*finans/,
+    re: /konut|mortgage|gayrimenkul|ev\s*finans|konut\s*finans|\bev\s+(alc|alacag|alacak|almak|aliyorum|bak|istiyorum)|\bev\b/,
   },
   {
     theme: "vehicle",
-    re: /tasit|arac\s*finans|otomobil|araba\s*finans|tasit\s*finans/,
+    re: /tasit|arac\s*finans|otomobil|araba\s*finans|tasit\s*finans|\baraba\b|\barac\b/,
   },
 ];
 
@@ -53,7 +59,9 @@ export function inferCampaignTheme(opts: {
   );
   if (opts.category === "card_campaign" || /kart.?kampanya|card_campaign/.test(haystack)) {
     // Eğitim + kart birlikteyse eğitim öncelikli (okula dönüş kart kampanyası)
-    if (THEME_PATTERNS[0]!.re.test(haystack)) return "education";
+    if (THEME_PATTERNS.find((p) => p.theme === "education")!.re.test(haystack)) {
+      return "education";
+    }
     return "card";
   }
   if (opts.category === "new_customer_financing") return "new_customer";
@@ -66,12 +74,29 @@ export function inferCampaignTheme(opts: {
 /** Kullanıcı mesajından kampanya teması (finansman amacı değil). */
 export function parseCampaignThemeFromMessage(mesaj: string): CampaignTheme | null {
   const t = asciiKatla(mesaj);
-  // "eğitim kampanyaları", "kart kampanyası var mı"
-  if (!/kampanya|kmapnaya|kmapanya|kampnya|kampnyal|kampanyal|firsat|avantaj/.test(t)) {
+  const hasKampanyaSignal =
+    /kampanya|kmapnaya|kmapanya|kampnya|kampnyal|kampanyal|firsat|avantaj/.test(
+      t,
+    );
+
+  // "konut finansmanı istiyorum" / "ev kredisi almak" → kampanya değil
+  if (
+    !hasKampanyaSignal &&
+    /(finansman|kredi)/.test(t) &&
+    /(istiyorum|lazim|ar[iı]yorum|alcam|alacag|hangisi|en iyi|\btl\b|\bbin\b|milyon|\d+\s*ay)/.test(
+      t,
+    )
+  ) {
     return null;
   }
+
+  const hasThemeAsk =
+    /var\s*m[iı]|icin\b|ne\s+var|hangi|neler|goster|bak|pek[iı]|kendim|ozel/.test(t);
+
   for (const { theme, re } of THEME_PATTERNS) {
-    if (re.test(t)) return theme;
+    if (!re.test(t)) continue;
+    // "eğitim kampanyaları" veya "kırtasiye için var mı" / "hacca özel bir şey"
+    if (hasKampanyaSignal || hasThemeAsk) return theme;
   }
   return null;
 }

@@ -10,6 +10,9 @@ import {
   isThanksRequest,
   isFarewellRequest,
   isWellbeingReply,
+  parseLimitInquiry,
+  isPilgrimagePurpose,
+  type LimitInquiryKind,
 } from "./finansmanNlu";
 import { runFinancingMatchEngine } from "./finansmanMatcher";
 import { buildMatchesFromQdrantEvidence } from "./finansmanEvidence";
@@ -19,6 +22,7 @@ import {
   type FinancingAssistantResponse,
   type FinancingConversationState,
   type FinancingMatch,
+  type FinancingType,
 } from "./finansmanTypes";
 import { asciiKatla } from "../../../nlp/normalize";
 import { runRagChat } from "../rag/ragService";
@@ -28,6 +32,7 @@ import { sozluktenYanitla } from "./terimSozlugu";
 import { hesaplaOdemePlani } from "../../../lib/odemePlani";
 import { enrichWithLiveCalculators } from "./liveCalculatorEnrichment";
 import { BANKA_INDEKS } from "../../../data/piyasa";
+import { listMemoryProducts } from "../postgres/store";
 import {
   CAPABILITIES_MESSAGE,
   FAREWELL_MESSAGE,
@@ -105,6 +110,187 @@ function sortFollowUpReplies() {
 
 function formatAmount(n: number): string {
   return n.toLocaleString("tr-TR");
+}
+
+/** Doğrulanmış ürün kayıtlarından tür bazlı azami vade / tutar özeti. */
+function collectPublishedLimits(financingType: FinancingType | null): {
+  maxTerm: number | null;
+  maxAmount: number | null;
+  bankTerms: Array<{ bankId: string; maxTerm: number }>;
+  bankAmounts: Array<{ bankId: string; maxAmount: number }>;
+} {
+  const productTypes = financingType
+    ? PRODUCT_TYPE_MAP[financingType] || []
+    : [];
+  const products = listMemoryProducts({ primaryOnly: true }).filter((p) => {
+    const pt = String(p.productType || "");
+    if (!financingType) return false;
+    return productTypes.includes(pt);
+  });
+
+  let maxTerm: number | null = null;
+  let maxAmount: number | null = null;
+  const byBankTerm = new Map<string, number>();
+  const byBankAmount = new Map<string, number>();
+
+  for (const p of products) {
+    const term =
+      p.maxTermMonths != null
+        ? Number(p.maxTermMonths)
+        : p.minTermMonths != null
+          ? Number(p.minTermMonths)
+          : null;
+    const amount = p.maxAmountTl != null ? Number(p.maxAmountTl) : null;
+    if (term != null && Number.isFinite(term)) {
+      maxTerm = maxTerm == null ? term : Math.max(maxTerm, term);
+      const prev = byBankTerm.get(p.bankId) ?? 0;
+      if (term > prev) byBankTerm.set(p.bankId, term);
+    }
+    if (amount != null && Number.isFinite(amount)) {
+      maxAmount = maxAmount == null ? amount : Math.max(maxAmount, amount);
+      const prev = byBankAmount.get(p.bankId) ?? 0;
+      if (amount > prev) byBankAmount.set(p.bankId, amount);
+    }
+  }
+
+  return {
+    maxTerm,
+    maxAmount,
+    bankTerms: [...byBankTerm.entries()]
+      .map(([bankId, t]) => ({ bankId, maxTerm: t }))
+      .sort((a, b) => b.maxTerm - a.maxTerm),
+    bankAmounts: [...byBankAmount.entries()]
+      .map(([bankId, a]) => ({ bankId, maxAmount: a }))
+      .sort((a, b) => b.maxAmount - a.maxAmount),
+  };
+}
+
+/** Tür bilinmiyorsa önerilen örnek tutar/vadeler (karşılaştırma başlatmak için). */
+const LIMIT_HINTS: Record<
+  FinancingType,
+  { exampleAmount: number; exampleTerm: number; note: string }
+> = {
+  housing: {
+    exampleAmount: 2_000_000,
+    exampleTerm: 120,
+    note: "Konut finansmanında vade ve tutar bankaya göre değişir; canlı hesaplamada sıkça 120 aya kadar seçenek görülür.",
+  },
+  vehicle: {
+    exampleAmount: 500_000,
+    exampleTerm: 48,
+    note: "Taşıt finansmanında kayıtlı ürünlerde vade genelde 36–48 ay bandında ilan edilir.",
+  },
+  consumer: {
+    exampleAmount: 200_000,
+    exampleTerm: 36,
+    note: "İhtiyaç finansmanında vade ve üst tutar banka/kampanyaya göre değişir.",
+  },
+  shopping: {
+    exampleAmount: 50_000,
+    exampleTerm: 12,
+    note: "Alışveriş finansmanı / taksit kampanyalarında vade ürüne göre değişir.",
+  },
+  education: {
+    exampleAmount: 100_000,
+    exampleTerm: 12,
+    note: "Eğitim finansmanı veya kart taksit kampanyalarında koşullar ürüne göre değişir.",
+  },
+  commercial: {
+    exampleAmount: 500_000,
+    exampleTerm: 36,
+    note: "Ticari finansmanda limitler müşteri ve teminata göre belirlenir.",
+  },
+  other: {
+    exampleAmount: 200_000,
+    exampleTerm: 24,
+    note: "Ürün türüne göre azami vade ve tutar değişir.",
+  },
+};
+
+function buildLimitInquiryMessage(
+  state: FinancingConversationState,
+  kind: LimitInquiryKind,
+): { message: string; quickReplies: FinancingAssistantResponse["quickReplies"] } {
+  const type = state.financingType;
+  const typeLabel = type ? FINANCING_TYPE_LABEL[type] : null;
+  const limits = collectPublishedLimits(type);
+  const hint = type ? LIMIT_HINTS[type] : null;
+  const parts: string[] = [];
+  const quick: FinancingAssistantResponse["quickReplies"] = [];
+
+  if (!type) {
+    parts.push(
+      "Azami vade veya tutar ürün türüne göre değişiyor. Önce amacı seçin; ardından kayıtlı tarifelerden üst sınırları özetleyeyim.",
+    );
+    return { message: parts.join("\n\n"), quickReplies: purposeQuickReplies() };
+  }
+
+  if (kind === "term" || kind === "both") {
+    if (limits.maxTerm != null) {
+      const bankLines = limits.bankTerms.slice(0, 5).map((b) => {
+        const ad = BANKA_INDEKS[b.bankId]?.ad || b.bankId;
+        return `• ${ad}: en fazla ${b.maxTerm} ay (kayıtlı ürün)`;
+      });
+      parts.push(
+        `**Azami vade** — doğrulanmış ${typeLabel} kayıtlarında gördüğüm üst sınır **${limits.maxTerm} ay**.` +
+          (bankLines.length ? `\n\n${bankLines.join("\n")}` : ""),
+      );
+    } else if (hint) {
+      parts.push(
+        `**Azami vade** — ${hint.note}\n\n` +
+          `Karşılaştırmayı başlatmak için örnek: **${formatAmount(hint.exampleAmount)} TL, ${hint.exampleTerm} ay**.`,
+      );
+    }
+    if (hint) {
+      quick.push({
+        id: "lim-term-ex",
+        label: `${hint.exampleTerm} ay dene`,
+        value: `${formatAmount(hint.exampleAmount)} TL ${typeLabel}, ${hint.exampleTerm} ay`,
+      });
+    }
+    quick.push(...termQuickReplies().filter((t) => ["t-36", "t-48", "t-custom"].includes(t.id) || (type === "housing" && t.id === "t-custom")));
+    if (type === "housing") {
+      quick.unshift({
+        id: "lim-120",
+        label: "120 ay",
+        value: "120 ay",
+      });
+    }
+  }
+
+  if (kind === "amount" || kind === "both") {
+    if (limits.maxAmount != null) {
+      const bankLines = limits.bankAmounts.slice(0, 5).map((b) => {
+        const ad = BANKA_INDEKS[b.bankId]?.ad || b.bankId;
+        return `• ${ad}: en fazla ${formatAmount(b.maxAmount)} TL (kayıtlı ürün)`;
+      });
+      parts.push(
+        `**Azami tutar** — doğrulanmış ${typeLabel} kayıtlarında gördüğüm üst sınır **${formatAmount(limits.maxAmount)} TL**.` +
+          (bankLines.length ? `\n\n${bankLines.join("\n")}` : ""),
+      );
+    } else if (hint) {
+      parts.push(
+        `**Azami tutar** — bankalar tutarı gelir/teminata göre belirler; sabit tek bir tavan ilan etmeyebilir.\n\n` +
+          `${hint.note} Örnek tutarla bakmak için **${formatAmount(hint.exampleAmount)} TL** yazabilirsiniz.`,
+      );
+    }
+    if (hint) {
+      quick.push({
+        id: "lim-amt-ex",
+        label: `${formatAmount(hint.exampleAmount)} TL`,
+        value: `${formatAmount(hint.exampleAmount)} TL`,
+      });
+    }
+  }
+
+  parts.push(
+    "Net teklif için tutar + vade yazmanız yeterli — örneğin “2 milyon TL, 120 ay”.",
+  );
+
+  return {
+    message: parts.filter(Boolean).join("\n\n"),
+    quickReplies: quick.slice(0, 10),
+  };
 }
 
 /** Banka / amaç bilgisini samimi bir onay cümlesine çevirir */
@@ -350,7 +536,7 @@ function applyCustomProfitRate(
       profitRatePercent: rate,
       financingType: financingTypeKey,
     });
-    return matches.map((m) => ({
+    const patch = (m: FinancingMatch): FinancingMatch => ({
       ...m,
       profitRate: rate / 100,
       ratePeriod: "monthly" as const,
@@ -360,7 +546,59 @@ function applyCustomProfitRate(
       calculationAvailable: true,
       calculationWarning:
         "Kullanıcının belirlediği kâr oranı ile hesaplandı (KKDF/BSMV dâhil).",
-    }));
+    });
+
+    if (matches.length > 0) {
+      return matches.map(patch);
+    }
+
+    // Tam eşleşme yoksa bile özel oranla 3 banka için yerel satır üret
+    const banks = [
+      {
+        bankId: "vakif-katilim",
+        bankName: "Vakıf Katılım Bankası A.Ş.",
+        sourceUrl: "https://www.vakifkatilim.com.tr/tr",
+      },
+      {
+        bankId: "ziraat-katilim",
+        bankName: "Ziraat Katılım Bankası A.Ş.",
+        sourceUrl:
+          "https://www.ziraatkatilim.com.tr/bireysel/finansman-urunleri",
+      },
+      {
+        bankId: "kuveyt-turk",
+        bankName: "Kuveyt Türk Katılım Bankası A.Ş.",
+        sourceUrl:
+          "https://www.kuveytturk.com.tr/hesaplama-araclari/finansman-hesaplama",
+      },
+    ];
+    const now = new Date().toISOString();
+    return banks.map((b) =>
+      patch({
+        bankId: b.bankId,
+        bankName: b.bankName,
+        productId: `custom-${b.bankId}-${financingTypeKey}`,
+        productName: `${b.bankName} — özel oran hesaplama`,
+        financingType: financingTypeKey,
+        requestedAmountTl: amount,
+        termMonths: term,
+        profitRate: rate / 100,
+        ratePeriod: "monthly",
+        estimatedMonthlyPaymentTl: plan.taksitTutari,
+        estimatedTotalPaymentTl: plan.odenecekToplamTutar,
+        allocationFeeTl: plan.finansmanTahsisUcreti,
+        customerCondition: null,
+        campaignEnd: null,
+        freshnessStatus: "fresh",
+        sourceCheckedAt: now,
+        sourceUrl: b.sourceUrl,
+        evidence: [
+          `Kullanıcı oranı %${rate.toLocaleString("tr-TR", { maximumFractionDigits: 4 })} ile Softtech uyumlu motor.`,
+        ],
+        calculationAvailable: true,
+        calculationWarning: null,
+      }),
+    );
   } catch {
     return matches;
   }
@@ -469,6 +707,40 @@ export async function runFinansmanAssistantChat(
     let assistantMessage = WELCOME_MESSAGE;
     if (isCapabilitiesRequest(req.message)) {
       assistantMessage = CAPABILITIES_MESSAGE;
+      return {
+        conversationId,
+        assistantMessage,
+        status: "needs_information",
+        missingFields: missingRequiredFields(state),
+        quickReplies: [
+          {
+            id: "g-ihtiyac",
+            label: "200.000 TL ihtiyaç, 24 ay",
+            value: "200.000 TL ihtiyaç finansmanı, 24 ay",
+          },
+          {
+            id: "g-konut",
+            label: "2 milyon TL konut, 120 ay",
+            value: "2.000.000 TL konut finansmanı, 120 ay",
+          },
+          {
+            id: "g-tasit",
+            label: "500.000 TL taşıt, 36 ay",
+            value: "500.000 TL taşıt finansmanı, 36 ay",
+          },
+          {
+            id: "g-kamp",
+            label: "Kırtasiye kampanyaları",
+            value: "kırtasiye kampanyaları",
+          },
+        ],
+        query: state,
+        exactMatches: [],
+        flexibleMatches: [],
+        summary: emptySummary(),
+        warnings: [],
+        citations: [],
+      };
     } else if (isWellbeingReply(req.message)) {
       assistantMessage = WELLBEING_REPLY_MESSAGE;
     } else if (isThanksRequest(req.message)) {
@@ -550,6 +822,16 @@ export async function runFinansmanAssistantChat(
     !bankaBul(req.message)
   ) {
     rehberNiyeti = "banka_kampanyalari";
+  }
+
+  // Kampanya sorusu finansman motoruna düşmesin — tüm kayıtlı kampanyalardan yanıtla
+  if (
+    !rehberNiyeti &&
+    (turn === "campaign_search" ||
+      kampanyaSinyaliVar(req.message) ||
+      kampanyaTemasi != null)
+  ) {
+    rehberNiyeti = "genel_kampanyalar";
   }
 
   if (rehberNiyeti) {
@@ -704,6 +986,26 @@ export async function runFinansmanAssistantChat(
     };
   }
 
+  // Azami vade / tutar soruları — eksik slot diye tekrar sormadan yanıtla
+  if (turn === "limit_inquiry") {
+    const kind = parseLimitInquiry(req.message) || "both";
+    const info = buildLimitInquiryMessage(state, kind);
+    conversations.set(conversationId, { ...state, pendingFollowUp: null });
+    return {
+      conversationId,
+      assistantMessage: info.message,
+      status: "needs_information",
+      missingFields: missingRequiredFields(state),
+      quickReplies: info.quickReplies,
+      query: state,
+      exactMatches: [],
+      flexibleMatches: [],
+      summary: emptySummary(),
+      warnings: [],
+      citations: [],
+    };
+  }
+
   if (turn === "general_question") {
     conversations.set(conversationId, state);
 
@@ -769,6 +1071,36 @@ export async function runFinansmanAssistantChat(
 
   if (turn === "ambiguous_purpose") {
     conversations.set(conversationId, state);
+    const pilgrimage = isPilgrimagePurpose(req.message);
+    if (pilgrimage) {
+      return {
+        conversationId,
+        assistantMessage:
+          "Hac veya umre için bazı katılım bankalarında özel finansman ya da vade farksız taksit kampanyaları olabiliyor.\n\n" +
+          "İstersen önce bunlara bakayım; yoksa ihtiyaç finansmanı olarak karşılaştırabiliriz.",
+        status: "needs_information",
+        missingFields: state.financingType ? [] : ["financingType"],
+        quickReplies: [
+          {
+            id: "amb-umre-kamp",
+            label: "Hac/umre kampanyalarına bak",
+            value: "hac umre kampanyaları",
+          },
+          {
+            id: "amb-ihtiyac",
+            label: "İhtiyaç finansmanı olarak bak",
+            value: "İhtiyaç finansmanı olarak bak",
+          },
+          ...purposeQuickReplies().slice(0, 3),
+        ],
+        query: state,
+        exactMatches: [],
+        flexibleMatches: [],
+        summary: emptySummary(),
+        warnings: [],
+        citations: [],
+      };
+    }
     return {
       conversationId,
       assistantMessage:
