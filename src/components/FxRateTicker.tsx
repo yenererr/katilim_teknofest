@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type FxTickerCode = "USD" | "EUR" | "GBP" | "XAU";
 
@@ -30,6 +30,7 @@ type Chip = {
 };
 
 const ORDER: FxTickerCode[] = ["USD", "EUR", "GBP", "XAU"];
+const SLIDE_MS = 3500;
 
 function fmtRate(n: number, code: FxTickerCode): string {
   const digits = code === "XAU" ? 2 : 4;
@@ -82,9 +83,56 @@ function CurrencyGlyph({ code }: { code: FxTickerCode }) {
   );
 }
 
-/** Ana sayfa — TCMB döviz + gram altın yatay kur şeridi. */
+function RateSlide({ chip }: { chip: Chip }) {
+  const up = chip.change != null && chip.change > 0;
+  const down = chip.change != null && chip.change < 0;
+  return (
+    <div className="flex items-center justify-center gap-3 px-4 py-2.5 sm:gap-4">
+      <CurrencyGlyph code={chip.code} />
+      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-bold tracking-wide text-[#1e3a5f] dark:text-txt">
+            {chip.code}
+          </span>
+          {chip.change != null ? (
+            <span
+              className={`inline-flex items-center gap-0.5 text-xs font-semibold tabular-nums ${
+                up
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : down
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-txt-muted"
+              }`}
+            >
+              <span aria-hidden>{up ? "▲" : down ? "▼" : "•"}</span>
+              {fmtChange(chip.change)}
+            </span>
+          ) : null}
+        </div>
+        <div className="flex items-center gap-3 text-xs text-txt-secondary sm:text-[0.8125rem]">
+          <span>
+            Alış{" "}
+            <span className="tnum font-semibold text-[#1e3a5f] dark:text-txt">
+              {chip.buy}
+            </span>
+          </span>
+          <span>
+            Satış{" "}
+            <span className="tnum font-semibold text-[#1e3a5f] dark:text-txt">
+              {chip.sell}
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Ana sayfa — TCMB döviz + gram altın; tek tek kayan slide. */
 export const FxRateTicker: React.FC = () => {
   const [snapshot, setSnapshot] = useState<FxSnapshot | null>(null);
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     let iptal = false;
@@ -123,88 +171,125 @@ export const FxRateTicker: React.FC = () => {
     return list;
   }, [snapshot]);
 
+  useEffect(() => {
+    if (chips.length < 2 || paused) return;
+    const id = window.setInterval(() => {
+      setIndex((i) => (i + 1) % chips.length);
+    }, SLIDE_MS);
+    return () => window.clearInterval(id);
+  }, [chips.length, paused]);
+
+  useEffect(() => {
+    if (index >= chips.length && chips.length > 0) setIndex(0);
+  }, [chips.length, index]);
+
   if (chips.length === 0) return null;
 
   const updated =
-    snapshot?.updatedLabel ||
-    snapshot?.bulletinDate ||
-    "—";
+    snapshot?.updatedLabel || snapshot?.bulletinDate || "—";
+  const aktif = chips[index] ?? chips[0];
+  const n = chips.length;
+
+  const onceki = () => setIndex((i) => (i - 1 + n) % n);
+  const sonraki = () => setIndex((i) => (i + 1) % n);
 
   return (
     <section
       aria-label="Güncel döviz ve altın kurları"
+      aria-roledescription="carousel"
       className="overflow-hidden rounded-xl border border-line bg-[#F7F9FC] shadow-flat dark:bg-surface"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
     >
-      <div className="flex flex-col gap-3 border-t-2 border-[#1e3a5f] px-3 py-2.5 sm:flex-row sm:items-center sm:gap-0 sm:px-4 sm:py-0">
-        <div className="min-w-0 flex-1 overflow-x-auto">
-          <ul className="flex min-w-max items-stretch divide-x divide-line">
-            {chips.map((c) => {
-              const up = c.change != null && c.change > 0;
-              const down = c.change != null && c.change < 0;
-              return (
-                <li
-                  key={c.code}
-                  className="flex items-center gap-2.5 px-3 py-2.5 first:pl-0 last:pr-0 sm:gap-3 sm:px-4"
-                >
-                  <CurrencyGlyph code={c.code} />
-                  <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-3">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-bold tracking-wide text-[#1e3a5f] dark:text-txt">
-                        {c.code}
-                      </span>
-                      {c.change != null ? (
-                        <span
-                          className={`inline-flex items-center gap-0.5 text-xs font-semibold tabular-nums ${
-                            up
-                              ? "text-emerald-600 dark:text-emerald-400"
-                              : down
-                                ? "text-red-600 dark:text-red-400"
-                                : "text-txt-muted"
-                          }`}
-                        >
-                          <span aria-hidden>
-                            {up ? "▲" : down ? "▼" : "•"}
-                          </span>
-                          {fmtChange(c.change)}
-                        </span>
-                      ) : null}
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-txt-secondary sm:text-[0.8125rem]">
-                      <span>
-                        Alış{" "}
-                        <span className="tnum font-semibold text-[#1e3a5f] dark:text-txt">
-                          {c.buy}
-                        </span>
-                      </span>
-                      <span>
-                        Satış{" "}
-                        <span className="tnum font-semibold text-[#1e3a5f] dark:text-txt">
-                          {c.sell}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+      <div className="flex items-stretch border-t-2 border-[#1e3a5f]">
+        <button
+          type="button"
+          onClick={onceki}
+          aria-label="Önceki kur"
+          className="grid w-8 shrink-0 place-items-center text-txt-muted transition-colors hover:bg-white/70 hover:text-txt dark:hover:bg-sunken"
+        >
+          <ChevronLeft className="h-4 w-4" aria-hidden />
+        </button>
+
+        <div className="relative min-w-0 flex-1 overflow-hidden">
+          <div
+            className="flex transition-transform duration-500 ease-out"
+            style={{
+              width: `${n * 100}%`,
+              transform: `translateX(-${(index * 100) / n}%)`,
+            }}
+          >
+            {chips.map((c) => (
+              <div
+                key={c.code}
+                className="shrink-0"
+                style={{ width: `${100 / n}%` }}
+                aria-hidden={c.code !== aktif.code}
+              >
+                <RateSlide chip={c} />
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line pt-2 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
-          <p className="text-[0.6875rem] text-txt-secondary sm:text-xs">
-            Son Güncelleme :{" "}
-            <span className="font-medium text-[#1e3a5f] dark:text-txt">
-              {updated}
-            </span>
+        <button
+          type="button"
+          onClick={sonraki}
+          aria-label="Sonraki kur"
+          className="grid w-8 shrink-0 place-items-center text-txt-muted transition-colors hover:bg-white/70 hover:text-txt dark:hover:bg-sunken"
+        >
+          <ChevronRight className="h-4 w-4" aria-hidden />
+        </button>
+
+        <div className="hidden shrink-0 flex-col items-end justify-center gap-0.5 border-l border-line px-3 py-2 sm:flex">
+          <p className="text-[0.5625rem] leading-tight text-txt-muted">
+            Son Güncelleme
+          </p>
+          <p className="text-[0.625rem] leading-tight font-medium text-[#1e3a5f] dark:text-txt">
+            {updated}
           </p>
           <a
             href="#kurlar"
-            className="inline-flex items-center gap-0.5 text-xs font-bold text-[#1e3a5f] transition-colors hover:text-brand-700 dark:text-brand-300"
+            className="mt-0.5 inline-flex items-center gap-0.5 text-[0.6875rem] font-bold text-[#1e3a5f] transition-colors hover:text-brand-700 dark:text-brand-300"
           >
             Tüm Kurları Gör
-            <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+            <ChevronRight className="h-3 w-3" aria-hidden />
           </a>
         </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-2 border-t border-line px-3 py-1.5 sm:justify-center">
+        <div className="flex min-w-0 flex-col sm:hidden">
+          <span className="text-[0.5625rem] text-txt-muted">Son Güncelleme</span>
+          <span className="truncate text-[0.625rem] font-medium text-[#1e3a5f] dark:text-txt">
+            {updated}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {chips.map((c, i) => (
+            <button
+              key={c.code}
+              type="button"
+              aria-label={`${c.code} kurunu göster`}
+              aria-current={i === index}
+              onClick={() => setIndex(i)}
+              className={`h-1.5 rounded-full transition-all ${
+                i === index
+                  ? "w-4 bg-[#1e3a5f]"
+                  : "w-1.5 bg-line-strong hover:bg-txt-muted"
+              }`}
+            />
+          ))}
+        </div>
+        <a
+          href="#kurlar"
+          className="inline-flex items-center gap-0.5 text-[0.6875rem] font-bold text-[#1e3a5f] sm:hidden dark:text-brand-300"
+        >
+          Tümü
+          <ChevronRight className="h-3 w-3" aria-hidden />
+        </a>
       </div>
     </section>
   );

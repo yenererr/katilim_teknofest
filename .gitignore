@@ -11,6 +11,8 @@ coverage/
 
 # Scrape çıktıları (yerel)
 data/scraped-*.json
+# Docker seed — imaj COPY için repoda tutulur
+!data/scraped-campaigns.json
 
 # Claude Code yerel yapılandırması ve vendored skill dosyaları
 .claude/
