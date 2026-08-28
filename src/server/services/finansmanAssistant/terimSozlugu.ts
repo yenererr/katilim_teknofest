@@ -83,6 +83,74 @@ export const EK_KAVRAMLAR: Array<{
       "işlemlere dayanan bankacılık modelidir. Fonlar faiz karşılığı değil, " +
       "gerçek bir mal veya hizmet ilişkisi üzerinden kullandırılır.",
   },
+  {
+    terim: "Kâr payı oranı",
+    varyantlar: [
+      "kar payi orani",
+      "kâr payı oranı",
+      "kar pay orani",
+      "kar payi ne demek",
+    ],
+    aciklama:
+      "Katılım bankacılığında faiz yerine kullanılan orandır. Finansman " +
+      "işlemine konu olan mal veya hizmetin peşin alım fiyatı ile müşteriye " +
+      "vadeli satış fiyatı arasındaki farktan doğan kâr payını ifade eder. " +
+      "Sözleşmede baştan belirlenir; bir borç üzerinden değil, gerçek bir " +
+      "alım-satım ilişkisi üzerinden oluşur.",
+  },
+  {
+    terim: "Finansman maliyeti",
+    varyantlar: [
+      "finansman maliyeti",
+      "toplam maliyet",
+      "toplam geri odeme",
+      "toplam geri ödeme",
+    ],
+    aciklama:
+      "Kullandırılan finansman kapsamında oluşan toplam geri ödeme tutarını " +
+      "ve müşterinin katlandığı toplam maliyeti ifade eder. Kâr payının yanı " +
+      "sıra tahsis ücreti, dosya masrafı, sigorta ve benzeri kalemleri de " +
+      "kapsar; bu nedenle yalnızca kâr payı oranına bakmak yeterli değildir.",
+  },
+  {
+    terim: "Katılım fonu",
+    varyantlar: ["katilim fonu", "katılım fonu"],
+    aciklama:
+      "Katılım bankacılığı prensiplerine uygun olarak değerlendirilen ve fon " +
+      "sahipleri ile banka arasında kâr-zarar paylaşımına dayanan hesap " +
+      "türünü ifade eder. Geleneksel bankacılıktaki mevduatın karşılığıdır, " +
+      "ancak önceden sabit bir getiri taahhüdü içermez.",
+  },
+  {
+    terim: "Masrafsız finansman",
+    varyantlar: [
+      "masrafsiz finansman",
+      "masrafsız finansman",
+      "masrafsiz",
+      "dosya masrafi yok",
+    ],
+    aciklama:
+      "Finansman işlemi kapsamında tahsis ücreti, dosya masrafı veya benzeri " +
+      "ek maliyetlerin uygulanmadığı finansman türünü ifade eder. Kâr payı " +
+      "oranı aynı olsa bile masrafsız finansman, toplam maliyeti düşürdüğü " +
+      "için müşteri lehinedir.",
+  },
+  {
+    terim: "Avantajlı finansman",
+    varyantlar: [
+      "avantajli finansman",
+      "avantajlı finansman",
+      "avantajli kar payi",
+      "ozel oranli finansman",
+      "dusuk maliyetli finansman",
+    ],
+    aciklama:
+      "Standart finansman koşullarına göre daha uygun maliyet, kâr payı oranı " +
+      "veya ek fayda sunan kampanyalı finansman ürününü ifade eder. " +
+      "Kampanya metinlerinde çoğu zaman sayısal bir oran verilmeden " +
+      "\"avantajlı kâr payı fırsatı\", \"özel oranlı finansman\" veya " +
+      "\"düşük maliyetli finansman\" gibi niteliksel ifadelerle geçer.",
+  },
 ];
 
 export type SozlukYaniti = {

@@ -1,0 +1,57 @@
+Katılım Bankacılığı Ürün ve Kampanya Analiz Ajanı
+Copyright 2026 [TAKIM ADI]
+
+Bu ürün, Apache License 2.0 ile lisanslanmıştır. Lisans metni için kök
+dizindeki LICENSE dosyasına bakınız.
+
+TEKNOFEST 2026 - Yapay Zekâ Dil Ajanları Yarışması, 2. Senaryo
+Etiket: BilisimVadisi2026
+
+
+ÜÇÜNCÜ TARAF BİLEŞENLER
+=======================
+
+Bu proje aşağıdaki açık kaynak bileşenleri kullanır. Her biri kendi
+lisansı altında dağıtılmaktadır.
+
+Node.js / npm bağımlılıkları
+----------------------------
+  Apache License 2.0
+    @qdrant/js-client-rest
+    typescript
+
+  MIT License
+    @tailwindcss/vite, @vitejs/plugin-react, cheerio, express,
+    express-rate-limit, motion, pg, react, react-dom, uuid, vite, zod,
+    autoprefixer, esbuild, tailwindcss, tsx, vitest
+    (ve @types/* tip tanımları)
+
+  ISC License
+    lucide-react
+
+  BSD 2-Clause License
+    dotenv
+
+Konuşma servisi (speech-service) bileşenleri
+--------------------------------------------
+  MIT License
+    faster-whisper (CTranslate2 tabanlı Whisper çıkarımı)
+    Whisper model ağırlıkları (OpenAI)
+    Piper TTS ve tr_TR-dfki-medium ses modeli
+
+Yazı tipleri
+------------
+  SIL Open Font License 1.1
+    Inter
+    JetBrains Mono
+    Manrope
+
+Veri kaynakları
+---------------
+Kampanya ve ürün metinleri, BDDK'nın yayımladığı listede yer alan katılım
+bankalarının kamuya açık resmî web sitelerinden toplanmıştır. Metinlerin
+telif hakkı ilgili bankalara aittir; bu projede yalnızca analiz ve
+karşılaştırma amacıyla işlenmektedir. Kişisel veri toplanmamaktadır.
+
+Döviz kurları T.C. Merkez Bankası'nın kamuya açık günlük bülteninden
+alınmaktadır.

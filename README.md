@@ -781,7 +781,13 @@ LaTeX kaynakları aynı dizindedir ve `pdflatex` ile derlenebilir.
 
 ## Lisans
 
-Bu proje **Apache License 2.0** ile lisanslanacaktır (`LICENSE` dosyası eklenecektir).
+Bu proje **Apache License 2.0** ile lisanslanmıştır. Tam lisans metni kök
+dizindeki [`LICENSE`](LICENSE) dosyasındadır; telif ve üçüncü taraf bileşen
+dökümü [`NOTICE`](NOTICE) dosyasındadır.
+
+Tüm bağımlılıklar izin verici açık kaynak lisanslara (MIT, Apache-2.0, ISC,
+BSD-2, OFL) sahiptir. Ücretli yazılım, ticari lisans gerektiren paket veya
+BSL/SSPL/Elastic gibi kaynağı açık ama özgür olmayan bileşen kullanılmamıştır.
 
 Üçüncü taraf varlıklar:
 

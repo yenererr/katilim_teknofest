@@ -75,6 +75,10 @@ export type FinancingMatch = {
   estimatedMonthlyPaymentTl: number | null;
   estimatedTotalPaymentTl: number | null;
   allocationFeeTl: number | null;
+  /** Kampanya ödülünün TL karşılığı; metinde yoksa null. */
+  rewardAmountTl: number | null;
+  /** Ödülün insan okunur özeti (ör. "5.000 TL alışveriş çeki"). */
+  rewardDescription: string | null;
   customerCondition: string | null;
   campaignEnd: string | null;
   freshnessStatus: string;

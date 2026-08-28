@@ -103,6 +103,8 @@ describe("liveCalculatorEnrichment", () => {
           estimatedMonthlyPaymentTl: null,
           estimatedTotalPaymentTl: null,
           allocationFeeTl: null,
+          rewardAmountTl: null,
+          rewardDescription: null,
           customerCondition: null,
           campaignEnd: null,
           freshnessStatus: "fresh",

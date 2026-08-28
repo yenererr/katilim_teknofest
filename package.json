@@ -1,7 +1,9 @@
 {
-  "name": "react-example",
+  "name": "katilim-finans-analiz-ajani",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Katılım bankacılığı kampanya ve ürün metinlerinden finansal bilgi çıkaran, normalize eden ve ürünleri karşılaştıran NLP çözümü.",
+  "license": "Apache-2.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",

@@ -843,6 +843,8 @@ function applyCustomProfitRate(
         estimatedMonthlyPaymentTl: plan.taksitTutari,
         estimatedTotalPaymentTl: plan.odenecekToplamTutar,
         allocationFeeTl: plan.finansmanTahsisUcreti,
+        rewardAmountTl: null,
+        rewardDescription: null,
         customerCondition: null,
         campaignEnd: null,
         freshnessStatus: "fresh",

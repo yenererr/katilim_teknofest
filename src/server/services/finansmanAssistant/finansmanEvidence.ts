@@ -1,6 +1,7 @@
 import { asciiKatla } from "../../../nlp/normalize";
 import { getEvidenceChunks } from "../tools/getEvidenceTool";
 import { BANK_SOURCE_CONFIGS } from "../scraper/bankSourceConfig";
+import { odulCikar } from "./bankaAdaylari";
 import { isAllowedParticipationBank } from "./finansmanMatcher";
 import {
   FINANCING_TYPE_LABEL,
@@ -126,6 +127,8 @@ export async function buildMatchesFromQdrantEvidence(
     const termOk =
       maxTerm == null || state.preferredTermMonths <= maxTerm;
 
+    const chunkOdulu = odulCikar([chunk.chunkText]);
+
     if (!byBank.has(chunk.sourceId) && termOk) {
       byBank.set(chunk.sourceId, {
         bankId: chunk.sourceId,
@@ -140,6 +143,8 @@ export async function buildMatchesFromQdrantEvidence(
         estimatedMonthlyPaymentTl: null,
         estimatedTotalPaymentTl: null,
         allocationFeeTl: null,
+        rewardAmountTl: chunkOdulu.tl,
+        rewardDescription: chunkOdulu.aciklama,
         customerCondition: null,
         campaignEnd: null,
         freshnessStatus:

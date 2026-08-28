@@ -3,6 +3,7 @@ import { getLiveBankStates, type LiveBankState } from "../liveData/liveDataBridg
 import { evaluateFreshness } from "../rag/freshnessService";
 import type { FreshnessStatus } from "../rag/ragTypes";
 import { listMemoryCampaigns, listMemoryProducts } from "../postgres/store";
+import { odulCikar } from "./bankaAdaylari";
 import { calculateFinancingPayments } from "./finansmanCalculator";
 import {
   FINANCING_TYPE_LABEL,
@@ -373,6 +374,19 @@ function toExactMatch(
     ? c.product.musteri_segmenti
     : [];
 
+  // Ödül tutarı önce yapılandırılmış terimden, yoksa kampanya metninden okunur.
+  const terimOdulu = c.product.terimler?.odul;
+  const metinOdulu = odulCikar([
+    terimOdulu?.ham,
+    c.product.notlar,
+    c.product.urun_adi,
+    ...evidenceList(c.product),
+  ]);
+  const odul = {
+    tl: terimOdulu?.deger ?? metinOdulu.tl,
+    aciklama: metinOdulu.aciklama ?? terimOdulu?.ham ?? null,
+  };
+
   return {
     bankId: c.bankId,
     bankName: c.bankName,
@@ -388,6 +402,8 @@ function toExactMatch(
     estimatedMonthlyPaymentTl: calc.estimatedMonthlyPaymentTl,
     estimatedTotalPaymentTl: calc.estimatedTotalPaymentTl,
     allocationFeeTl: fee,
+    rewardAmountTl: odul.tl,
+    rewardDescription: odul.aciklama,
     customerCondition: segs.length ? segs.join(", ") : "Herkese açık",
     campaignEnd: c.product.kampanya_bitis
       ? String(c.product.kampanya_bitis)
@@ -430,7 +446,7 @@ function computeFlexScore(parts: {
   };
 }
 
-function sortExact(
+export function sortExact(
   matches: FinancingMatch[],
   pref: FinancingConversationState["sortPreference"],
 ): FinancingMatch[] {
@@ -454,6 +470,14 @@ function sortExact(
         if (av == null) return 1;
         if (bv == null) return -1;
         return av - bv;
+      }
+      case "highest_reward": {
+        const av = a.rewardAmountTl;
+        const bv = b.rewardAmountTl;
+        if (av == null && bv == null) return 0;
+        if (av == null) return 1;
+        if (bv == null) return -1;
+        return bv - av;
       }
       case "lowest_profit_rate":
       default: {

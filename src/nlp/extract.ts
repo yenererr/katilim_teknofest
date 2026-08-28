@@ -356,6 +356,13 @@ export type AvantajTuru =
   | 'hediye_ceki'
   | 'odul_puan'
   | 'indirim'
+  /**
+   * Sayısal değer içermeyen niteliksel oran/maliyet avantajı.
+   * Şartname 5.5'teki "Avantajlı Finansman" kavramına karşılık gelir:
+   * "avantajlı kâr payı fırsatı", "özel oranlı finansman",
+   * "düşük maliyetli finansman" gibi ifadeler.
+   */
+  | 'avantajli_finansman'
   | 'belirsiz';
 
 export interface AvantajBulgusu extends KuralBulgusu<number> {
@@ -408,8 +415,27 @@ const AVANTAJ_KURALLARI: {
   },
   {
     tur: 'indirim',
-    desen: /(indirim|avantajli\s*oran|ozel\s*oran)/,
+    desen: /(indirim|iskonto)/,
     ozetle: () => 'Oran avantajı',
+  },
+];
+
+/**
+ * Niteliksel avantaj kalıpları (şartname 5.2). Somut bir avantaj (masraf
+ * muafiyeti, hediye çeki vb.) bulunamadığında ikinci geçişte denenir; böylece
+ * metnin başındaki pazarlama cümlesi, ilerideki somut avantajı gölgelemez.
+ */
+const ZAYIF_AVANTAJ_KURALLARI: typeof AVANTAJ_KURALLARI = [
+  {
+    tur: 'avantajli_finansman',
+    desen:
+      /(avantajli\s*(kar\s*pay\w*|finansman|oran\w*|odeme|maliyet)|kar\s*pay\w*\s*(avantaj\w*|firsat\w*)|ozel\s*oranli|dusuk\s*maliyet\w*|uygun\s*maliyet\w*|dusuk\s*kar\s*pay\w*)/,
+    ozetle: (c) =>
+      /dusuk\s*maliyet\w*|uygun\s*maliyet\w*/.test(c)
+        ? 'Düşük maliyetli finansman'
+        : /ozel\s*oranli/.test(c)
+          ? 'Özel oranlı finansman'
+          : 'Avantajlı kâr payı',
   },
 ];
 
@@ -421,31 +447,53 @@ const AVANTAJ_KURALLARI: {
 export const avantajCikar = (metin: string): AvantajBulgusu => {
   const cumleler = cumlelereBol(metin);
 
-  for (const cumle of cumleler) {
-    const katlanmis = asciiKatla(cumle.metin);
-    if (!/(kampanya|firsat|hediye|ozel|avantaj)/.test(katlanmis)) continue;
+  const tara = (
+    kurallar: typeof AVANTAJ_KURALLARI,
+    kapi: RegExp,
+    guven: number,
+  ): AvantajBulgusu | null => {
+    for (const cumle of cumleler) {
+      const katlanmis = asciiKatla(cumle.metin);
+      if (!kapi.test(katlanmis)) continue;
 
-    TUTAR_DESENI.lastIndex = 0;
-    const tutarEslesmesi = TUTAR_DESENI.exec(cumle.metin);
-    const tutar = tutarEslesmesi ? sayiCoz(tutarEslesmesi[1]) : null;
+      TUTAR_DESENI.lastIndex = 0;
+      const tutarEslesmesi = TUTAR_DESENI.exec(cumle.metin);
+      const tutar = tutarEslesmesi ? sayiCoz(tutarEslesmesi[1]) : null;
 
-    for (const kural of AVANTAJ_KURALLARI) {
-      if (!kural.desen.test(katlanmis)) continue;
-      // Masraf muafiyeti bir avantajdır ancak yalnızca olumsuzlandığında.
-      if (kural.tur === 'masraf_muafiyeti' && !olumsuzlukVarMi(cumle.metin)) continue;
+      for (const kural of kurallar) {
+        if (!kural.desen.test(katlanmis)) continue;
+        // Masraf muafiyeti bir avantajdır ancak yalnızca olumsuzlandığında.
+        if (kural.tur === 'masraf_muafiyeti' && !olumsuzlukVarMi(cumle.metin)) {
+          continue;
+        }
 
-      return {
-        deger: tutar,
-        tur: kural.tur,
-        ozet: kural.ozetle(katlanmis, tutar),
-        ham: cumle.metin,
-        kanit: cumle.metin,
-        baslangic: cumle.baslangic,
-        bitis: cumle.bitis,
-        guven: kural.tur === 'belirsiz' ? 0.5 : 0.85,
-      };
+        return {
+          deger: tutar,
+          tur: kural.tur,
+          ozet: kural.ozetle(katlanmis, tutar),
+          ham: cumle.metin,
+          kanit: cumle.metin,
+          baslangic: cumle.baslangic,
+          bitis: cumle.bitis,
+          guven: kural.tur === 'belirsiz' ? 0.5 : guven,
+        };
+      }
     }
-  }
+    return null;
+  };
+
+  // 1. geçiş: sayısal/somut avantajlar.
+  const somut = tara(AVANTAJ_KURALLARI, /(kampanya|firsat|hediye|ozel|avantaj)/, 0.85);
+  if (somut) return somut;
+
+  // 2. geçiş: niteliksel oran/maliyet avantajı. Kapı daha geniş, çünkü
+  // "Düşük maliyetli finansman" cümlesinde kampanya/fırsat sözcüğü geçmez.
+  const nitel = tara(
+    ZAYIF_AVANTAJ_KURALLARI,
+    /(kampanya|firsat|ozel|avantaj|maliyet|dusuk|uygun|oranli)/,
+    0.6,
+  );
+  if (nitel) return nitel;
 
   return bosAvantaj();
 };
