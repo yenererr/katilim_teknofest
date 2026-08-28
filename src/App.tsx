@@ -79,17 +79,26 @@ function AppInner() {
 
   const setActiveTab = useCallback((tab: TabKey) => {
     setActiveTabState(tab);
-    const route = TAB_TO_HASH[tab];
-    window.history.replaceState(null, '', `#${route}`);
+    const hedef = `#${TAB_TO_HASH[tab]}`;
+    const mevcut = window.location.hash;
+    // Aynı sekmeye tekrar basmak geçmişi şişirmesin; deep-link parametreleri de korunur.
+    if (mevcut === hedef || tabFromHash(mevcut) === tab) return;
+    // pushState: her sekme ayrı geçmiş kaydı olur, tarayıcı geri tuşu çalışır.
+    window.history.pushState(null, '', hedef);
   }, []);
 
   useEffect(() => {
-    const onHash = () => {
+    const senkronize = () => {
       const tab = tabFromHash(window.location.hash);
       setActiveTabState(tab ?? 'home');
     };
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    // popstate: geri/ileri tuşu. hashchange: adres çubuğundan elle değişiklik.
+    window.addEventListener('popstate', senkronize);
+    window.addEventListener('hashchange', senkronize);
+    return () => {
+      window.removeEventListener('popstate', senkronize);
+      window.removeEventListener('hashchange', senkronize);
+    };
   }, []);
 
   const [text] = useState<string>('');
