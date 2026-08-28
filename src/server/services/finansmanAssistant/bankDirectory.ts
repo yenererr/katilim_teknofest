@@ -6,7 +6,10 @@
  * yapılandırmadan yanıtlanır. Böylece cevap anında gelir ve uydurma olmaz.
  */
 
-import { BANK_SOURCE_CONFIGS } from "../scraper/bankSourceConfig";
+import {
+  BANK_SOURCE_CONFIGS,
+  isOperationalBank,
+} from "../scraper/bankSourceConfig";
 import { listMemoryCampaigns } from "../postgres/store";
 import { getLiveBankStates } from "../liveData/liveDataBridge";
 import { asciiKatla } from "../../../nlp/normalize";
@@ -531,17 +534,30 @@ export function rehberYaniti(
   if (niyet === "ucret_karsilastir") return ucretYaniti(mesaj);
 
   if (niyet === "banka_sayisi") {
+    const faaliyette = aktifler.filter(isOperationalBank);
+    const bekleyen = aktifler.filter((b) => !isOperationalBank(b));
+    const bekleyenNot = bekleyen.length
+      ? `\n\nAyrıca ${bekleyen
+          .map((b) => b.bankName.replace(/ Bankası A\.Ş\.$/, ""))
+          .join(", ")} faaliyet izni aldı ancak ürünlerini henüz açmadı; ` +
+        `kurumsal sayfasını izliyorum, karşılaştırmaya dahil etmiyorum.`
+      : "";
     return {
       message:
-        `Türkiye'de ${aktifler.length} katılım bankası var, hepsini takip ediyorum. ` +
-        `Sayfalarını düzenli olarak kontrol ediyorum.\n\n` +
-        `İsimlerini görmek isterseniz "listele" yazmanız yeterli.`,
+        `Türkiye'de faaliyetteki ${faaliyette.length} katılım bankasını takip ediyorum. ` +
+        `Sayfalarını düzenli olarak kontrol ediyorum.` +
+        bekleyenNot +
+        `\n\nİsimlerini görmek isterseniz "listele" yazmanız yeterli.`,
       citations: [],
     };
   }
 
   if (niyet === "banka_listesi") {
-    const satirlar = aktifler.map((b, i) => `${i + 1}. ${b.bankName}`);
+    const satirlar = aktifler.map(
+      (b, i) =>
+        `${i + 1}. ${b.bankName}` +
+        (isOperationalBank(b) ? "" : " — faaliyet izni var, ürünleri henüz açılmadı"),
+    );
     return {
       message:
         `Takip ettiğim ${aktifler.length} katılım bankası şunlar:\n\n` +

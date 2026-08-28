@@ -317,7 +317,7 @@ Mesaj → NLU (tutar/vade/amaç) → zorunlu alanlar
 
 ### Veri kaynakları
 
-- Yalnızca 11 katılım bankasının resmî domainleri
+- Yalnızca izlenen 11 katılım bankasının resmî domainleri
 - Canlı scraper / bellek / PostgreSQL kayıtları
 - Qdrant kanıt metinleri (sayısal değer olarak doğrudan kullanılmaz)
 - `ALLOW_DEMO_DATA=false` iken demo veri gerçek sonuç gibi gösterilmez
@@ -680,15 +680,87 @@ Admin: `Authorization: Bearer <ADMIN_API_KEY>` veya `X-Admin-Key`. İstek gövde
 
 ---
 
+## On-premise (kurum içi) çalıştırma
+
+Şartname 5.9 çözümün kurum içi sunucularda, dış servise bağımlı olmadan
+çalışabilmesini istiyor. Sistem üç dış bağımlılık kullanır ve **üçünün de
+yerel karşılığı vardır**:
+
+| Bileşen | Varsayılan (uzak) | Kurum içi karşılığı |
+|---|---|---|
+| LLM | EVREN (`https://evren-llmapi.ssyz.org.tr/v1`) | Ollama veya vLLM |
+| Vektör veritabanı | EVREN Qdrant (uzak) | Yerel Qdrant konteyneri |
+| Konuşma (STT/TTS) | — | Zaten yerel (faster-whisper + Piper) |
+
+### Yerel LLM
+
+İstemci standart OpenAI uyumlu `/chat/completions` ucunu kullanır, bu yüzden
+kod değişikliği gerekmez — yalnızca adres değişir:
+
+```bash
+# Ollama
+EVREN_BASE_URL="http://localhost:11434/v1"
+EVREN_CHAT_MODEL="qwen2.5:14b-instruct"
+EVREN_API_KEY="yerel"          # Ollama yok sayar, boş bırakılamaz
+
+# vLLM
+EVREN_BASE_URL="http://localhost:8000/v1"
+EVREN_CHAT_MODEL="Qwen/Qwen2.5-14B-Instruct"
+EVREN_API_KEY="yerel"
+```
+
+### Yerel Qdrant
+
+```bash
+docker run -p 6333:6333 -v qdrant_storage:/qdrant/storage qdrant/qdrant
+```
+
+```bash
+EVREN_QDRANT_URL="http://localhost:6333"
+# EVREN_QDRANT_PREFIX ve EVREN_QDRANT_API_KEY kurum içi kurulumda gerekmez
+```
+
+Adres `http://` ile başlıyorsa istemci düz HTTP'ye geçer, varsayılan portu
+6333 alır ve takım öneki/anahtarı aramaz. `https://` ise (EVREN'in çok
+takımlı kurulumu) önek ve anahtar zorunlu kalır — istek yanlış takımın
+koleksiyonuna gitmesin diye.
+
+### LLM olmadan çalışma
+
+`EVREN_API_KEY` tanımsızsa sistem çökmez: dil modeli katmanı devre dışı
+kalır, çıkarım tamamen deterministik kural katmanıyla yapılır. Gold veri
+seti ölçümü de (`npm run eval:gold`) zaten yalnızca bu katmanı çalıştırır —
+raporlanan başarı, dil modeli olmadan elde edilen başarıdır.
+
+Müşteri metni bu yapılandırmada kurum dışına çıkmaz.
+
+---
+
 ## Veri seti
 
-Şu an depoda `src/data/samples.ts` içinde **6 örnek kampanya metni** bulunmaktadır.
-Bu metinler geliştirme ve demo amaçlıdır.
+Depoda iki veri kümesi var; ikisi de gerçek banka sayfalarından toplanmıştır,
+üretilmiş (sentetik) metin yoktur.
 
-> **Durum:** BDDK'nın [katılım bankaları listesindeki](https://www.bddk.org.tr/Kurulus/Liste/77)
-> kuruluşların resmî sitelerinden toplanacak gerçek veri seti henüz hazırlanmamıştır.
-> Toplama hattı yol haritasında 1. sıradadır; veri seti tamamlandığında bu bölüme
-> herkese açık indirme bağlantısı eklenecektir.
+**1. İnsan doğrulamalı referans (gold) veri seti** —
+[`Finansman_Kampanyalari_Referans_Veri_Seti.csv`](Finansman_Kampanyalari_Referans_Veri_Seti.csv)
+
+| | |
+|---|---|
+| Kayıt | 182 kampanya metni |
+| Banka | 11 katılım bankası |
+| Etiketli alan | 12 (kâr payı oranı, vade, taksit, tutar, ödül, indirim, tahsis ücreti, masraf durumu, kampanya süresi, koşullar, hedef kitle, alışveriş puanı) |
+| Span kanıtı | Her değer için metindeki dayanak ifadesi |
+| "Alan yok" etiketi | Var — kaynakta bulunmayan alan ayrıca işaretli |
+| Çoklu etiketçi | 63 kayıt |
+| Uzlaştırma (adjudication) | 45 kayıt |
+| Zor kayıt | 43 (`format_varyant`, `kosullu_aralik`, `terminoloji`, `eksik_bilgi`, `celiskili`) |
+
+Lisansı depo lisansıyla aynıdır (Apache-2.0); doğrudan bu dosyadan
+indirilebilir.
+
+**2. Canlı tarama havuzu** — `data/scraped-campaigns.json` ve PostgreSQL.
+Scraper resmî banka sayfalarını periyodik tarar; içerik hash'i değişmedikçe
+yeniden çıkarım yapılmaz. Bu havuz canlı sistemi besler, ölçüme girmez.
 
 ---
 
@@ -741,12 +813,12 @@ npx tsx -e "import('./src/nlp').then(n => console.log(n.kuralTabanliCikar('Aylı
 
 ## Bilinen sınırlar
 
-- **Kalıcı depo yok.** Çıkarım sonuçları ve doğrulama işaretleri yalnızca bellekte tutulur; sayfa yenilendiğinde kaybolur. Finansman Asistanı konuşma durumu da sunucu belleğindedir (yeniden başlatmada sıfırlanır).
-- **Kural motoru yedek konumunda.** Şu an dil modeli birincil çıkarıcıdır; kural katmanı yalnızca API anahtarı yoksa devreye girer. Katmanların yer değiştirmesi planlanmaktadır.
-- **Banka adı şemada yok.** Karşılaştırmada banka adı, metnin örnek şablonlarla eşleştirilmesinden türetilir.
+- **Konuşma durumu bellekte.** Çıkarım sonuçları PostgreSQL'de kalıcıdır, ancak Finansman Asistanı'nın konuşma durumu sunucu belleğindedir ve yeniden başlatmada sıfırlanır.
 - **Finansman Asistanı canlı veriye bağlıdır.** Scrape/ürün kapsamı seyrekse `no_verified_data` döner; demo veri gerçek sonuç gibi gösterilmez.
-- **Bulut modeli kullanılıyor.** Yerel çalıştırma desteklenir ancak varsayılan yapılandırma harici bir servise gider.
-- **Doğruluk ölçümü yok.** Altın değerlendirme seti hazırlanmamıştır.
+- **Varsayılan yapılandırma dış servise gider.** Yerel LLM ve yerel vektör veritabanı desteklenir (bkz. [On-premise çalıştırma](#on-premise-kurum-içi-çalıştırma)), ancak varsayılan `.env` EVREN ve uzak Qdrant'ı gösterir. Kurum içi kurulumda bu değerler değiştirilmelidir.
+- **Kâr payı oranı çıkarımında recall düşük.** Gold sette precision %100, recall %40: sistem yanlış oran üretmiyor ama bazı ifade biçimlerini kaçırıyor. Kaçırdığında oran uydurmak yerine "doğrulanmış veri yok" der.
+- **Kampanya türü sınıflandırmasında Kart ↔ Alışveriş Puanı karışıyor.** Makro F1 %54,7; hataların çoğu bu iki sınıf arasında. İkisini ayıran ölçüt metinde değil, etiketleme kılavuzunun konvansiyonundadır.
+- **Bazı bankalarda konut/taşıt oranı yayımlanmıyor.** Banka oranı yalnızca hesaplama aracında veriyorsa ve o bankanın canlı motoru yoksa oran üretilmez.
 
 ---
 

@@ -5,7 +5,10 @@ import {
   rehberNiyetiTespit,
   rehberYaniti,
 } from "../bankDirectory";
-import { BANK_SOURCE_CONFIGS } from "../../scraper/bankSourceConfig";
+import {
+  BANK_SOURCE_CONFIGS,
+  isOperationalBank,
+} from "../../scraper/bankSourceConfig";
 
 describe("banka rehberi niyet tespiti", () => {
   it("liste sorularını tanır", () => {
@@ -98,15 +101,31 @@ describe("banka rehberi yanıtı", () => {
     }
   });
 
-  it("banka sayısını listedeki banka adediyle tutarlı verir", () => {
+  it("banka sayısı faaliyetteki bankaları esas alır", () => {
+    // Faaliyet izni alıp ürünlerini henüz açmamış banka sayıya dahil
+    // edilmez; kaynak envanterinde tutulur ama teklif üretemez.
     const sayi = rehberYaniti("banka_sayisi", "kaç katılım bankası var");
-    const liste = rehberYaniti("banka_listesi", "listele");
     const adet = Number(/(\d+)\s+katılım bankası/.exec(sayi.message)?.[1]);
-    const satirSayisi = liste.message
-      .split("\n")
-      .filter((s) => /^\d+\.\s/.test(s)).length;
-    expect(adet).toBe(satirSayisi);
-    expect(adet).toBe(BANK_SOURCE_CONFIGS.filter((b) => b.enabled).length);
+    const faaliyette = BANK_SOURCE_CONFIGS.filter(
+      (b) => b.enabled && isOperationalBank(b),
+    ).length;
+    expect(adet).toBe(faaliyette);
+  });
+
+  it("listede izlenen tüm bankalar yer alır, faaliyete geçmemiş olan işaretlenir", () => {
+    const liste = rehberYaniti("banka_listesi", "listele");
+    const satirlar = liste.message.split("\n").filter((s) => /^\d+\.\s/.test(s));
+    expect(satirlar.length).toBe(
+      BANK_SOURCE_CONFIGS.filter((b) => b.enabled).length,
+    );
+
+    const bekleyen = BANK_SOURCE_CONFIGS.filter(
+      (b) => b.enabled && !isOperationalBank(b),
+    );
+    for (const b of bekleyen) {
+      const satir = satirlar.find((s) => s.includes(b.bankName));
+      expect(satir, b.bankName).toMatch(/ürünleri henüz açılmadı/);
+    }
   });
 
   it("resmî site yanıtı gerçek URL döndürür", () => {

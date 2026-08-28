@@ -472,3 +472,33 @@ describe("Qdrant kapalı / yanlış anahtar", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("kurum içi (on-premise) Qdrant", () => {
+  it("düz HTTP adresinde önek ve anahtar aranmaz", () => {
+    const cfg = loadQdrantEnv({
+      EVREN_QDRANT_URL: "http://localhost:6333",
+    } as NodeJS.ProcessEnv);
+
+    expect(cfg.https).toBe(false);
+    // Varsayılan Qdrant portu; 443 kurum içi kurulumda yanlış olurdu.
+    expect(cfg.port).toBe(6333);
+    expect(cfg.prefix).toBe("");
+    expect(cfg.apiKey).toBe("");
+  });
+
+  it("uzak HTTPS adresinde önek ve anahtar zorunlu kalır", () => {
+    expect(() =>
+      loadQdrantEnv({
+        EVREN_QDRANT_URL: "https://evren-vektor.ssyz.org.tr",
+      } as NodeJS.ProcessEnv),
+    ).toThrow(/EVREN_QDRANT_PREFIX/);
+  });
+
+  it("kurum içi adres yapılandırılmış sayılır", () => {
+    expect(
+      isQdrantConfigured({
+        EVREN_QDRANT_URL: "http://qdrant:6333",
+      } as NodeJS.ProcessEnv),
+    ).toBe(true);
+  });
+});

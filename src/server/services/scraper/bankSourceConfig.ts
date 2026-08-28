@@ -19,10 +19,25 @@ export type SeedUrlConfig = {
   parserMode: ParserMode;
 };
 
+/**
+ * Bankanın BDDK nezdindeki durumu.
+ *
+ * `faaliyette`  — faaliyet izni almış ve ürün/hizmet sunuyor; BDDK'nın
+ *                 katılım bankaları listesinde yer alır.
+ * `izinli_faaliyete_gecmemis` — faaliyet izni yayımlanmış ancak ürün ve
+ *                 hizmetler henüz açılmamış. Karşılaştırmaya girmez;
+ *                 yalnızca kurumsal sayfası izlenir.
+ */
+export type BankOperationalStatus = "faaliyette" | "izinli_faaliyete_gecmemis";
+
 export type BankSourceConfig = {
   bankId: string;
   bankName: string;
   enabled: boolean;
+  /** Belirtilmezse "faaliyette" kabul edilir. */
+  operationalStatus?: BankOperationalStatus;
+  /** Durumun dayandığı BDDK kararı — jüriye kaynak gösterebilmek için. */
+  bddkNote?: string;
   allowedDomains: string[];
   seedUrls: SeedUrlConfig[];
   allowedPathPrefixes: string[];
@@ -171,6 +186,10 @@ export const BANK_SOURCE_CONFIGS: BankSourceConfig[] = [
     bankId: "iktisat-katilim",
     bankName: "İktisat Katılım Bankası A.Ş.",
     enabled: true,
+    operationalStatus: "izinli_faaliyete_gecmemis",
+    bddkNote:
+      "BDDK 26.02.2026 tarih ve 11424 sayılı kararıyla faaliyet izni verildi; " +
+      "ürün ve hizmetler 2026'nın ikinci yarısında açılacak.",
     allowedDomains: ["iktisatkatilim.com.tr", "www.iktisatkatilim.com.tr"],
     seedUrls: [
       { url: "https://www.iktisatkatilim.com.tr/", sourceType: "homepage", parserMode: "static" },
@@ -490,6 +509,21 @@ export function getBankConfig(bankId: string): BankSourceConfig | undefined {
 export function getAllAllowedDomains(): string[] {
   return BANK_SOURCE_CONFIGS.flatMap((b) => b.allowedDomains);
 }
+
+/**
+ * Ürün ve kampanya karşılaştırmasına giren bankalar.
+ *
+ * Faaliyet izni almış ama henüz ürün sunmayan banka listede tutulur (kaynak
+ * envanteri eksik kalmasın diye) ancak karşılaştırmaya sokulmaz: teklifi
+ * olmayan bankayı "veri yok" satırı olarak göstermek kullanıcıya bilgi
+ * vermez.
+ */
+export function isOperationalBank(cfg: BankSourceConfig): boolean {
+  return (cfg.operationalStatus ?? "faaliyette") === "faaliyette";
+}
+
+export const OPERATIONAL_BANK_CONFIGS: BankSourceConfig[] =
+  BANK_SOURCE_CONFIGS.filter(isOperationalBank);
 
 export function isPrimaryFinanceCategory(category: string): boolean {
   return [

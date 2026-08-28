@@ -1001,8 +1001,12 @@ Projede 11 katılım bankası tanımlıdır:
 2. Albaraka Türk
 3. Dünya Katılım
 4. Hayat Finans
-5. İktisat Katılım (BDDK 26.02.2026 tarihli faaliyet izni; ürün/kampanya sayfaları
-   henüz yayında olmadığı için yalnızca kurumsal ana sayfası izlenir)
+5. İktisat Katılım — BDDK 26.02.2026 tarih ve 11424 sayılı kararıyla faaliyet
+   izni aldı, ancak ürün ve hizmetlerini henüz açmadı. Yapılandırmada
+   `operationalStatus: "izinli_faaliyete_gecmemis"` ile işaretlidir: kaynak
+   envanterinde tutulur, kurumsal sayfası izlenir, **karşılaştırmaya ve banka
+   sayısına dahil edilmez**. Ürün sayfaları yayına girdiğinde alan
+   `faaliyette` yapılır.
 6. Kuveyt Türk
 7. T.O.M. Katılım
 8. Emlak Katılım

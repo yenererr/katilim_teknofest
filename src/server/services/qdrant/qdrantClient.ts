@@ -7,6 +7,8 @@ export type QdrantEnvConfig = {
   prefix: string;
   apiKey: string;
   collection: string;
+  /** URL şemasından türetilir; kurum içi Qdrant genelde düz HTTP'dir. */
+  https: boolean;
 };
 
 /**
@@ -20,13 +22,20 @@ export function loadQdrantEnv(
   const url = env.EVREN_QDRANT_URL?.trim();
   const prefix = env.EVREN_QDRANT_PREFIX?.trim();
   const apiKey = env.EVREN_QDRANT_API_KEY?.trim();
-  const portRaw = env.EVREN_QDRANT_PORT?.trim() || "443";
+  /** Kurum içi kurulum düz HTTP ile ayağa kalkar (ör. http://localhost:6333). */
+  const yerelMi = /^http:\/\//i.test(url || "");
+  const portRaw = env.EVREN_QDRANT_PORT?.trim() || (yerelMi ? "6333" : "443");
   const collection =
     env.QDRANT_COLLECTION?.trim() || DEFAULT_QDRANT_COLLECTION;
 
   if (!url) missing.push("EVREN_QDRANT_URL");
-  if (!prefix) missing.push("EVREN_QDRANT_PREFIX");
-  if (!apiKey) missing.push("EVREN_QDRANT_API_KEY");
+  // Uzak (EVREN) kurulum çok takımlıdır: önek ve anahtar olmadan istek
+  // yanlış takımın koleksiyonuna gidebilir, bu yüzden zorunludur.
+  // Kurum içi kurulumda ikisi de anlamsızdır, aranmaz.
+  if (!yerelMi) {
+    if (!prefix) missing.push("EVREN_QDRANT_PREFIX");
+    if (!apiKey) missing.push("EVREN_QDRANT_API_KEY");
+  }
 
   if (missing.length > 0) {
     throw new Error(
@@ -55,26 +64,30 @@ export function loadQdrantEnv(
   } catch (err) {
     if (err instanceof Error && err.message.includes("prefix")) throw err;
     throw new Error(
-      "EVREN_QDRANT_URL geçerli bir HTTPS adresi olmalıdır (ör. https://evren-vektor.ssyz.org.tr).",
+      "EVREN_QDRANT_URL geçerli bir adres olmalıdır " +
+        "(uzak: https://evren-vektor.ssyz.org.tr, kurum içi: http://localhost:6333).",
     );
   }
 
   return {
     url: normalizedUrl.replace(/\/$/, ""),
     port,
-    prefix: prefix!,
-    apiKey: apiKey!,
+    prefix: prefix ?? "",
+    apiKey: apiKey ?? "",
     collection,
+    https: !yerelMi,
   };
 }
 
 export function isQdrantConfigured(
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
+  const url = env.EVREN_QDRANT_URL?.trim();
+  if (!url) return false;
+  // Kurum içi (http) kurulumda önek ve anahtar aranmaz.
+  if (/^http:\/\//i.test(url)) return true;
   return Boolean(
-    env.EVREN_QDRANT_URL?.trim() &&
-      env.EVREN_QDRANT_PREFIX?.trim() &&
-      env.EVREN_QDRANT_API_KEY?.trim(),
+    env.EVREN_QDRANT_PREFIX?.trim() && env.EVREN_QDRANT_API_KEY?.trim(),
   );
 }
 
@@ -104,9 +117,11 @@ export function getQdrantClient(
   const client = new QdrantClient({
     url: config.url,
     port: config.port,
-    prefix: config.prefix,
-    apiKey: config.apiKey,
-    https: true,
+    // Boş önek/anahtar gönderilirse istemci geçersiz başlık üretir; kurum
+    // içi kurulumda alanlar tamamen atlanır.
+    ...(config.prefix ? { prefix: config.prefix } : {}),
+    ...(config.apiKey ? { apiKey: config.apiKey } : {}),
+    https: config.https,
     checkCompatibility: false,
     timeout: 120_000,
   });
