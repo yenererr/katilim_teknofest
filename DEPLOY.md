@@ -112,3 +112,60 @@ Ardından http://localhost:3000/api/health adresini kontrol edin.
   sınırlı olarak içerir.
 - EVREN ve Qdrant servisleri dış ağdadır; Dokploy sunucusundan bu
   adreslere giden HTTPS trafiğinin açık olduğundan emin olun.
+
+## Konuşma servisi (sesli asistan)
+
+Sesli özellikler ayrı bir konteynerde çalışır: `speech-service/`. Whisper (STT)
+ve Piper (TTS) modelleri yüzlerce MB tuttuğu ve Python çalışma zamanı
+gerektirdiği için web imajına dâhil edilmez.
+
+### Neden proxy üzerinden
+
+Tarayıcı konuşma servisine **doğrudan bağlanmaz**. İstekler web uygulamasındaki
+`/api/speech` proxy'si üzerinden geçer. Sebepleri:
+
+- Sayfa HTTPS ile sunulduğu için HTTP servise giden istek karışık içerik olarak
+  engellenirdi.
+- `localhost:8001` üretimde kullanıcının kendi makinesine işaret eder.
+- Proxy sayesinde CORS yapılandırmasına gerek kalmaz.
+- Ses verisi kurum ağının dışına çıkmaz (şartname 5.9).
+
+### Dokploy'da kurulum
+
+Uygulama tek Dockerfile yerine **Docker Compose** ile dağıtılır:
+
+1. Dokploy → uygulamada **Build Type: Docker Compose** seç.
+2. Compose dosyası: depodaki kök `docker-compose.yml`.
+3. Ortam değişkenlerini yine **Environment** sekmesinden gir; compose bunları
+   `web` servisine aktarır.
+
+`docker-compose.yml` iki servis tanımlar:
+
+| Servis | Port | Dışarı açık |
+|---|---|---|
+| `web` | 3000 | evet |
+| `speech` | 8001 | hayır — yalnızca `web` erişir |
+
+`web` servisine `SPEECH_SERVICE_URL=http://speech:8001` otomatik verilir; ayrıca
+tanımlamanıza gerek yoktur.
+
+### Model önbelleği
+
+Modeller ilk çağrıda indirilir ve `speech-models` adlı kalıcı hacme yazılır.
+Bu hacim olmadan her yeniden başlatmada yüzlerce MB yeniden iner.
+
+### GPU
+
+Varsayılan yapılandırma CPU içindir (`STT_MODEL=small`, `int8`). Sunucuda GPU
+varsa `docker-compose.yml` içindeki `speech` servisinde şunları değiştirin:
+
+```
+SPEECH_DEVICE: cuda
+STT_MODEL: large-v3-turbo
+STT_COMPUTE_TYPE: float16
+```
+
+### Servis çalışmazsa
+
+Konuşma servisi kapalıyken `/api/speech/*` uçları **503** döner ve arayüz sesli
+özellikleri gizler. Uygulamanın geri kalanı etkilenmez.

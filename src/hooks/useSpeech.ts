@@ -15,7 +15,14 @@ export type SpeechHookOptions = {
   autoPlayDefault?: boolean;
 };
 
-const DEFAULT_SPEECH_SERVICE_URL = "http://localhost:8001";
+/**
+ * Konuşma servisi uygulama sunucusu üzerinden proxy'lenir.
+ *
+ * Doğrudan `http://localhost:8001` çağrılamaz: üretimde sayfa HTTPS ile
+ * sunulduğu için karışık içerik engellenir ve adres kullanıcının kendi
+ * makinesine işaret eder. Aynı origin kullanmak CORS'u da gereksiz kılar.
+ */
+const DEFAULT_SPEECH_SERVICE_URL = "/api/speech";
 const STORAGE_KEY_AUTOPLAY = "katilim_auto_play_tts";
 
 export function useSpeech(options: SpeechHookOptions = {}) {

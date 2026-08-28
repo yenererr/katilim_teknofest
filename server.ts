@@ -12,6 +12,7 @@ import {
   createSystemRouter,
 } from "./src/server/routes/liveDataRoutes";
 import findeksRoutes from "./src/server/routes/findeksRoutes";
+import { createSpeechRouter } from "./src/server/routes/speechRoutes";
 import { bindOfficialScraperBridge, runOfficialScrapeJob } from "./src/server/services/scraper/orchestrator";
 import {
   ensureSchema,
@@ -32,6 +33,10 @@ bindOfficialScraperBridge();
 const app = express();
 // Dokploy/konteyner ortamları portu PORT değişkeniyle bildirir.
 const PORT = Number(process.env.PORT) || 3000;
+
+// Konuşma proxy'si gövde ayrıştırıcısından ÖNCE bağlanır: ses yükü ham akış
+// olarak aktarılır, express.json() onu tüketirse istek bozulur.
+app.use("/api/speech", createSpeechRouter());
 
 app.use(express.json({ limit: "25mb" }));
 app.use("/api/findeks", findeksRoutes);
