@@ -6,7 +6,8 @@ import type {
 } from "../scraper/scraperTypes";
 import { isPrimaryFinanceCategory } from "../scraper/bankSourceConfig";
 import { asciiKatla, sayiCoz } from "../../../nlp/normalize";
-import { kuralTabanliCikar } from "../../../nlp/extract";
+import { kuralTabanliCikar, type KuralCikarimi } from "../../../nlp/extract";
+import { kampanyaTuruBelirle } from "../../../nlp/kampanyaTuru";
 
 const recordSchema = z.object({
   title: z.string().nullable().optional(),
@@ -251,6 +252,82 @@ function extractCampaignDetails(text: string): {
   };
 }
 
+
+/**
+ * NLP kural katmanının ürettiği ama kayda yazılmayan alanları tamamlar.
+ *
+ * Hem kural yolu hem EVREN yolu buradan geçer: dil modeli bir alanı
+ * doldurduysa ona dokunulmaz, boş bıraktıysa deterministik çıkarım devreye
+ * girer. Böylece model çıktısı bozulmadan şartnamedeki alan kapsamı tamamlanır.
+ */
+function nlpAlanlariniTamamla(
+  record: ExtractedFinancialRecord,
+  kural: KuralCikarimi,
+  text: string,
+): ExtractedFinancialRecord {
+  const tur = kampanyaTuruBelirle({
+    metin: text,
+    baslik: record.title ?? record.productName,
+    url: record.sourceUrl,
+  });
+
+  const evidence = [...record.evidence];
+  const kanitEkle = (field: string, textValue: string | null, confidence: number) => {
+    if (!textValue) return;
+    if (evidence.some((e) => e.field === field)) return;
+    evidence.push({ field, text: textValue, confidence });
+  };
+
+  kanitEkle("campaignAdvantage", kural.kampanya_avantaji.kanit, kural.kampanya_avantaji.guven);
+  kanitEkle("targetSegments", kural.hedef_kitle.kanit, kural.hedef_kitle.guven);
+  kanitEkle("discountRate", kural.indirim_orani.kanit, kural.indirim_orani.guven);
+  kanitEkle("rewardPoints", kural.alisveris_puani.kanit, kural.alisveris_puani.guven);
+  kanitEkle("campaignStart", kural.kampanya_baslangic.kanit, kural.kampanya_baslangic.guven);
+  if (tur.kanit) kanitEkle("campaignType", tur.kanit, 0.75);
+
+  return {
+    ...record,
+    productType: record.productType ?? urunTuruEtiketi(record.category),
+    campaignAdvantage: record.campaignAdvantage ?? kural.kampanya_avantaji.ozet ?? null,
+    feeStatus: record.feeStatus ?? kural.masraf_durumu,
+    campaignType: record.campaignType ?? tur.tur,
+    discountRate: record.discountRate ?? kural.indirim_orani.deger,
+    rewardPoints: record.rewardPoints ?? kural.alisveris_puani.deger,
+    rewardPointUnit: record.rewardPointUnit ?? kural.alisveris_puani.birim,
+    campaignStart: record.campaignStart ?? kural.kampanya_baslangic.iso,
+    minTermMonths: record.minTermMonths ?? kural.vade_ay.min,
+    targetSegments:
+      record.targetSegments.length > 0
+        ? record.targetSegments
+        : kural.hedef_kitle.deger ?? [],
+    evidence,
+  };
+}
+
+/** Şartnamedeki "Ürün Türü" sütunu — scraper kategorisinin okunabilir karşılığı. */
+function urunTuruEtiketi(category: ContentCategory): string | null {
+  switch (category) {
+    case "housing_finance":
+      return "Konut finansmanı";
+    case "vehicle_finance":
+      return "Taşıt finansmanı";
+    case "consumer_finance":
+      return "İhtiyaç finansmanı";
+    case "shopping_finance":
+      return "Alışveriş finansmanı";
+    case "commercial_finance":
+      return "Ticari finansman";
+    case "participation_account":
+      return "Katılma hesabı";
+    case "card_campaign":
+      return "Kart";
+    case "investment_product":
+      return "Yatırım ürünü";
+    default:
+      return null;
+  }
+}
+
 /**
  * EVREN başarısız olduğunda NLP kural katmanı ile yapılandırılmış kayıt üretir.
  * Kaynakta sinyal yoksa boş döner — uydurma yapmaz.
@@ -381,7 +458,7 @@ export function ruleBasedExtractRecords(opts: {
           : category;
 
   return [
-    {
+    nlpAlanlariniTamamla({
       bankId: opts.bankId,
       sourceUrl: opts.sourceUrl,
       sourceCheckedAt: new Date().toISOString(),
@@ -417,7 +494,7 @@ export function ruleBasedExtractRecords(opts: {
       campaignStatus: "active",
       evidence,
       manualReviewRequired: !hasSignal && campaignDetails.conditions.length === 0,
-    },
+    }, kural, clipped),
   ];
 }
 
@@ -446,6 +523,8 @@ function parseEvrenRecords(
 
   const now = new Date().toISOString();
   const out: ExtractedFinancialRecord[] = [];
+  // Modelin boş bıraktığı alanları tamamlamak için kural katmanı bir kez çalışır.
+  const kural = kuralTabanliCikar(opts.text.slice(0, 20_000));
 
   for (const item of recordsRaw) {
     const v = recordSchema.safeParse(item);
@@ -468,7 +547,7 @@ function parseEvrenRecords(
       manual = true;
     }
 
-    out.push({
+    out.push(nlpAlanlariniTamamla({
       bankId: opts.bankId,
       sourceUrl: opts.sourceUrl,
       sourceCheckedAt: now,
@@ -497,7 +576,7 @@ function parseEvrenRecords(
       campaignStatus: r.campaignStatus ?? "unknown",
       evidence: r.evidence ?? [],
       manualReviewRequired: manual,
-    });
+    }, kural, opts.text));
   }
 
   return out.filter((r) => r.category !== "irrelevant");
@@ -556,7 +635,7 @@ export function stubCampaignFromUrl(opts: {
     recordType: "campaign",
     category,
     productName: title,
-    productType: null,
+    productType: urunTuruEtiketi(category),
     profitRate: null,
     ratePeriod: null,
     minAmountTl: null,
@@ -581,6 +660,7 @@ export function stubCampaignFromUrl(opts: {
       sourceUrl: opts.sourceUrl,
       category,
     }),
+    campaignType: kampanyaTuruBelirle({ baslik: title, url: opts.sourceUrl }).tur,
     evidence: [
       {
         field: "title",

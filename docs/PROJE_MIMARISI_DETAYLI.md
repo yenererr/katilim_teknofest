@@ -57,7 +57,7 @@ Ana bileşenler:
    - Regex, Türkçe normalizasyon, terim sözlüğü ve cümle bölütleme kullanır.
 
 5. **Canlı banka scraper**
-   - 10 katılım bankasının web sitesini belirli aralıklarla kontrol eder.
+   - 11 katılım bankasının web sitesini belirli aralıklarla kontrol eder.
    - İçeriği temiz metne çevirir.
    - SHA-256 hash ile değişiklik olup olmadığını tespit eder.
    - Değişiklik varsa EVREN ile yeniden bilgi çıkarımı yapar.
@@ -761,7 +761,7 @@ Satırlar:
 
 Sütunlar:
 
-- 10 katılım bankası
+- 11 katılım bankası
 
 En düşük ücretler vurgulanır. `0` değerleri "Ücretsiz" olarak gösterilir.
 
@@ -995,18 +995,23 @@ interface ExtractionResponse {
 
 ### 11.1. Bankalar
 
-Projede 10 katılım bankası tanımlıdır:
+Projede 11 katılım bankası tanımlıdır:
 
 1. Adil Katılım
 2. Albaraka Türk
 3. Dünya Katılım
 4. Hayat Finans
-5. Kuveyt Türk
-6. T.O.M. Katılım
-7. Emlak Katılım
-8. Türkiye Finans
-9. Vakıf Katılım
-10. Ziraat Katılım
+5. İktisat Katılım (BDDK 26.02.2026 tarihli faaliyet izni; ürün/kampanya sayfaları
+   henüz yayında olmadığı için yalnızca kurumsal ana sayfası izlenir)
+6. Kuveyt Türk
+7. T.O.M. Katılım
+8. Emlak Katılım
+9. Türkiye Finans
+10. Vakıf Katılım
+11. Ziraat Katılım
+
+Halk Katılım Bankası A.Ş. yalnızca kuruluş iznine sahiptir (BDDK 30.05.2025 tarihli
+karar); faaliyet izni yayımlanana kadar listeye alınmaz.
 
 Her banka için:
 
@@ -1572,7 +1577,7 @@ Taksit ve toplam maliyet hesapları model çıktısına bırakılmaz. `src/lib/f
 
 KatılımFinans Asistanı, katılım bankalarının kampanya ve ürün metinlerini okuyup finansal bilgileri standart JSON şemasına çıkaran, EVREN API destekli ve kural tabanlı yedeği olan bir bilgi çıkarım ajanıdır.
 
-Sistem, 10 katılım bankasını kapsayan statik karşılaştırma verisiyle çalışır; ayrıca banka web sitelerini periyodik olarak scrape edip içerik değişikliklerini hash ile takip eder. Değişiklik olduğunda EVREN ile yeniden çıkarım yapar ve sonuçları canlı ürün havuzuna ekler.
+Sistem, 11 katılım bankasını kapsayan statik karşılaştırma verisiyle çalışır; ayrıca banka web sitelerini periyodik olarak scrape edip içerik değişikliklerini hash ile takip eder. Değişiklik olduğunda EVREN ile yeniden çıkarım yapar ve sonuçları canlı ürün havuzuna ekler.
 
 Arayüzde kullanıcı finansman tekliflerini karşılaştırabilir, kampanyaları filtreleyebilir, ücretleri matris halinde inceleyebilir, metinlerden veri çıkarabilir, her çıkarılan değerin kanıt cümlesini görebilir ve ham JSON çıktısını düzenleyip indirebilir.
 

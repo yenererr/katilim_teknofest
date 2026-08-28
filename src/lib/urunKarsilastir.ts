@@ -24,6 +24,13 @@ export interface YapilandirilmisUrun {
   rewardAmountTl?: number | null;
   rewardType?: string | null;
   campaignAdvantage?: string | null;
+  /** Şartname "Masraf Durumu" sütunu — NLP katmanının metinden çıkardığı özet */
+  feeStatus?: string | null;
+  /** Şartname 5.4 kampanya türü */
+  campaignType?: string | null;
+  discountRate?: number | null;
+  rewardPoints?: number | null;
+  rewardPointUnit?: string | null;
   paymentDeferralMonths?: number | null;
   monthlyCostRate?: number | null;
   campaignEnd?: string | null;
@@ -131,6 +138,15 @@ function kampanyaAvantaji(row: YapilandirilmisUrun): string | null {
   if (typeof row.rewardAmountTl === 'number' && row.rewardAmountTl > 0) {
     const tur = row.rewardType === 'voucher' ? 'alışveriş çeki' : 'ödül';
     return `${row.rewardAmountTl.toLocaleString('tr-TR')} TL ${tur}`;
+  }
+  if (typeof row.rewardPoints === 'number' && row.rewardPoints > 0) {
+    const birim = row.rewardPointUnit === 'mil' ? 'mil' : 'puan';
+    return `${row.rewardPoints.toLocaleString('tr-TR')} ${birim}`;
+  }
+  if (typeof row.discountRate === 'number' && row.discountRate > 0) {
+    return `%${(row.discountRate * 100).toLocaleString('tr-TR', {
+      maximumFractionDigits: 2,
+    })} indirim`;
   }
   if (row.allocationFeeValue === 0) return 'Tahsis ücreti alınmıyor';
   const kosul = (row.conditions ?? []).find((c) =>
@@ -258,7 +274,12 @@ export function teklifleriHazirla(
       azamiVade: row.maxTermMonths ?? null,
       kampanyaAvantaji: kampanyaAvantaji(row),
       odemeErtelemeAy: row.paymentDeferralMonths ?? null,
-      masrafDurumu: masrafOzeti(oransalTahsis, tahsisUcreti),
+      // Tahsis ücreti kaynakta yoksa hesaplanan özet uydurma olur; böyle
+      // durumlarda NLP'nin metinden çıkardığı ifade kullanılır.
+      masrafDurumu:
+        row.allocationFeeValue == null && row.feeStatus
+          ? row.feeStatus
+          : masrafOzeti(oransalTahsis, tahsisUcreti),
       taksit: plan.taksitTutari,
       toplamOdeme: plan.odenecekToplamTutar,
       tahsisUcreti,

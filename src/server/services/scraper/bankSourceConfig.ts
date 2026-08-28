@@ -162,6 +162,24 @@ export const BANK_SOURCE_CONFIGS: BankSourceConfig[] = [
     excludedPathPatterns: ["/giris", "/login", "/kvkk", "/kariyer"],
   },
   {
+    /**
+     * BDDK 26.02.2026 tarih ve 11424 sayılı kararıyla faaliyet izni aldı.
+     * Ürün ve hizmetler 2026'nın ikinci yarısında açılacağı için sitede
+     * henüz kampanya/ürün listesi yok; yalnızca kurumsal ana sayfa taranır.
+     * Kampanya sayfası yayına girdiğinde campaign_listing seed'i eklenmeli.
+     */
+    bankId: "iktisat-katilim",
+    bankName: "İktisat Katılım Bankası A.Ş.",
+    enabled: true,
+    allowedDomains: ["iktisatkatilim.com.tr", "www.iktisatkatilim.com.tr"],
+    seedUrls: [
+      { url: "https://www.iktisatkatilim.com.tr/", sourceType: "homepage", parserMode: "static" },
+    ],
+    allowedPathPrefixes: ["/", "/kampanyalar", "/urun", "/finansman"],
+    detailLinkPatterns: ["/kampanyalar/", "/urun"],
+    excludedPathPatterns: ["/giris", "/login", "/internet-subesi", "/kariyer", "/kvkk", "/cerez"],
+  },
+  {
     bankId: "kuveyt-turk",
     bankName: "Kuveyt Türk Katılım Bankası A.Ş.",
     enabled: true,

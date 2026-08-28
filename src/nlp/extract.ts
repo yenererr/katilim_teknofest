@@ -604,6 +604,267 @@ export const kampanyaBitisCikar = (
 };
 
 /* ------------------------------------------------------------------ */
+/* Kampanya başlangıç tarihi                                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Kampanyanın geçerlilik başlangıcını çıkarır. Aralık verildiyse
+ * ("1.09.2026 - 31.12.2026") ilk tarih başlangıç kabul edilir.
+ *
+ * Bitiş tarihinin aksine geçmiş tarih elenmez: süregelen bir kampanyanın
+ * başlangıcı doğal olarak geçmiştedir.
+ */
+export const kampanyaBaslangicCikar = (metin: string): TarihBulgusu => {
+  const cumleler = cumlelereBol(metin);
+
+  for (const cumle of cumleler) {
+    const katlanmis = asciiKatla(cumle.metin);
+    const baslangicBaglami =
+      /(tarihleri\s*arasinda|gecerli|basla|itibaren|kampanya\s*tarih|donemi)/.test(
+        katlanmis,
+      );
+    if (!baslangicBaglami) continue;
+
+    const sayisalHepsi = [...cumle.metin.matchAll(new RegExp(SAYISAL_TARIH, 'gu'))];
+    if (sayisalHepsi.length > 0) {
+      const ilk = sayisalHepsi[0];
+      const [, g, a, y] = ilk;
+      const ay = Number(a);
+      const gun = Number(g);
+      if (ay >= 1 && ay <= 12 && gun >= 1 && gun <= 31) {
+        return {
+          deger: null,
+          iso: `${y}-${ikiHane(ay)}-${ikiHane(gun)}`,
+          gosterim: ilk[0],
+          ham: ilk[0],
+          kanit: cumle.metin,
+          baslangic: cumle.baslangic,
+          bitis: cumle.bitis,
+          // Tek tarih varsa bunun bitiş olma ihtimali yüksek — güven düşürülür.
+          guven: sayisalHepsi.length > 1 ? 0.9 : 0.5,
+        };
+      }
+    }
+
+    const yaziliHepsi = [
+      ...asciiKatla(cumle.metin).matchAll(new RegExp(YAZILI_TARIH, 'giu')),
+    ];
+    if (yaziliHepsi.length > 0) {
+      const ilk = yaziliHepsi[0];
+      const gun = Number(ilk[1]);
+      const ay = AYLAR[ilk[2].toLowerCase()];
+      if (ay && gun >= 1 && gun <= 31) {
+        const ozgun = cumle.metin.slice(ilk.index ?? 0, (ilk.index ?? 0) + ilk[0].length);
+        return {
+          deger: null,
+          iso: `${ilk[3]}-${ikiHane(ay)}-${ikiHane(gun)}`,
+          gosterim: ozgun || ilk[0],
+          ham: ilk[0],
+          kanit: cumle.metin,
+          baslangic: cumle.baslangic,
+          bitis: cumle.bitis,
+          guven: yaziliHepsi.length > 1 ? 0.9 : 0.5,
+        };
+      }
+    }
+  }
+
+  return { ...bosBulgu<null>(), iso: null, gosterim: null };
+};
+
+/* ------------------------------------------------------------------ */
+/* Hedef kitle segmenti                                                */
+/* ------------------------------------------------------------------ */
+
+/** Şartnamedeki "hedef kitle" sütununun karşılığı olan segment kodları. */
+export type HedefSegment =
+  | 'yeni_musteri'
+  | 'mevcut_musteri'
+  | 'maas_musterisi'
+  | 'emekli'
+  | 'genc_ogrenci'
+  | 'esnaf_kobi'
+  | 'ticari_kurumsal'
+  | 'kamu_calisani';
+
+export interface SegmentBulgusu extends KuralBulgusu<HedefSegment[]> {
+  /** Her segment için eşleşen cümle — jüriye kanıt gösterebilmek için */
+  kanitlar: Array<{ segment: HedefSegment; kanit: string }>;
+}
+
+/**
+ * Segment göstergeleri. ASCII katlanmış metne uygulanır, bu yüzden
+ * desenler de katlanmış yazılır ("maas", "genc").
+ *
+ * "müşteri ol" gibi çağrılar yeni müşteri kampanyasının en yaygın
+ * ifadesidir; banka sayfalarında "yeni müşteri" ibaresi çoğu zaman
+ * geçmez, doğrudan eyleme çağrı yapılır.
+ */
+const SEGMENT_DESENLERI: Array<{ segment: HedefSegment; desen: RegExp }> = [
+  {
+    segment: 'yeni_musteri',
+    desen:
+      // "müşteri olan" bilerek dışarıda: o ifade mevcut müşteriyi anlatır.
+      /(yeni\s+musteri|ilk\s+kez\s+(musteri|urun)|musterimiz\s+olmayan|musteri\s+ol(?:un|maya|mak\s+icin)\b|yeni\s+katilan|ilk\s+defa\s+musteri|hos\s*geldin)/,
+  },
+  {
+    segment: 'mevcut_musteri',
+    // "müşterilerimize özel" tek başına ayırt edici değil: "yeni ev sahibi
+    // olmak isteyen müşterilerimize özel" cümlesi mevcut müşteri kampanyası
+    // değildir. Bu yüzden yalnızca açık ifadeler kabul edilir.
+    desen:
+      /(mevcut\s+musteri|halihazirda\s+musteri|musterimiz\s+ol(?:an|maya\s+devam)|hesabi\s+bulunan\s+musteri)/,
+  },
+  {
+    segment: 'maas_musterisi',
+    desen:
+      /(maas\s*musteri|maasini\s+\S+\s*(bankamiz|tasiy|aktar)|maas\s*(odemesi|anlasmasi|promosyon)|maasini\s+tasiy)/,
+  },
+  { segment: 'emekli', desen: /(emekli|sgk\s*emekli|emeklilik\s*maasi)/ },
+  {
+    segment: 'genc_ogrenci',
+    desen: /(ogrenci|universite\s*ogrencisi|genc(?:ler|lere|lik)?\b|18-25|genc\s*musteri)/,
+  },
+  { segment: 'esnaf_kobi', desen: /(esnaf|kobi|kucuk\s*isletme|sanatkar|serbest\s*meslek)/ },
+  {
+    segment: 'ticari_kurumsal',
+    desen: /(ticari\s*musteri|kurumsal\s*musteri|tuzel\s*kisi|sirket(?:ler)?\s*(icin|ozel))/,
+  },
+  {
+    segment: 'kamu_calisani',
+    desen: /(kamu\s*(personeli|calisani|gorevlisi)|memur|kamu\s*kurumu\s*calisan)/,
+  },
+];
+
+/**
+ * Kampanyanın hedef kitlesini çıkarır. Birden fazla segment aynı anda
+ * geçerli olabilir ("yeni müşteri" + "maaş müşterisi"), bu yüzden liste
+ * döner. Hiç sinyal yoksa boş liste — "herkes" varsayımı yapılmaz.
+ */
+export const hedefKitleCikar = (metin: string): SegmentBulgusu => {
+  const cumleler = cumlelereBol(metin);
+  const bulunan = new Map<HedefSegment, string>();
+
+  for (const cumle of cumleler) {
+    const katlanmis = asciiKatla(cumle.metin);
+    // Olumsuzlanmış ifade segment kanıtı sayılmaz ("yeni müşteriler katılamaz").
+    if (olumsuzlukVarMi(katlanmis)) continue;
+    for (const { segment, desen } of SEGMENT_DESENLERI) {
+      if (!bulunan.has(segment) && desen.test(katlanmis)) {
+        bulunan.set(segment, cumle.metin);
+      }
+    }
+  }
+
+  if (bulunan.size === 0) {
+    return { ...bosBulgu<HedefSegment[]>(), deger: [], kanitlar: [] };
+  }
+
+  const kanitlar = [...bulunan].map(([segment, kanit]) => ({ segment, kanit }));
+  return {
+    deger: kanitlar.map((k) => k.segment),
+    ham: null,
+    kanit: kanitlar[0].kanit,
+    baslangic: null,
+    bitis: null,
+    guven: 0.8,
+    kanitlar,
+  };
+};
+
+/* ------------------------------------------------------------------ */
+/* İndirim oranı                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Alışveriş / ücret indirimi yüzdesi. Kâr payı oranından ayrı tutulur:
+ * `oranCikar` indirim bağlamını zaten dışladığı için aynı metinden iki
+ * farklı alan birbirine karışmadan çıkarılabilir.
+ */
+export const indirimOraniCikar = (metin: string): KuralBulgusu<number> => {
+  const cumleler = cumlelereBol(metin);
+
+  for (const cumle of cumleler) {
+    const katlanmis = asciiKatla(cumle.metin);
+    if (!/(indirim|iskonto)/.test(katlanmis)) continue;
+    if (olumsuzlukVarMi(katlanmis)) continue;
+
+    const eslesme = cumle.metin.match(
+      /(?:%\s*\d[\d.,]*)|(?:\d[\d.,]*\s*%)|(?:yüzde\s+\d[\d.,]*)/iu,
+    );
+    if (!eslesme) continue;
+
+    const deger = yuzdeCoz(eslesme[0]);
+    // %100 üzeri indirim gerçek dışı; tablo artığıdır.
+    if (deger === null || deger <= 0 || deger > 1) continue;
+
+    return {
+      deger,
+      ham: eslesme[0],
+      kanit: cumle.metin,
+      baslangic: cumle.baslangic,
+      bitis: cumle.bitis,
+      guven: 0.85,
+    };
+  }
+
+  return bosBulgu<number>();
+};
+
+/* ------------------------------------------------------------------ */
+/* Alışveriş puanı / mil                                               */
+/* ------------------------------------------------------------------ */
+
+export type PuanBirimi = 'puan' | 'mil' | 'tl_puan';
+
+export interface PuanBulgusu extends KuralBulgusu<number> {
+  birim: PuanBirimi | null;
+}
+
+/**
+ * Kampanyanın verdiği alışveriş puanı / mil miktarı. Ödül TL olarak
+ * veriliyorsa `tutarCikar` / `rewardAmountTl` alanına düşer; burada puan
+ * cinsinden ödüller yakalanır. "500 TL puan" gibi ifadeler ikisinin
+ * arasındadır ve `tl_puan` birimiyle işaretlenir.
+ */
+export const alisverisPuaniCikar = (metin: string): PuanBulgusu => {
+  const cumleler = cumlelereBol(metin);
+
+  for (const cumle of cumleler) {
+    const katlanmis = asciiKatla(cumle.metin);
+    if (!/(puan|mil\b|chip\s*para|bonus)/.test(katlanmis)) continue;
+    if (olumsuzlukVarMi(katlanmis)) continue;
+
+    const eslesme = katlanmis.match(
+      /(\d[\d.,]*)\s*(?:tl\s*)?(puan|mil|chip\s*para|bonus)/,
+    );
+    if (!eslesme) continue;
+
+    const deger = sayiCoz(eslesme[1]);
+    if (deger === null || deger <= 0) continue;
+
+    const tlPuan = /\d[\d.,]*\s*tl\s*(puan|bonus)/.test(katlanmis);
+    const birim: PuanBirimi = tlPuan
+      ? 'tl_puan'
+      : eslesme[2].startsWith('mil')
+        ? 'mil'
+        : 'puan';
+
+    return {
+      deger,
+      birim,
+      ham: eslesme[0],
+      kanit: cumle.metin,
+      baslangic: cumle.baslangic,
+      bitis: cumle.bitis,
+      guven: 0.8,
+    };
+  }
+
+  return { ...bosBulgu<number>(), birim: null };
+};
+
+/* ------------------------------------------------------------------ */
 /* Masraf durumu — şartname tablosundaki özet sütun                    */
 /* ------------------------------------------------------------------ */
 
@@ -651,6 +912,10 @@ export interface KuralCikarimi {
   tutar: TutarBulgusu;
   kampanya_avantaji: AvantajBulgusu;
   kampanya_bitis: TarihBulgusu;
+  kampanya_baslangic: TarihBulgusu;
+  hedef_kitle: SegmentBulgusu;
+  indirim_orani: KuralBulgusu<number>;
+  alisveris_puani: PuanBulgusu;
   /** Türetilmiş özet — şartname tablosundaki "Masraf Durumu" */
   masraf_durumu: string;
 }
@@ -666,6 +931,10 @@ export const kuralTabanliCikar = (metin: string): KuralCikarimi => {
     tutar: tutarCikar(metin),
     kampanya_avantaji,
     kampanya_bitis: kampanyaBitisCikar(metin),
+    kampanya_baslangic: kampanyaBaslangicCikar(metin),
+    hedef_kitle: hedefKitleCikar(metin),
+    indirim_orani: indirimOraniCikar(metin),
+    alisveris_puani: alisverisPuaniCikar(metin),
     masraf_durumu: masrafDurumu(tahsis_ucreti, kampanya_avantaji),
   };
 };

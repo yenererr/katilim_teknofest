@@ -7,7 +7,7 @@ describe("Reference Dataset Evaluation Benchmark", () => {
     expect(REFERANS_KAMPANYALAR.length).toBe(185);
   });
 
-  it("10 katılım bankasının tamamını kapsar", () => {
+  it("kampanya yayınlayan 10 katılım bankasının tamamını kapsar", () => {
     const bankIds = new Set(REFERANS_KAMPANYALAR.map((c) => c.bankaId));
     expect(bankIds.size).toBe(10);
     expect(bankIds.has("kuveyt-turk")).toBe(true);

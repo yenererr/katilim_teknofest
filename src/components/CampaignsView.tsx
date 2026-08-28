@@ -4,6 +4,7 @@ import { BANKA_INDEKS } from '../data/piyasa';
 import { isDisplayableCampaignClient } from '../lib/kampanyaFiltre';
 import { kisaKampanyaAciklama } from '../lib/kampanyaOzet';
 import { BankMark } from './BankMark';
+import { KAMPANYA_TURU_ETIKET, kampanyaTuruBelirle } from '../nlp/kampanyaTuru';
 
 type LiveCampaign = {
   id?: string;
@@ -23,6 +24,24 @@ type LiveCampaign = {
   conditions?: string[];
   participationMethod?: string | null;
   manualReviewRequired?: boolean;
+  /** Şartname 5.4 kampanya türü — kayıtta yoksa istemcide türetilir */
+  campaignType?: string | null;
+  targetSegments?: string[] | null;
+  rewardPoints?: number | null;
+  rewardPointUnit?: string | null;
+  discountRate?: number | null;
+};
+
+/** Şartname 5.3 hedef kitle kodlarının arayüz etiketleri. */
+const SEGMENT_ETIKET: Record<string, string> = {
+  yeni_musteri: 'Yeni müşteri',
+  mevcut_musteri: 'Mevcut müşteri',
+  maas_musterisi: 'Maaş müşterisi',
+  emekli: 'Emekli',
+  genc_ogrenci: 'Genç / öğrenci',
+  esnaf_kobi: 'Esnaf / KOBİ',
+  ticari_kurumsal: 'Ticari',
+  kamu_calisani: 'Kamu çalışanı',
 };
 
 type KampanyaOzeti = {
@@ -233,6 +252,16 @@ export const CampaignsView: React.FC = () => {
           const taksit = k.installmentCount || k.maxTermMonths || null;
           const oran = typeof k.profitRate === 'number' ? oranEtiketi(k.profitRate) : null;
           const rowKey = `${k.bankId}-${k.sourceUrl || k.id || baslik}`;
+          // Kayıt eski bir taramadan geliyorsa tür alanı boş olabilir; aynı
+          // deterministik sınıflandırıcı istemcide de çalıştırılır.
+          const kampanyaTuru =
+            k.campaignType ||
+            kampanyaTuruBelirle({
+              baslik,
+              url: k.sourceUrl,
+              metin: [kosul, ...(k.conditions ?? [])].filter(Boolean).join(' '),
+            }).tur;
+          const segmentler = (k.targetSegments ?? []).filter((sg) => SEGMENT_ETIKET[sg]);
           return (
             <li
               key={rowKey}
@@ -250,6 +279,25 @@ export const CampaignsView: React.FC = () => {
                 </span>
               </div>
               <h3 className="mt-3 text-sm font-medium text-txt">{baslik}</h3>
+              {(kampanyaTuru || segmentler.length > 0) && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {kampanyaTuru && (
+                    <span className="rounded border border-brand-200 bg-brand-50 px-2 py-0.5 text-[0.6875rem] text-brand-800 dark:border-brand-800 dark:bg-brand-950 dark:text-brand-200">
+                      {KAMPANYA_TURU_ETIKET[
+                        kampanyaTuru as keyof typeof KAMPANYA_TURU_ETIKET
+                      ] || kampanyaTuru}
+                    </span>
+                  )}
+                  {segmentler.map((sg) => (
+                    <span
+                      key={sg}
+                      className="rounded border border-line bg-sunken px-2 py-0.5 text-[0.6875rem] text-txt-secondary"
+                    >
+                      {SEGMENT_ETIKET[sg]}
+                    </span>
+                  ))}
+                </div>
+              )}
               {kosul && (
                 <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-txt-secondary">
                   {kosul}
@@ -264,6 +312,17 @@ export const CampaignsView: React.FC = () => {
                 {taksit && (
                   <span className="rounded border border-line bg-sunken px-2 py-1 text-[0.6875rem] text-txt-secondary">
                     {taksit} taksit/ay
+                  </span>
+                )}
+                {k.rewardAmountTl == null && k.rewardPoints != null && (
+                  <span className="rounded border border-line bg-sunken px-2 py-1 text-[0.6875rem] text-txt-secondary">
+                    {k.rewardPoints.toLocaleString('tr-TR')}{' '}
+                    {k.rewardPointUnit === 'mil' ? 'mil' : 'puan'}
+                  </span>
+                )}
+                {k.discountRate != null && (
+                  <span className="rounded border border-line bg-sunken px-2 py-1 text-[0.6875rem] text-txt-secondary">
+                    %{(k.discountRate * 100).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} indirim
                   </span>
                 )}
                 {k.rewardAmountTl != null && (

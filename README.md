@@ -317,7 +317,7 @@ Mesaj → NLU (tutar/vade/amaç) → zorunlu alanlar
 
 ### Veri kaynakları
 
-- Yalnızca 10 katılım bankasının resmî domainleri
+- Yalnızca 11 katılım bankasının resmî domainleri
 - Canlı scraper / bellek / PostgreSQL kayıtları
 - Qdrant kanıt metinleri (sayısal değer olarak doğrudan kullanılmaz)
 - `ALLOW_DEMO_DATA=false` iken demo veri gerçek sonuç gibi gösterilmez
@@ -353,7 +353,7 @@ Yanıt alanları: `assistantMessage`, `status`, `exactMatches`, `flexibleMatches
 
 ## Resmî kaynak scraper + PostgreSQL
 
-Sistem yalnızca 10 katılım bankasının resmî domainlerini tarar. VakıfBank / Ziraat Bankası vb. konvansiyonel domainler reddedilir (SSRF + allowlist).
+Sistem yalnızca 11 katılım bankasının resmî domainlerini tarar. VakıfBank / Ziraat Bankası vb. konvansiyonel domainler reddedilir (SSRF + allowlist).
 
 ### Paketler
 
@@ -744,10 +744,39 @@ npx tsx -e "import('./src/nlp').then(n => console.log(n.kuralTabanliCikar('Aylı
 - **Kalıcı depo yok.** Çıkarım sonuçları ve doğrulama işaretleri yalnızca bellekte tutulur; sayfa yenilendiğinde kaybolur. Finansman Asistanı konuşma durumu da sunucu belleğindedir (yeniden başlatmada sıfırlanır).
 - **Kural motoru yedek konumunda.** Şu an dil modeli birincil çıkarıcıdır; kural katmanı yalnızca API anahtarı yoksa devreye girer. Katmanların yer değiştirmesi planlanmaktadır.
 - **Banka adı şemada yok.** Karşılaştırmada banka adı, metnin örnek şablonlarla eşleştirilmesinden türetilir.
-- **Kampanya türü sınıflandırması yok.** Yalnızca ürün türü çıkarılmaktadır.
 - **Finansman Asistanı canlı veriye bağlıdır.** Scrape/ürün kapsamı seyrekse `no_verified_data` döner; demo veri gerçek sonuç gibi gösterilmez.
 - **Bulut modeli kullanılıyor.** Yerel çalıştırma desteklenir ancak varsayılan yapılandırma harici bir servise gider.
 - **Doğruluk ölçümü yok.** Altın değerlendirme seti hazırlanmamıştır.
+
+---
+
+## Şartname 5.3 / 5.4 alan kapsamı
+
+Çıkarılan her kayıt (`ExtractedFinancialRecord`) şartnamedeki tablo sütunlarını
+karşılar. Dil modeli bir alanı boş bırakırsa kural katmanı (`src/nlp/extract.ts`)
+aynı alanı deterministik olarak doldurur; model çıktısı varsa ona dokunulmaz.
+
+| Şartname alanı | Kayıt alanı | Kaynak |
+|---|---|---|
+| Kâr payı oranı | `profitRate`, `ratePeriod` | kural + model |
+| Finansman tutarı | `minAmountTl`, `maxAmountTl` | kural + model |
+| Vade süresi | `minTermMonths`, `maxTermMonths` | kural + model |
+| Taksit sayısı | `installmentCount` | kural + model |
+| Tahsis ücreti | `allocationFeeValue`, `allocationFeeType` | kural + model |
+| Masraf bilgisi | `feeStatus` | kural (`masrafDurumu`) |
+| Ürün türü | `productType` | kategoriden türetilir |
+| Kampanya türü (5.4, 8 tür) | `campaignType` | `src/nlp/kampanyaTuru.ts` |
+| Ödül miktarı | `rewardAmountTl`, `rewardPoints`, `rewardPointUnit` | kural + model |
+| İndirim oranı | `discountRate` | kural |
+| Alışveriş puanı | `rewardPoints` | kural |
+| Kampanya süresi | `campaignStart`, `campaignEnd` | kural + model |
+| Kampanya koşulları | `conditions`, `exclusions` | kural + model |
+| Hedef kitle | `targetSegments` (8 segment kodu) | kural |
+
+Kampanya türleri şartnamedeki sekiz türle birebir aynıdır: finansman, ihtiyaç
+finansmanı, konut finansmanı, taşıt finansmanı, kart, alışveriş puanı, yeni
+müşteri ve yatırım ürünü kampanyası. Sınıflandırıcı sinyal bulamazsa `null`
+döner — kampanya olmayan sayfaya tür atanmaz.
 
 ---
 
@@ -760,7 +789,7 @@ npx tsx -e "import('./src/nlp').then(n => console.log(n.kuralTabanliCikar('Aylı
 | 3 | Veri toplama hattı (BDDK listesi, kaynak defteri, kırılganlık alarmı) | 5.1 |
 | 4 | Kural motorunun birinci katmana taşınması | 5.3, teknik kriter |
 | 5 | Altın değerlendirme seti ve F1 raporu | Model başarısı |
-| 6 | Kampanya türü sınıflandırıcı (TF-IDF + doğrusal model) | 5.4 |
+| 6 | Kampanya türü sınıflandırıcısının istatistiksel modele taşınması (şu an kural tabanlı) | 5.4 |
 | 7 | Chatbot (niyet sınıflandırma + slot doldurma + sorguya çevirme) | Senaryo kapsamı |
 | 8 | Örtük ifade kalıp sözlüğü | 5.2 |
 

@@ -23,6 +23,7 @@ export const BANKALAR: Banka[] = [
   { id: 'albaraka', ad: 'Albaraka Türk', kisa: 'AT', renk: '#ea7317', logo: '/logos/albaraka.png' },
   { id: 'dunya-katilim', ad: 'Dünya Katılım', kisa: 'DK', renk: '#7c3aed', logo: '/logos/dunya-katilim.svg' },
   { id: 'hayat-finans', ad: 'Hayat Finans', kisa: 'HF', renk: '#068c5e', logo: '/logos/hayat-finans.png' },
+  { id: 'iktisat-katilim', ad: 'İktisat Katılım', kisa: 'İK', renk: '#0f766e' },
   { id: 'kuveyt-turk', ad: 'Kuveyt Türk', kisa: 'KT', renk: '#0a7d55', logo: '/logos/kuveyt-turk.png' },
   { id: 'tom-katilim', ad: 'T.O.M. Katılım', kisa: 'TM', renk: '#763ac7', logo: '/logos/tom-katilim.svg' },
   { id: 'emlak-katilim', ad: 'Emlak Katılım', kisa: 'EK', renk: '#2563a5', logo: '/logos/emlak-katilim.png' },

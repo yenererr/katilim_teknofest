@@ -510,7 +510,7 @@ function buildMetaQuestionMessage(
   }
   return (
     `Parametreler aynı kaldığı için aynı doğrulanmış sonucu gösteriyorum.\n\n` +
-    `10 katılım bankası içinde şu an koşullarınıza uyan ${lastExactCount} seçenek var; ` +
+    `11 katılım bankası içinde şu an koşullarınıza uyan ${lastExactCount} seçenek var; ` +
     `uygun olmayan bankaları tabloya eklemiyorum.\n\n` +
     `Daha fazla seçenek için tutarı, vadeyi (${state.preferredTermMonths ?? "?"} ay) veya amacı ` +
     `(şu an: ${typeLabel || "finansman"}) değiştirebilir; ya da “Albaraka oranları ne?” gibi tek banka sorabilirsiniz.`

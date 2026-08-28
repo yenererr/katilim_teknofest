@@ -10,8 +10,8 @@ import { listAdapters, getAdapter } from "../adapters";
 import type { ScrapedPage } from "../scraperTypes";
 
 describe("bank source config", () => {
-  it("on katılım bankası yapılandırması vardır", () => {
-    expect(BANK_SOURCE_CONFIGS).toHaveLength(10);
+  it("on bir katılım bankası yapılandırması vardır", () => {
+    expect(BANK_SOURCE_CONFIGS).toHaveLength(11);
     expect(BANK_SOURCE_CONFIGS.every((b) => b.enabled)).toBe(true);
   });
 });

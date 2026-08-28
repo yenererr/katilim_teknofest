@@ -1,4 +1,6 @@
 import type { CampaignTheme } from "./campaignNormalize";
+import type { KampanyaTuru } from "../../../nlp/kampanyaTuru";
+import type { PuanBirimi } from "../../../nlp/extract";
 export type CampaignStatus = "active" | "expired" | "upcoming" | "unknown";
 
 export type SourceStatus =
@@ -78,6 +80,15 @@ export type ExtractedFinancialRecord = {
   rewardType: string | null;
   /** Metinden çıkarılan kampanya avantajı ifadesi (şartname tablosu sütunu) */
   campaignAdvantage?: string | null;
+  /** Şartname tablosundaki "Masraf Durumu" sütunu — NLP katmanının özeti */
+  feeStatus?: string | null;
+  /** Şartname 5.4 — sekiz kampanya türünden biri */
+  campaignType?: KampanyaTuru | null;
+  /** İndirim oranı (ondalık; %20 → 0.2). Kâr payı oranından ayrı alan. */
+  discountRate?: number | null;
+  /** Alışveriş puanı / mil miktarı — TL ödül `rewardAmountTl` alanındadır */
+  rewardPoints?: number | null;
+  rewardPointUnit?: PuanBirimi | null;
   /** Ödemeye kaç ay sonra başlanabildiği (ödeme erteleme avantajı) */
   paymentDeferralMonths?: number | null;
   /** Aylık toplam maliyet oranı — komisyon ve vergiler dâhil (ondalık) */
