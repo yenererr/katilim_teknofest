@@ -298,7 +298,7 @@ export async function getTcmbFxRates(opts?: {
 }
 
 export function convertWithTcmb(
-  snapshot: TcmbFxSnapshot,
+  snapshot: Pick<TcmbFxSnapshot, "bulletinDate" | "sourceUrl" | "rates">,
   amount: number,
   from: FxCurrency,
   to: FxCurrency,

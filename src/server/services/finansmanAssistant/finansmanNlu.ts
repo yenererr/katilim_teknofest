@@ -1,5 +1,6 @@
 import { asciiKatla, yaziliSayiCoz } from "../../../nlp/normalize";
 import { BANK_NAME_TO_ID } from "../rag/ragTypes";
+import type { KarsilastirmaBoyutu } from "../tools/cokBoyutluKarsilastirma";
 import type { FinancingConversationState, FinancingType } from "./finansmanTypes";
 import { bankaBul, kampanyaSinyaliVar } from "./bankDirectory";
 import { parseCampaignThemeFromMessage } from "../scraper/campaignNormalize";
@@ -363,11 +364,20 @@ export function isBankRateQuestion(text: string): boolean {
   if (!hasBank) return false;
   // "nasıl banka" oran sorusu değil
   if (isBankInfoQuestion(t)) return false;
-  return (
+  // Birden fazla banka + üstünlük sorusu → çok boyutlu karşılaştırma yolu
+  if (isCokBankaKarsilastirma(text)) return false;
+  if (
     /oran|kar\s*pay/.test(t) ||
     /(oran[iı]?|kar\s*pay[iı]?)\s*(ne|nedir|kac|kaç)/.test(t) ||
     /ne\s+(kadar\s+)?(oran|kar)/.test(t) ||
     /finansman\s*icin.*oran|oran.*finansman/.test(t)
+  ) {
+    return true;
+  }
+  // Oran dışındaki alanlar da tek banka odağına girer: vade, masraf, ödül
+  return (
+    parseSorulanAlanlar(text).length > 0 &&
+    /\bne\b|nedir|kac|ne\s*kadar|var\s*mi|sunuyor|veriyor/.test(t)
   );
 }
 
@@ -386,11 +396,68 @@ export function detectFollowUpFlags(text: string): {
   };
 }
 
+/**
+ * Kullanıcının hangi veri alanlarını sorduğunu tespit eder.
+ * Hiçbiri belirgin değilse boş dizi döner (çağıran taraf tümünü varsayar).
+ */
+export function parseSorulanAlanlar(text: string): KarsilastirmaBoyutu[] {
+  const t = asciiKatla(text);
+  const alanlar: KarsilastirmaBoyutu[] = [];
+  if (/oran|kar\s*pay|faiz|maliyet/.test(t)) alanlar.push("kar_payi");
+  if (/vade|kac\s*ay|ay\s*sec|taksit\s*sayi|sure/.test(t)) alanlar.push("vade");
+  if (/masraf|tahsis|dosya|ucret|komisyon/.test(t)) alanlar.push("masraf");
+  // "avantajlı" genel bir kıyas sözcüğü; ödül talebi saymıyoruz.
+  if (/odul|hediye|puan|iade|\bkart\b|bonus|\bmil\b|cekilis/.test(t)) {
+    alanlar.push("odul");
+  }
+  return [...new Set(alanlar)];
+}
+
+/**
+ * İki (veya daha fazla) bankanın adı geçiyor ve üstünlük soruluyor mu?
+ * "A Bankası mı daha avantajlı, C Bankası mı?" — "karşılaştır" kelimesi geçmese de yakalar.
+ */
+export function isCokBankaKarsilastirma(text: string): boolean {
+  const t = asciiKatla(text);
+  const banks = parseBanks(text);
+  if (banks.requested.length < 2) return false;
+  return (
+    /kar[sş]ila[sş]tir/.test(t) ||
+    /daha\s*(avantajli|iyi|uygun|dusuk|karli|mantikli)/.test(t) ||
+    /hangisi|hangi\s*banka|hangi\s*si/.test(t) ||
+    /\bmi\b.*\bmi\b|\bmu\b.*\bmu\b|\bmi\b.*\bmu\b|\bmu\b.*\bmi\b/.test(t) ||
+    /avantajli\s*mi|farki|fark[iı]\s*ne|arasindaki/.test(t) ||
+    /vs\b|ile\b.*(kiyas|karsi)/.test(t)
+  );
+}
+
+/**
+ * Tek bankaya ait belirli bir veri alanı soruluyor mu?
+ * "Kuveyt Türk'ün konut finansmanı oranı ne?" / "... vadesi kaç ay?"
+ */
+export function isBankaAlanSorgusu(text: string): boolean {
+  const t = asciiKatla(text);
+  if (isCokBankaKarsilastirma(text)) return false;
+  const banks = parseBanks(text);
+  const hasBank =
+    banks.requested.length > 0 || Boolean(bankaBul(fuzzyAsciiFold(t)));
+  if (!hasBank) return false;
+  if (isBankInfoQuestion(t)) return false;
+  const alanlar = parseSorulanAlanlar(text);
+  if (alanlar.length === 0) return false;
+  // Soru kalıbı ya da doğrudan alan ifadesi
+  return (
+    /\bne\b|nedir|kac|kacar|ne\s*kadar|var\s*mi|sunuyor|veriyor|nasil|hangi/.test(t) ||
+    alanlar.length >= 2
+  );
+}
+
 export type TurnKind =
   | "param_update"
   | "finance_search"
   | "campaign_search"
   | "comparison"
+  | "multi_bank_comparison"
   | "ambiguous_purpose"
   | "unsupported"
   | "greeting"
@@ -624,6 +691,12 @@ export function classifyTurn(
 
   if (isMetaResultQuestion(t)) {
     return "meta_question";
+  }
+
+  // İki banka adı + üstünlük sorusu: "X mi daha avantajlı, Y mi?"
+  // "karşılaştır" kelimesi geçmediği için eskiden RAG'e düşüyordu.
+  if (isCokBankaKarsilastirma(text)) {
+    return "multi_bank_comparison";
   }
 
   if (isBankInfoQuestion(t)) {
@@ -882,9 +955,10 @@ export function mergeMessageIntoState(
   if (flags.hideUnknownFees) next.hideUnknownFees = true;
   if (flags.onlyNewCustomer) next.customerStatus = "new";
 
+  // campaign_search yukarıdaki erken dönüşte ele alınır.
   if (turn === "bank_focus") next.intent = "follow_up";
-  else if (turn === "campaign_search") next.intent = "campaign_search";
-  else if (turn === "comparison") next.intent = "comparison";
+  else if (turn === "comparison" || turn === "multi_bank_comparison")
+    next.intent = "comparison";
   else if (turn === "payment_plan") next.intent = "follow_up";
   else if (turn === "param_update" || turn === "sort_only") next.intent = "follow_up";
   else next.intent = "finance_search";

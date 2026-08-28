@@ -13,8 +13,16 @@ import {
   isBankInfoQuestion,
   parseLimitInquiry,
   isPilgrimagePurpose,
+  parseBanks,
+  parseSorulanAlanlar,
   type LimitInquiryKind,
 } from "./finansmanNlu";
+import {
+  cokBoyutluKarsilastir,
+  cokBoyutluMesaj,
+} from "../tools/cokBoyutluKarsilastirma";
+import { bankaAdaylariniTopla } from "./bankaAdaylari";
+import { bankaAlanMesaji } from "./bankaAlanYaniti";
 import { runFinancingMatchEngine } from "./finansmanMatcher";
 import { buildMatchesFromQdrantEvidence } from "./finansmanEvidence";
 import {
@@ -1225,9 +1233,14 @@ export async function runFinansmanAssistantChat(
     rehberNiyeti = "banka_kampanyalari";
   }
 
-  // Kampanya sorusu finansman motoruna düşmesin — tüm kayıtlı kampanyalardan yanıtla
+  // Kampanya sorusu finansman motoruna düşmesin — tüm kayıtlı kampanyalardan yanıtla.
+  // Ancak adı geçen bankaların oran/vade/masraf karşılaştırması bir kampanya
+  // listesi sorusu değildir; kampanya teması ("konut") o niyeti ezmemeli.
+  const alanOdakliSoru =
+    turn === "multi_bank_comparison" || turn === "bank_focus";
   if (
     !rehberNiyeti &&
+    !alanOdakliSoru &&
     (turn === "campaign_search" ||
       kampanyaSinyaliVar(req.message) ||
       kampanyaTemasi != null)
@@ -1537,6 +1550,163 @@ export async function runFinansmanAssistantChat(
   if (findeksPreApproval) {
     conversations.set(conversationId, state);
     return findeksPreApproval;
+  }
+
+  // ——— Çok boyutlu banka karşılaştırması ———
+  // "X mi daha avantajlı, Y mi?" → oran/vade/masraf/ödül boyutlarında ayrı hüküm.
+  // Tutar/vade slotları boş olsa bile temsili değerlerle cevaplanır.
+  if (turn === "multi_bank_comparison") {
+    const istenen = parseBanks(req.message).requested.slice(0, 4);
+    const bankIds = istenen.length >= 2 ? istenen : state.selectedBankIds.slice(0, 4);
+
+    if (bankIds.length >= 2) {
+      const alanlar = parseSorulanAlanlar(req.message);
+      const toplama = await bankaAdaylariniTopla({
+        bankIds,
+        financingType: state.financingType,
+        amountTl: state.requestedAmountTl,
+        termMonths: state.preferredTermMonths,
+      });
+
+      const sonuc = cokBoyutluKarsilastir(toplama.adaylar, {
+        boyutlar: alanlar.length ? alanlar : undefined,
+        tutarTl: toplama.tutarTl,
+      });
+
+      const urunEtiketi = state.financingType
+        ? FINANCING_TYPE_LABEL[state.financingType]
+        : null;
+
+      const govde = cokBoyutluMesaj(sonuc, { urunEtiketi });
+      const varsayimNotu = toplama.varsayimlar.length
+        ? `\n\n${toplama.varsayimlar.map((v) => `_${v}_`).join("\n")}`
+        : "";
+
+      const citations = toplama.adaylar
+        .filter((a) => a.sourceUrl)
+        .map((a, i) => ({
+          id: i + 1,
+          bankName: a.bankName,
+          sourceUrl: a.sourceUrl as string,
+          sourceCheckedAt: new Date().toISOString(),
+          evidenceText: a.productName || `${a.bankName} doğrulanmış ürün kaydı`,
+        }));
+
+      conversations.set(conversationId, state);
+      return {
+        conversationId,
+        assistantMessage: govde + varsayimNotu,
+        status:
+          sonuc.karsilastirilabilirBoyutSayisi > 0
+            ? "results_ready"
+            : "no_verified_data",
+        missingFields: [],
+        quickReplies: state.financingType
+          ? []
+          : purposeQuickReplies().slice(0, 4),
+        query: state,
+        exactMatches: [],
+        flexibleMatches: [],
+        summary: {
+          totalParticipationBanks: 10,
+          checkedBanks: bankIds.length,
+          exactMatchBankCount: toplama.adaylar.filter(
+            (a) => a.aylikKarPayiOrani != null,
+          ).length,
+          flexibleMatchCount: 0,
+          dataAsOf: new Date().toISOString(),
+          freshnessLabel: toplama.canliBankIds.length
+            ? "Canlı hesaplama"
+            : "Doğrulanmış kayıt",
+        },
+        warnings: [],
+        citations,
+      };
+    }
+  }
+
+  // ——— Tek banka alan sorgusu ———
+  // "X'in konut finansmanı oranı ne?" → tutar/vade sormadan doğrudan cevap.
+  if (turn === "bank_focus") {
+    const istenen = parseBanks(req.message).requested;
+    const bankId = istenen[0] ?? state.selectedBankIds[0] ?? null;
+    const alanlar = parseSorulanAlanlar(req.message);
+
+    if (bankId && alanlar.length > 0) {
+      const toplama = await bankaAdaylariniTopla({
+        bankIds: [bankId],
+        financingType: state.financingType,
+        amountTl: state.requestedAmountTl,
+        termMonths: state.preferredTermMonths,
+      });
+      const aday = toplama.adaylar[0];
+
+      if (aday) {
+        const yanit = bankaAlanMesaji({
+          aday,
+          urunEtiketi: state.financingType
+            ? FINANCING_TYPE_LABEL[state.financingType]
+            : "finansman",
+          alanlar,
+          // Oran soranın vade/ödülü de merak ettiğini varsayıp veri varsa ekliyoruz.
+          ekAlanlar: ["vade", "odul"],
+          varsayimlar: toplama.varsayimlar,
+          tutarTl: toplama.tutarTl,
+        });
+
+        if (yanit.cevaplandi) {
+          conversations.set(conversationId, state);
+          return {
+            conversationId,
+            assistantMessage: yanit.mesaj,
+            status: "results_ready",
+            missingFields: [],
+            quickReplies: [
+              {
+                id: "bfq-plan",
+                label: "Ödeme planı çıkar",
+                value: `${aday.bankName} ${toplama.tutarTl} TL ${
+                  state.financingType
+                    ? FINANCING_TYPE_LABEL[state.financingType]
+                    : "finansman"
+                }, ${toplama.vadeAy} ay ödeme planı`,
+              },
+              {
+                id: "bfq-camp",
+                label: `${aday.bankName} kampanyaları`,
+                value: `${aday.bankName} kampanyaları`,
+              },
+            ],
+            query: state,
+            exactMatches: [],
+            flexibleMatches: [],
+            summary: {
+              totalParticipationBanks: 10,
+              checkedBanks: 1,
+              exactMatchBankCount: aday.aylikKarPayiOrani != null ? 1 : 0,
+              flexibleMatchCount: 0,
+              dataAsOf: new Date().toISOString(),
+              freshnessLabel: toplama.canliBankIds.length
+                ? "Canlı hesaplama"
+                : "Doğrulanmış kayıt",
+            },
+            warnings: [],
+            citations: aday.sourceUrl
+              ? [
+                  {
+                    id: 1,
+                    bankName: aday.bankName,
+                    sourceUrl: aday.sourceUrl,
+                    sourceCheckedAt: new Date().toISOString(),
+                    evidenceText:
+                      aday.productName || `${aday.bankName} doğrulanmış ürün kaydı`,
+                  },
+                ]
+              : [],
+          };
+        }
+      }
+    }
   }
 
   const missing = missingRequiredFields(state);

@@ -81,7 +81,7 @@ describe("dovizAsistan", () => {
   it("örnek XML ile çeviri yanıtı üretir", async () => {
     // Canlı TCMB yerine parse edilmiş snapshot ile convert path’i doğrulanır;
     // asistan canlı fetch kullanır — burada niyet + mesaj kalıbı yeter.
-    const snap: TcmbFxSnapshot = parseTcmbTodayXml(SAMPLE_XML);
+    const snap = parseTcmbTodayXml(SAMPLE_XML);
     const c = convertWithTcmb(snap, 100_000, "TRY", "USD");
     expect(c.result).toBeCloseTo(100_000 / 48.2, 4);
     expect(isDovizMesaji("TCMB döviz kurları")).toBe(true);

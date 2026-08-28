@@ -7,6 +7,22 @@ import { retrieveForPlan } from "./retriever";
 import { freshnessLabel } from "./freshnessService";
 import { compareProductsTool } from "../tools/compareProductsTool";
 import { refreshSourcesForQuery } from "../tools/refreshSourceTool";
+import {
+  cokBoyutluKarsilastir,
+  cokBoyutluMesaj,
+} from "../tools/cokBoyutluKarsilastirma";
+import { bankaAdaylariniTopla } from "../finansmanAssistant/bankaAdaylari";
+import { bankaAlanMesaji } from "../finansmanAssistant/bankaAlanYaniti";
+import {
+  isCokBankaKarsilastirma,
+  isBankRateQuestion,
+  parseBanks,
+  parseSorulanAlanlar,
+  parseFinancingType,
+  parseTurkishAmount,
+  parseTermMonths,
+} from "../finansmanAssistant/finansmanNlu";
+import { FINANCING_TYPE_LABEL } from "../finansmanAssistant/finansmanTypes";
 import type {
   ComparisonToolResult,
   FreshnessStatus,
@@ -110,6 +126,110 @@ function buildDeterministicComparisonAnswer(opts: {
   };
 }
 
+/**
+ * Adı geçen bankaların alan sorgusu / çok boyutlu karşılaştırmasını
+ * LLM'e gitmeden deterministik motorla yanıtlar.
+ * Yanıtlayamazsa null döner ve normal RAG akışı devam eder.
+ */
+async function deterministikBankaYaniti(
+  message: string,
+  requestId: string,
+  started: number,
+): Promise<RagChatResponse | null> {
+  const cokBanka = isCokBankaKarsilastirma(message);
+  const tekBanka = !cokBanka && isBankRateQuestion(message);
+  if (!cokBanka && !tekBanka) return null;
+
+  const bankIds = parseBanks(message).requested;
+  if (cokBanka && bankIds.length < 2) return null;
+  if (tekBanka && bankIds.length < 1) return null;
+
+  const financingType = parseFinancingType(message);
+  const alanlar = parseSorulanAlanlar(message);
+
+  const toplama = await bankaAdaylariniTopla({
+    bankIds: bankIds.slice(0, 4),
+    financingType,
+    amountTl: parseTurkishAmount(message),
+    termMonths: parseTermMonths(message),
+  });
+
+  const urunEtiketi = financingType ? FINANCING_TYPE_LABEL[financingType] : null;
+
+  const citations = toplama.adaylar
+    .filter((a) => a.sourceUrl)
+    .map((a, i) => ({
+      id: i + 1,
+      title: a.productName || `${a.bankName} ürün kaydı`,
+      bankName: a.bankName,
+      sourceUrl: a.sourceUrl as string,
+      sourceCheckedAt: new Date().toISOString(),
+      evidenceText: a.productName || `${a.bankName} doğrulanmış ürün kaydı`,
+    }));
+
+  const varsayimNotu = toplama.varsayimlar.length
+    ? `\n\n${toplama.varsayimlar.map((v) => `_${v}_`).join("\n")}`
+    : "";
+
+  const gozlem = (kullanilan: number): RagObservability => ({
+    request_id: requestId,
+    intent: "comparison",
+    retrieval_duration_ms: 0,
+    structured_query_duration_ms: 0,
+    llm_duration_ms: 0,
+    total_duration_ms: Date.now() - started,
+    retrieved_chunk_count: toplama.adaylar.length,
+    used_source_count: kullanilan,
+    freshness_status: "FRESH",
+    model_alias: null,
+    fallback_used: false,
+    validation_status: "skipped",
+  });
+
+  if (cokBanka) {
+    const sonuc = cokBoyutluKarsilastir(toplama.adaylar, {
+      boyutlar: alanlar.length ? alanlar : undefined,
+      tutarTl: toplama.tutarTl,
+    });
+    if (sonuc.karsilastirilabilirBoyutSayisi === 0) return null;
+
+    return {
+      requestId,
+      answer: cokBoyutluMesaj(sonuc, { urunEtiketi }) + varsayimNotu,
+      status: "answered",
+      products: [],
+      citations,
+      warnings: [],
+      dataAsOf: new Date().toISOString(),
+      observability: gozlem(citations.length),
+    };
+  }
+
+  const aday = toplama.adaylar[0];
+  if (!aday) return null;
+
+  const yanit = bankaAlanMesaji({
+    aday,
+    urunEtiketi: urunEtiketi ?? "finansman",
+    alanlar,
+    ekAlanlar: ["vade", "odul"],
+    varsayimlar: toplama.varsayimlar,
+    tutarTl: toplama.tutarTl,
+  });
+  if (!yanit.cevaplandi) return null;
+
+  return {
+    requestId,
+    answer: yanit.mesaj,
+    status: "answered",
+    products: [],
+    citations,
+    warnings: [],
+    dataAsOf: new Date().toISOString(),
+    observability: gozlem(citations.length),
+  };
+}
+
 export async function runRagChat(opts: {
   message: string;
   conversationId?: string;
@@ -130,6 +250,21 @@ export async function runRagChat(opts: {
       warnings: [],
       dataAsOf: new Date().toISOString(),
     };
+  }
+
+  // Banka adı geçen oran/vade/masraf/ödül sorularını LLM'den önce
+  // deterministik motorla karşıla; yetmezse normal akış devam eder.
+  const deterministik = await deterministikBankaYaniti(
+    opts.message,
+    requestId,
+    started,
+  );
+  if (deterministik) {
+    if (opts.conversationId) {
+      remember(opts.conversationId, "user", opts.message);
+      remember(opts.conversationId, "assistant", deterministik.answer);
+    }
+    return deterministik;
   }
 
   if (plan.clarificationQuestion && plan.intent === "comparison") {
