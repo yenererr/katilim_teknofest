@@ -4,7 +4,6 @@ import { TopNav } from './components/TopNav';
 import { SideRail, SonIslem } from './components/SideRail';
 import { TabKey, TAB_TITLES, TAB_TO_HASH, tabFromHash } from './components/nav';
 import { HomeView, KarsilastirmaTalebi } from './components/HomeView';
-import { FinansmanView } from './components/FinansmanView';
 import { FeesView } from './components/FeesView';
 import { CampaignsView } from './components/CampaignsView';
 import { Dashboard } from './components/Dashboard';
@@ -332,7 +331,7 @@ function AppInner() {
       const kayit = karsilastirmalar.find((k) => `kars::${k.id}` === id);
       if (kayit) {
         setTalep({ tur: kayit.tur, tutar: kayit.tutar, vadeAy: kayit.vadeAy });
-        setActiveTab('finansmanlar');
+        setActiveTab('compare');
       }
       return;
     }
@@ -451,27 +450,6 @@ function AppInner() {
                   talep={talep}
                   ogeler={ogeler}
                 />
-              </div>
-            )}
-
-            {activeTab === 'finansmanlar' && (
-              <div {...panelProps('finansmanlar')} className="space-y-6">
-                <FinansmanView talep={talep} onTalepDegisti={setTalep} />
-                {ogeler.length > 0 && (
-                  <section>
-                    <h2 className="mb-3 text-base font-semibold tracking-tight text-txt">
-                      Metinden çıkarılan ürünler
-                    </h2>
-                    <Dashboard
-                      ogeler={ogeler}
-                      isLoading={isLoading && ogeler.length === 0}
-                      onSelectProduct={(id) => {
-                        setSeciliIds([id]);
-                        setActiveTab('kampanyalar');
-                      }}
-                    />
-                  </section>
-                )}
               </div>
             )}
 

@@ -31,7 +31,7 @@ interface IhtiyacKarti {
 
 const IHTIYACLAR: IhtiyacKarti[] = [
   {
-    key: 'finansmanlar',
+    key: 'compare',
     baslik: 'Finansman Karşılaştır',
     aciklama: 'Konut, taşıt, ihtiyaç vb.',
     icon: Home,

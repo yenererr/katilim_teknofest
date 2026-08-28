@@ -656,7 +656,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </h2>
               <button
                 type="button"
-                onClick={() => setActiveTab('finansmanlar')}
+                onClick={() => setActiveTab('compare')}
                 className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-xs text-brand-700 transition-colors hover:text-brand-800 dark:text-brand-400"
               >
                 Tümünü Gör

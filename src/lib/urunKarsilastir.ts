@@ -23,6 +23,9 @@ export interface YapilandirilmisUrun {
   allocationFeeType?: string | null;
   rewardAmountTl?: number | null;
   rewardType?: string | null;
+  campaignAdvantage?: string | null;
+  paymentDeferralMonths?: number | null;
+  monthlyCostRate?: number | null;
   campaignEnd?: string | null;
   campaignStatus?: string | null;
   targetSegments?: string[] | null;
@@ -50,6 +53,8 @@ export interface TeklifSatiri {
   azamiVade: number | null;
   /** Metinden çıkarılan kampanya avantajı ifadesi */
   kampanyaAvantaji: string | null;
+  /** Ödemeye kaç ay sonra başlanabildiği */
+  odemeErtelemeAy: number | null;
   /** Masraf durumu özeti — "Dosya masrafı yok", "1.500 ₺" gibi */
   masrafDurumu: string;
   /** Talep edilen tutar için hesaplanan aylık taksit */
@@ -121,6 +126,8 @@ function kanitHaritasi(row: YapilandirilmisUrun): Record<string, string> {
 
 /** Şartname tablosundaki "Kampanya Avantajı" sütunu. */
 function kampanyaAvantaji(row: YapilandirilmisUrun): string | null {
+  // Kaynakta açıkça belirtilen avantaj her zaman önceliklidir.
+  if (row.campaignAdvantage) return row.campaignAdvantage;
   if (typeof row.rewardAmountTl === 'number' && row.rewardAmountTl > 0) {
     const tur = row.rewardType === 'voucher' ? 'alışveriş çeki' : 'ödül';
     return `${row.rewardAmountTl.toLocaleString('tr-TR')} TL ${tur}`;
@@ -135,11 +142,16 @@ function kampanyaAvantaji(row: YapilandirilmisUrun): string | null {
 /** Şartname tablosundaki "Masraf Durumu" sütunu. */
 function masrafOzeti(oransal: number | null, tutar: number): string {
   if (tutar === 0) return 'Masraf alınmıyor';
+  const tl = tutar.toLocaleString('tr-TR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  // Tüm bankalarda aynı birim gösterilir; oran varsa parantezde belirtilir.
   if (oransal !== null) {
     const yuzde = (oransal * 100).toLocaleString('tr-TR', { maximumFractionDigits: 2 });
-    return `Tutarın %${yuzde}'i`;
+    return `${tl} (tutarın %${yuzde}'i)`;
   }
-  return `${tutar.toLocaleString('tr-TR')} ₺`;
+  return `${tl} ₺`;
 }
 
 /**
@@ -245,6 +257,7 @@ export function teklifleriHazirla(
       vadeAy: talep.vadeAy,
       azamiVade: row.maxTermMonths ?? null,
       kampanyaAvantaji: kampanyaAvantaji(row),
+      odemeErtelemeAy: row.paymentDeferralMonths ?? null,
       masrafDurumu: masrafOzeti(oransalTahsis, tahsisUcreti),
       taksit: plan.taksitTutari,
       toplamOdeme: plan.odenecekToplamTutar,
@@ -309,12 +322,13 @@ export function canliTeklifiSatiraCevir(
       : (teklif.appraisementFeeTl ?? 0) + (teklif.mortgageReleaseFeeTl ?? 0);
   // Servis ücret bildirmediyse bankanın ilan ettiği oran uygulanır.
   const ilanOrani = ILAN_EDILEN_TAHSIS_ORANLARI[bankaId];
-  const tahsisUcreti =
-    servisUcreti > 0
-      ? servisUcreti
-      : ilanOrani != null
-        ? Math.round(talep.tutar * ilanOrani * (1 + BSMV_ORANI) * 100) / 100
-        : 0;
+  const ilanEdilenUcret =
+    ilanOrani != null
+      ? Math.round(talep.tutar * ilanOrani * (1 + BSMV_ORANI) * 100) / 100
+      : null;
+  const tahsisUcreti = servisUcreti > 0 ? servisUcreti : (ilanEdilenUcret ?? 0);
+  // Servis ücret bildirmedi ve ilan edilen oranı da bilmiyorsak "ücretsiz" demeyiz.
+  const masrafBilinmiyor = servisUcreti <= 0 && ilanEdilenUcret === null;
 
   return {
     id: `${bankaId}::canli`,
@@ -328,7 +342,12 @@ export function canliTeklifiSatiraCevir(
     vadeAy: talep.vadeAy,
     azamiVade: null,
     kampanyaAvantaji: null,
-    masrafDurumu: tahsisUcreti > 0 ? `${tahsisUcreti.toLocaleString('tr-TR')} ₺` : 'Masraf alınmıyor',
+    odemeErtelemeAy: null,
+    masrafDurumu: masrafBilinmiyor
+      ? 'Belirtilmemiş'
+      : tahsisUcreti > 0
+        ? `${tahsisUcreti.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺`
+        : 'Masraf alınmıyor',
     taksit,
     toplamOdeme,
     tahsisUcreti,
@@ -417,6 +436,7 @@ export function ortakMotorlaTamamla(
       vadeAy: talep.vadeAy,
       azamiVade: null,
       kampanyaAvantaji: null,
+      odemeErtelemeAy: null,
       masrafDurumu: masrafOzeti(VARSAYILAN_TAHSIS_ORANI, tahsisUcreti),
       taksit: plan.taksitTutari,
       toplamOdeme: plan.odenecekToplamTutar,

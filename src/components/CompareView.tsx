@@ -8,11 +8,14 @@ import {
   Info,
   ExternalLink,
   Trophy,
+  Table2,
+  X,
 } from 'lucide-react';
 import { BANKA_INDEKS, FINANSMAN_SECENEKLERI, VADELER, VARSAYILAN_TUTAR } from '../data/piyasa';
 import { FINANSMAN_NOTLARI_BY_KEY } from '../data/finansmanNotlari';
 import { sayiBicim } from '../lib/finansman';
 import { BankMark } from './BankMark';
+import { bicimleOdemePlani, hesaplaOdemePlani } from '../lib/odemePlani';
 import { KarsilastirmaTalebi } from './HomeView';
 import {
   YapilandirilmisUrun,
@@ -218,6 +221,8 @@ export const CompareView: React.FC<CompareViewProps> = ({ talep, onTalepDegisti 
   const [yukleniyor, setYukleniyor] = useState(true);
   const [hata, setHata] = useState<string | null>(null);
   const [acikKanit, setAcikKanit] = useState<string | null>(null);
+  /** Ödeme planı açılan teklifin kimliği */
+  const [planId, setPlanId] = useState<string | null>(null);
 
   const tutar = useMemo(() => {
     const rakamlar = tutarMetni.replace(/[^\d]/g, '');
@@ -359,6 +364,34 @@ export const CompareView: React.FC<CompareViewProps> = ({ talep, onTalepDegisti 
     if (teklifler.length < 2) return [];
     return farkAciklamalari(teklifler[0], teklifler[1]);
   }, [teklifler]);
+
+  /** Seçilen teklifin ödeme planı — tablo verisinden yeniden hesaplanır. */
+  const acikPlan = useMemo(() => {
+    if (!planId) return null;
+    const satir = teklifler.find((s) => s.id === planId);
+    if (!satir) return null;
+    try {
+      const detay = hesaplaOdemePlani({
+        amountTl: tutar,
+        termMonths: satir.vadeAy,
+        profitRatePercent: satir.aylikOran * 100,
+        financingType: temelTur,
+        allocationFeeRate: tutar > 0 ? satir.tahsisUcreti / tutar / 1.15 : 0,
+      });
+      return { satir, plan: bicimleOdemePlani(detay) };
+    } catch {
+      return null;
+    }
+  }, [planId, teklifler, tutar, temelTur]);
+
+  useEffect(() => {
+    if (!planId) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setPlanId(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [planId]);
 
   const secenekDegistir = (yeniKey: string) => {
     setSecenek(yeniKey);
@@ -759,6 +792,25 @@ export const CompareView: React.FC<CompareViewProps> = ({ talep, onTalepDegisti 
                     </React.Fragment>
                   );
                 })}
+
+                {/* Her banka için ödeme planı — açılır pencerede gösterilir */}
+                <tr>
+                  <th scope="row" className={rowHeader}>
+                    Ödeme planı
+                  </th>
+                  {teklifler.map((s) => (
+                    <td key={s.id} className={cellBase}>
+                      <button
+                        type="button"
+                        onClick={() => setPlanId(s.id)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs font-medium text-txt-secondary transition-colors hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
+                      >
+                        <Table2 className="h-3.5 w-3.5" aria-hidden="true" />
+                        Planı gör
+                      </button>
+                    </td>
+                  ))}
+                </tr>
               </tbody>
             </table>
           </div>
@@ -770,6 +822,95 @@ export const CompareView: React.FC<CompareViewProps> = ({ talep, onTalepDegisti 
             varsa toplam maliyeti en düşük olan gösterilir. Nihai teklif için bankaya
             başvurulmalıdır.
           </p>
+        </div>
+      )}
+      {/* Ödeme planı açılır penceresi */}
+      {acikPlan && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${BANKA_INDEKS[acikPlan.satir.bankaId]?.ad ?? acikPlan.satir.bankaId} ödeme planı`}
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 sm:p-6"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setPlanId(null);
+          }}
+        >
+          <div className="my-auto w-full max-w-4xl rounded-xl border border-line bg-surface shadow-xl">
+            <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
+              <div className="flex items-center gap-3">
+                <BankMark bankaId={acikPlan.satir.bankaId} size="sm" />
+                <div>
+                  <h2 className="text-base font-semibold tracking-tight text-txt">
+                    {BANKA_INDEKS[acikPlan.satir.bankaId]?.ad ?? acikPlan.satir.bankaId} —{' '}
+                    {acikPlan.plan.baslik}
+                  </h2>
+                  <p className="mt-0.5 text-xs text-txt-secondary">
+                    {acikPlan.satir.urunAdi} · {sayiBicim(tutar)} TL ·{' '}
+                    {acikPlan.satir.vadeAy} ay · {yuzdeBicim(acikPlan.satir.aylikOran)} / ay
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPlanId(null)}
+                aria-label="Ödeme planını kapat"
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-line text-txt-muted transition-colors hover:text-txt"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+                {acikPlan.plan.ozet.map((o) => (
+                  <div key={o.label} className="rounded-lg border border-line bg-sunken/40 px-3 py-2">
+                    <dt className="text-[11px] text-txt-secondary">{o.label}</dt>
+                    <dd className="tnum mt-0.5 font-mono text-sm text-txt">{o.value}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              {acikPlan.satir.odemeErtelemeAy != null && (
+                <p className="mt-3 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-xs text-brand-800 dark:border-brand-800 dark:bg-brand-950 dark:text-brand-200">
+                  Bu üründe ödemeye {acikPlan.satir.odemeErtelemeAy} ay sonra başlanabilir; plan
+                  ilk taksitin hemen başladığı varsayımıyla hesaplanmıştır.
+                </p>
+              )}
+
+              <div className="mt-4 overflow-x-auto" tabIndex={0} role="region" aria-label="Taksit tablosu">
+                <table className="w-full border-collapse text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-line bg-sunken text-txt-secondary">
+                      {acikPlan.plan.tableHead.map((h) => (
+                        <th key={h} scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {acikPlan.plan.rows.map((r) => (
+                      <tr key={r.taksitNo}>
+                        <td className="tnum px-3 py-1.5 font-mono text-txt-secondary">{r.taksitNo}</td>
+                        <td className="tnum px-3 py-1.5 font-mono text-txt">{r.taksitTutari}</td>
+                        <td className="tnum px-3 py-1.5 font-mono text-txt-secondary">{r.anaPara}</td>
+                        <td className="tnum px-3 py-1.5 font-mono text-txt-secondary">{r.kalanAnaPara}</td>
+                        <td className="tnum px-3 py-1.5 font-mono text-txt-secondary">{r.karTutari}</td>
+                        <td className="tnum px-3 py-1.5 font-mono text-txt-muted">{r.kkdfTutari}</td>
+                        <td className="tnum px-3 py-1.5 font-mono text-txt-muted">{r.bsmvTutari}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {acikPlan.plan.uyari && (
+                <p className="mt-3 text-xs leading-relaxed text-warn-800 dark:text-warn-200">
+                  {acikPlan.plan.uyari}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </motion.section>

@@ -1,3 +1,4 @@
+import type { CampaignTheme } from "./campaignNormalize";
 export type CampaignStatus = "active" | "expired" | "upcoming" | "unknown";
 
 export type SourceStatus =
@@ -75,6 +76,12 @@ export type ExtractedFinancialRecord = {
   allocationFeeType: "fixed" | "percentage" | null;
   rewardAmountTl: number | null;
   rewardType: string | null;
+  /** Metinden çıkarılan kampanya avantajı ifadesi (şartname tablosu sütunu) */
+  campaignAdvantage?: string | null;
+  /** Ödemeye kaç ay sonra başlanabildiği (ödeme erteleme avantajı) */
+  paymentDeferralMonths?: number | null;
+  /** Aylık toplam maliyet oranı — komisyon ve vergiler dâhil (ondalık) */
+  monthlyCostRate?: number | null;
   campaignStart: string | null;
   campaignEnd: string | null;
   targetSegments: string[];
@@ -83,13 +90,7 @@ export type ExtractedFinancialRecord = {
   exclusions: string[];
   campaignStatus: CampaignStatus;
   /** Eğitim / kart / konut vb. — finansman türünden bağımsız */
-  campaignTheme?:
-    | "education"
-    | "card"
-    | "housing"
-    | "vehicle"
-    | "new_customer"
-    | "general";
+  campaignTheme?: CampaignTheme;
   evidence: Array<{ field: string; text: string; confidence: number }>;
   manualReviewRequired: boolean;
 };

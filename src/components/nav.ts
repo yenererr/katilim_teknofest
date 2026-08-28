@@ -37,7 +37,6 @@ export interface NavItem {
 /** Üst çubuktaki ana gezinme — referans arayüzdeki sıra. */
 export const ANA_NAV: NavItem[] = [
   { key: 'home', label: 'Ana Sayfa', shortLabel: 'Ana Sayfa', icon: Home },
-  { key: 'finansmanlar', label: 'Finansmanlar', shortLabel: 'Finansman', icon: Wallet },
   { key: 'hesaplama', label: 'Hesaplama', shortLabel: 'Hesapla', icon: Calculator },
   { key: 'kar-payi', label: 'Kâr Payı', shortLabel: 'Kâr Payı', icon: Percent },
   { key: 'findeks', label: 'Findeks Analizi', shortLabel: 'Findeks', icon: ShieldCheck },
@@ -113,7 +112,8 @@ export const TAB_TITLES: Record<TabKey, { baslik: string; aciklama: string }> = 
 /** Hash tabanlı soft-route (React Router yok) */
 export const TAB_TO_HASH: Record<TabKey, string> = {
   home: '/',
-  finansmanlar: '/finansman-karsilastir',
+  // Eski "Finansmanlar" sekmesi kaldırıldı; karşılaştırmalar sayfasına yönlenir.
+  finansmanlar: '/karsilastirmalar',
   hesaplama: '/hesaplama',
   'kar-payi': '/kar-payi',
   findeks: '/findeks',
@@ -131,6 +131,9 @@ for (const [tab, route] of Object.entries(TAB_TO_HASH)) {
   HASH_TO_TAB[route] = tab as TabKey;
 }
 HASH_TO_TAB['/finansman-asistani'] = 'finansman-asistani';
+// Eski bağlantılar kırılmasın: /finansman-karsilastir → karşılaştırmalar
+HASH_TO_TAB['/finansman-karsilastir'] = 'compare';
+HASH_TO_TAB['/finansmanlar'] = 'compare';
 HASH_TO_TAB['/home'] = 'home';
 
 export function tabFromHash(hash: string): TabKey | null {

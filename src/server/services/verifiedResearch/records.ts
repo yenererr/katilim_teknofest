@@ -4,7 +4,7 @@ const CHECKED_AT = "2026-08-27T12:00:00.000+03:00";
 
 type PartialRecord = Omit<
   ExtractedFinancialRecord,
-  "sourceCheckedAt" | "recordType" | "title" | "productName" | "profitRate" |
+  "sourceCheckedAt" | "recordType" | "title" | "productName" | "productType" | "profitRate" |
     "ratePeriod" | "minAmountTl" | "maxAmountTl" | "minTermMonths" |
     "maxTermMonths" | "installmentCount" | "allocationFeeValue" |
     "allocationFeeType" | "rewardAmountTl" | "rewardType" |
@@ -48,6 +48,9 @@ function rec(input: PartialRecord): ExtractedFinancialRecord {
     exclusions: input.exclusions ?? [],
     campaignStatus: input.campaignStatus ?? "active",
     campaignTheme: input.campaignTheme,
+    campaignAdvantage: input.campaignAdvantage ?? null,
+    paymentDeferralMonths: input.paymentDeferralMonths ?? null,
+    monthlyCostRate: input.monthlyCostRate ?? null,
     evidence: input.evidence ?? [],
     manualReviewRequired: input.manualReviewRequired ?? false,
   };
@@ -57,6 +60,8 @@ function tfConsumerRate(
   term: number,
   ratePercent: number,
   label: "Sigortalı" | "Sigortasız",
+  /** Aylık toplam maliyet oranı (komisyon + yasal vergiler dâhil, sigorta hariç) */
+  aylikMaliyetYuzde?: number,
 ): ExtractedFinancialRecord {
   const maxAmount =
     term >= 35 ? 125_000 : term <= 12 ? null : 250_000;
@@ -78,13 +83,27 @@ function tfConsumerRate(
     allocationFeeValue: 0.005,
     allocationFeeType: "percentage",
     targetSegments: [label === "Sigortalı" ? "Sigortalı ihtiyaç finansmanı" : "Sigortasız ihtiyaç finansmanı"],
+    campaignAdvantage: "Ödemeye 3 ay sonra başlama imkânı",
+    paymentDeferralMonths: 3,
+    monthlyCostRate: aylikMaliyetYuzde != null ? aylikMaliyetYuzde / 100 : null,
     conditions: [
       "Finansman tutarına göre yasal azami vade sınırları uygulanır.",
       "Tahsis ücreti vergiler hariç finansman tutarının binde 5'i oranındadır.",
+      "Başvuru sonrası ödemeye 3 ay sonra başlanabilir.",
+      "Kâr payı oranları vade ve müşterinin KKB skoruna göre değişebilir.",
     ],
     evidence: [
-      evidence("kar_payi_orani", `${term} ay ${label.toLocaleLowerCase("tr-TR")} ihtiyaç finansmanı kâr oranı %${ratePercent.toLocaleString("tr-TR")}.`),
-      evidence("tahsis_ucreti", "Tahsis ücreti finansman tutarının binde 5'i oranındadır."),
+      evidence("kar_payi_orani", `${term} ay ${label.toLocaleLowerCase("tr-TR")} ihtiyaç finansmanı kâr payı oranı %${ratePercent.toLocaleString("tr-TR")}.`),
+      evidence("tahsis_ucreti", "Tahsis ücreti vergiler hariç finansman tutarının binde 5'i oranındadır."),
+      evidence("odul", "İhtiyaç Finansmanı başvurunuzu hemen yapın, ödemeye 3 ay sonra başlayın."),
+      ...(aylikMaliyetYuzde != null
+        ? [
+            evidence(
+              "maliyet_orani",
+              `${term} ay ${label.toLocaleLowerCase("tr-TR")} finansmanda aylık toplam maliyet oranı %${aylikMaliyetYuzde.toLocaleString("tr-TR")}.`,
+            ),
+          ]
+        : []),
     ],
   });
 }
@@ -592,11 +611,24 @@ export const VERIFIED_RESEARCH_RECORDS: ExtractedFinancialRecord[] = [
     conditions: ["Azami 94/6 paylaşım oranı sunulur; vade 31-35 gün aralığındadır."],
     evidence: [evidence("kar_paylasim_orani", "Kampanya kapsamında azami 94/6 kâr paylaşım oranı ile hesap açma avantajı belirtilmiştir.")],
   }),
+  // Oranlar bankanın ihtiyaç finansmanı sayfasındaki resmî maliyet tablosundan.
+  // Üçüncü değer aylık toplam maliyet oranıdır (komisyon + yasal vergiler dâhil,
+  // sigorta hariç) ve hesaplama motorunu doğrulamak için saklanır.
   ...[3, 12, 18, 24, 35, 36].map((term, i) =>
-    tfConsumerRate(term, [4.09, 4.05, 4.05, 3.99, 3.94, 3.89][i], "Sigortalı"),
+    tfConsumerRate(
+      term,
+      [4.2, 4.15, 4.1, 4.05, 4.0, 3.8][i],
+      "Sigortalı",
+      [5.77, 5.5, 5.4, 5.33, 5.25, 4.98][i],
+    ),
   ),
   ...[3, 12, 18, 24, 35, 36].map((term, i) =>
-    tfConsumerRate(term, [5.99, 5.95, 5.95, 5.89, 5.84, 5.79][i], "Sigortasız"),
+    tfConsumerRate(
+      term,
+      [6.1, 6.05, 6.0, 5.95, 5.9, 5.7][i],
+      "Sigortasız",
+      [8.25, 7.98, 7.88, 7.8, 7.73, 7.46][i],
+    ),
   ),
   rec({
     bankId: "turkiye-finans",
