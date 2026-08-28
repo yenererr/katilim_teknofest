@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import { TopNav } from './components/TopNav';
-import { SideRail, SonIslem } from './components/SideRail';
 import { TabKey, TAB_TITLES, TAB_TO_HASH, tabFromHash } from './components/nav';
 import { HomeView, KarsilastirmaTalebi } from './components/HomeView';
 import { FeesView } from './components/FeesView';
@@ -16,8 +15,6 @@ import { ChatWidget } from './components/ChatWidget';
 import { VakifHesaplamaView } from './components/VakifHesaplamaView';
 import { FindeksAnalizView } from './components/FindeksAnalizView';
 import { ToastProvider, useToast } from './components/Toast';
-import { FINANSMAN_TURLERI } from './data/piyasa';
-import { sayiBicim } from './lib/finansman';
 import { ExtractionResponse, KatilimUrunu, LiveProductsResponse } from './types';
 import { KarsilastirmaOgesi } from './lib/compare';
 import {
@@ -44,12 +41,6 @@ interface HistoryEntry {
   products: KatilimUrunu[];
   timestamp: string;
   bankName?: string;
-}
-
-/** Sol paneldeki “son işlemler” listesi — hem karşılaştırmalar hem çıkarımlar. */
-interface KarsilastirmaKaydi extends KarsilastirmaTalebi {
-  id: string;
-  zaman: string;
 }
 
 const VARSAYILAN_TALEP: KarsilastirmaTalebi = {
@@ -112,7 +103,6 @@ function AppInner() {
   const [seciliIds, setSeciliIds] = useState<string[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [talep, setTalep] = useState<KarsilastirmaTalebi>(VARSAYILAN_TALEP);
-  const [karsilastirmalar, setKarsilastirmalar] = useState<KarsilastirmaKaydi[]>([]);
   const [liveProductCount, setLiveProductCount] = useState<number>(0);
   const [asistanSorusu, setAsistanSorusu] = useState<string | undefined>(undefined);
 
@@ -289,14 +279,6 @@ function AppInner() {
   const handleKarsilastir = useCallback(
     (yeni: KarsilastirmaTalebi) => {
       setTalep(yeni);
-      setKarsilastirmalar((prev) =>
-        [
-          { ...yeni, id: `kars_${Date.now()}`, zaman: saatDamgasi() },
-          ...prev.filter(
-            (k) => !(k.tur === yeni.tur && k.tutar === yeni.tutar && k.vadeAy === yeni.vadeAy),
-          ),
-        ].slice(0, 8),
-      );
       setActiveTab('compare');
     },
     [setActiveTab],
@@ -306,43 +288,6 @@ function AppInner() {
     setAsistanSorusu(soru);
     setActiveTab('finansman-asistani');
   }, []);
-
-  /** Sol paneldeki son işlemler: karşılaştırmalar önce, ardından çıkarımlar. */
-  const sonIslemler = useMemo<SonIslem[]>(() => {
-    const karsList: SonIslem[] = karsilastirmalar.map((k) => ({
-      id: `kars::${k.id}`,
-      baslik: FINANSMAN_TURLERI.find((f) => f.key === k.tur)?.etiket ?? 'Finansman',
-      altBaslik: `${sayiBicim(k.tutar)} TL · ${k.vadeAy} ay`,
-      zaman: k.zaman,
-      bankaAdi: 'Karşılaştırma',
-    }));
-    const cikarimList: SonIslem[] = history.map((h) => ({
-      id: `hist::${h.id}`,
-      baslik: h.bankName ?? 'Çıkarım',
-      altBaslik: `${h.products.length} ürün çıkarıldı`,
-      zaman: h.timestamp,
-      bankaAdi: h.bankName,
-    }));
-    return [...karsList, ...cikarimList];
-  }, [karsilastirmalar, history]);
-
-  const handleSonIslemSec = (id: string) => {
-    if (id.startsWith('kars::')) {
-      const kayit = karsilastirmalar.find((k) => `kars::${k.id}` === id);
-      if (kayit) {
-        setTalep({ tur: kayit.tur, tutar: kayit.tutar, vadeAy: kayit.vadeAy });
-        setActiveTab('compare');
-      }
-      return;
-    }
-    const kayit = history.find((h) => `hist::${h.id}` === id);
-    if (kayit) {
-      setAsistanSorusu(
-        `${kayit.bankName || 'Bu banka'} ürün ve kampanya koşullarını özetle`,
-      );
-      setActiveTab('finansman-asistani');
-    }
-  };
 
   const productCount = latestResult?.urunler?.length ?? 0;
   const reviewCount = ogeler.filter((o) => o.product.manuel_dogrulama_gerekli).length;
@@ -371,13 +316,6 @@ function AppInner() {
       />
 
       <div className="flex">
-        <SideRail
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          sonIslemler={sonIslemler}
-          onSonIslemSec={handleSonIslemSec}
-        />
-
         <div className="flex min-w-0 flex-1 flex-col">
           <main
             id="main-content"

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { Bell, Bookmark, ChevronDown, Moon, Sun, Download } from 'lucide-react';
+import { Bell, Bookmark, Moon, Sun, Download } from 'lucide-react';
 import { ANA_NAV, TabKey } from './nav';
 import { BRAND_NAME, BRAND_TAGLINE, HEADER_LOGO } from '../lib/brand';
 
@@ -157,11 +157,6 @@ export const TopNav: React.FC<TopNavProps> = ({
               <Moon className="h-4.5 w-4.5" aria-hidden="true" />
             )}
           </button>
-
-          <span className="hidden min-h-11 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-semibold text-white shadow-raised sm:inline-flex">
-            Giriş Yap
-            <ChevronDown className="h-4 w-4 text-white/80" aria-hidden="true" />
-          </span>
         </div>
       </div>
 

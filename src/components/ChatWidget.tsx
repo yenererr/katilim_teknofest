@@ -20,6 +20,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   onNavigate,
 }) => {
   const [open, setOpen] = useState(false);
+  /** Karşılama balonu — kullanıcı kapatınca bu oturumda bir daha gösterilmez. */
+  const [balonGorunur, setBalonGorunur] = useState(false);
   const panelId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const fabRef = useRef<HTMLButtonElement>(null);
@@ -27,6 +29,33 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   useEffect(() => {
     if (hidden) setOpen(false);
   }, [hidden]);
+
+  // Sayfa oturduktan kısa süre sonra bir kez belirir; dikkat dağıtmaması için
+  // sohbet açıldığında veya kapatıldığında bir daha gösterilmez.
+  useEffect(() => {
+    if (hidden) return;
+    try {
+      if (sessionStorage.getItem('katilim-karsilama-balonu') === 'kapali') return;
+    } catch {
+      /* sessionStorage engelliyse balonu yine de göster */
+    }
+    const t = window.setTimeout(() => setBalonGorunur(true), 1200);
+    return () => window.clearTimeout(t);
+  }, [hidden]);
+
+  const balonuKapat = () => {
+    setBalonGorunur(false);
+    try {
+      sessionStorage.setItem('katilim-karsilama-balonu', 'kapali');
+    } catch {
+      /* yoksay */
+    }
+  };
+
+  useEffect(() => {
+    if (open) balonuKapat();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -109,6 +138,35 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* AnimatePresence kullanılmaz: çıkış animasyonu düğümü DOM'da opacity:0
+          hâlde bırakıyor ve görünmez ama odaklanabilir bir balon kalıyordu. */}
+      {balonGorunur && !open && (
+        <motion.div
+          initial={{ opacity: 0, y: 8, scale: 0.94 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          className="pointer-events-auto relative max-w-[17rem] rounded-2xl rounded-br-sm border border-line bg-surface px-3.5 py-3 shadow-float"
+        >
+          <button
+            type="button"
+            onClick={balonuKapat}
+            aria-label="Karşılama balonunu kapat"
+            className="absolute -top-2 -right-2 grid h-6 w-6 place-items-center rounded-full border border-line bg-surface text-txt-muted shadow-sm transition-colors hover:text-txt"
+          >
+            <X className="h-3 w-3" aria-hidden="true" />
+          </button>
+          <button type="button" onClick={() => setOpen(true)} className="block text-left">
+            <p className="text-sm leading-relaxed text-txt">
+              Merhaba! Katılım bankalarının tüm işlemleri, öneriler ve sorularınız için
+              buradayım.
+            </p>
+            <span className="mt-1.5 inline-block text-xs font-medium text-brand-600 dark:text-brand-400">
+              Sohbeti başlat →
+            </span>
+          </button>
+        </motion.div>
+      )}
 
       <motion.button
         ref={fabRef}

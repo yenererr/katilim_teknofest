@@ -8,7 +8,6 @@ import {
   FileCode2,
   BookOpen,
   Calculator,
-  Percent,
   ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
@@ -37,8 +36,12 @@ export interface NavItem {
 /** Üst çubuktaki ana gezinme — referans arayüzdeki sıra. */
 export const ANA_NAV: NavItem[] = [
   { key: 'home', label: 'Ana Sayfa', shortLabel: 'Ana Sayfa', icon: Home },
-  { key: 'hesaplama', label: 'Hesaplama', shortLabel: 'Hesapla', icon: Calculator },
-  { key: 'kar-payi', label: 'Kâr Payı', shortLabel: 'Kâr Payı', icon: Percent },
+  {
+    key: 'hesaplama',
+    label: 'Hesaplama Motorları',
+    shortLabel: 'Hesaplama',
+    icon: Calculator,
+  },
   { key: 'findeks', label: 'Findeks Analizi', shortLabel: 'Findeks', icon: ShieldCheck },
   { key: 'kampanyalar', label: 'Kampanyalar', shortLabel: 'Kampanya', icon: Megaphone },
   { key: 'ucretler', label: 'Ücretler', shortLabel: 'Ücret', icon: Receipt },
@@ -67,8 +70,9 @@ export const TAB_TITLES: Record<TabKey, { baslik: string; aciklama: string }> = 
     aciklama: 'Konut, taşıt ve ihtiyaç finansmanı teklifleri.',
   },
   hesaplama: {
-    baslik: 'Finansman Hesaplama',
-    aciklama: 'Taksit, toplam tutar ve ödeme planını hesaplayın.',
+    baslik: 'Hesaplama Motorları',
+    aciklama:
+      'Finansman hesaplama ve kâr payı hesaplama araçları — sekmeden seçin.',
   },
   'kar-payi': {
     baslik: 'Kâr Payı Hesaplama',
