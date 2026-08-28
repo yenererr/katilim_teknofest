@@ -56,13 +56,33 @@ const ORAN_DESENI = /(?:%\s*\d[\d.,]*)|(?:\d[\d.,]*\s*%)|(?:yüzde\s+\d[\d.,]*)/
  * sayfalarında vergi, çerez ve promosyon oranları da yer alır.
  */
 const ORAN_DISLAMA =
-  /(kkdf|bsmv|kdv|vergi|stopaj|gider\s*vergisi|indirim|iskonto|nem|kdv\s*dahil|cerez|komisyon|erken\s*kapama|erken\s*odeme|getiri\s*oran|hos\s*geldin|temettu|gecikme|azami\s*oran|asgari\s*oran|kalan\s*vade)/;
+  /(kkdf|bsmv|kdv|vergi|stopaj|gider\s*vergisi|indirim|iskonto|nem|kdv\s*dahil|cerez|komisyon|erken\s*kapama|erken\s*odeme|getiri\s*oran|hos\s*geldin|temettu|gecikme|azami\s*oran|asgari\s*oran|kalan\s*vade|paylasim\s*oran)/;
 
 /**
  * Ücret/oran tablolarından alınan satırlar. Bu sayfalar tek bir ürünün
  * kampanya metni değil, onlarca kalemin listesidir; oran ataması güvenilmez.
  */
 const TABLO_SATIRI = /(urun\s*\/\s*islem|para\s*birimi|asgari\s*tutar|azami\s*tutar|guncelleme\s*tarihi|tutar\s*kirilim|alt\s*limit)/;
+
+/**
+ * Oranın hangi metin parçasına ait sayılacağını belirleyen pencere
+ * (karakter). Bir cümlenin tamamına bakmak, uzun bilgilendirme
+ * bloklarında yanlış karara yol açıyor.
+ */
+const ORAN_PENCERESI = 140;
+
+/**
+ * "Aylık kâr payı oranı : %1,20" gibi doğrudan etiketlenmiş değer.
+ *
+ * Bilgilendirme formlarında oran satırının hemen ardından KKDF/BSMV
+ * satırları gelir; pencere bunları da görür ve doğru oran elenirdi.
+ * Sayıya en yakın etiket kâr payı ise vergi kalemleri onu geçersiz
+ * kılmaz — sayı zaten o etikete aittir.
+ */
+const ETIKETLI_ORAN = /(kar\s*pay[iı]?\s*oran[iı]?|kar\s*oran[iı])\s*:?\s*%?\s*$/;
+
+/** Etiketin hemen öncesinde bakılacak karakter sayısı. */
+const ETIKET_PENCERESI = 40;
 
 /** Katılım finansmanı için makul aylık ve yıllık oran aralıkları. */
 const AYLIK_ALT = 0.001; // %0,1
@@ -107,29 +127,61 @@ export const oranCikar = (metin: string): OranBulgusu => {
     if (deger === null) continue;
 
     const cumle = kanitCumlesi(cumleler, eslesme.index);
-    const baglam = asciiKatla(cumle?.metin ?? katlanmis);
+    const cumleBaglami = asciiKatla(cumle?.metin ?? katlanmis);
+    // Bilgilendirme formları ve ürün tabloları tek bir "cümle" olarak
+    // ayrışıyor (yüzlerce, bazen binlerce karakter). Böyle bir blokta
+    // "Aylık kâr payı oranı %1,20" ile "gecikme cezası oranı %15" aynı
+    // bağlamı paylaşır ve doğru oran, blokta geçen bir dışlama kelimesi
+    // yüzünden elenir. Bu yüzden karar oranın yakın çevresine bakılarak
+    // verilir; cümle yalnızca ürün bağlamı için geniş tutulur.
+    const yakinBaglam = asciiKatla(
+      metin.slice(
+        Math.max(0, eslesme.index - ORAN_PENCERESI),
+        eslesme.index + ham.length + ORAN_PENCERESI,
+      ),
+    );
 
     // Oranın kâr payına ait olduğunu doğrula. Yalnız "oran" kelimesi yetmez —
     // ücret ve komisyon tablolarının her satırında geçer. Ya kâr payı açıkça
     // anılmalı ya da faiz karşılığı bir finansman ürünüyle birlikte geçmeli.
-    const karPayiAnildi = /(kar\s*pay|kar\s*orani|faiz)/.test(baglam);
-    const urunBaglami = /(konut|tasit|ihtiyac|finansman|katilma)/.test(baglam);
+    const karPayiAnildi = /(kar\s*pay|kar\s*orani|faiz)/.test(yakinBaglam);
+    // Ürün adı sayfanın başlığında olabilir; bu yüzden cümle geneli de kabul.
+    const urunBaglami =
+      // Kredi kartının "akdi kâr payı oranı" da bir kâr payı oranıdır.
+      /(konut|tasit|ihtiyac|finansman|katilma|togg|arac|kart)/.test(yakinBaglam) ||
+      /(konut|tasit|ihtiyac|finansman|katilma)/.test(cumleBaglami);
+    // Sayının hemen önündeki etiket — en güçlü sinyal.
+    const onEk = asciiKatla(
+      metin.slice(Math.max(0, eslesme.index - ETIKET_PENCERESI), eslesme.index),
+    );
+    const dogrudanEtiketli = ETIKETLI_ORAN.test(onEk);
+
     if (!karPayiAnildi || !urunBaglami) continue;
-    if (ORAN_DISLAMA.test(baglam)) continue;
-    if (TABLO_SATIRI.test(baglam)) continue;
+    if (!dogrudanEtiketli && ORAN_DISLAMA.test(yakinBaglam)) continue;
+    if (!dogrudanEtiketli && TABLO_SATIRI.test(yakinBaglam)) continue;
 
     let periyot: OranBulgusu['periyot'] = 'belirsiz';
-    if (/\bayl[iı]k\b|\bay\s*bas[iı]na\b|\/\s*ay\b/.test(baglam)) periyot = 'aylik';
-    else if (/\by[iı]ll[iı]k\b|\bsenelik\b|\byil\s*bas[iı]na\b/.test(baglam)) periyot = 'yillik';
+    if (/\bayl[iı]k\b|\bay\s*bas[iı]na\b|\/\s*ay\b/.test(yakinBaglam)) periyot = 'aylik';
+    else if (/\by[iı]ll[iı]k\b|\bsenelik\b|\byil\s*bas[iı]na\b/.test(yakinBaglam)) {
+      periyot = 'yillik';
+    }
 
-    if (!oranMakulMu(deger, periyot)) continue;
+    // "Akdi kâr payı oranı %0 olarak belirlenmiştir" geçerli bir değerdir;
+    // ama etiketsiz bir %0 çoğunlukla tablo artığıdır.
+    const sifirGecerli = dogrudanEtiketli && deger === 0;
+    if (!sifirGecerli && !oranMakulMu(deger, periyot)) continue;
 
     // Bağlam puanı: kâr payı ifadesi ve finansman ürünü yakınlığı ödüllendirilir.
     let puan = 0;
-    if (/kar\s*pay/.test(baglam)) puan += 3;
+    if (/kar\s*pay/.test(yakinBaglam)) puan += 3;
     if (periyot !== 'belirsiz') puan += 2;
-    if (/(konut|tasit|ihtiyac|finansman)/.test(baglam)) puan += 2;
-    if (/(kampanya|ozel|firsat)/.test(baglam)) puan += 1;
+    if (/(konut|tasit|ihtiyac|finansman)/.test(yakinBaglam)) puan += 2;
+    if (/(kampanya|ozel|firsat)/.test(yakinBaglam)) puan += 1;
+    // Doğrudan etiketlenmiş değer en güvenilir olanıdır.
+    if (dogrudanEtiketli) puan += 4;
+    // "Efektif yıllık kâr payı oranı" sözleşmede türetilmiş bir açıklama
+    // kalemidir; kampanyanın ilan ettiği oran aylık olandır.
+    if (/efektif/.test(onEk)) puan -= 5;
     // Uzun cümleler genelde tablo/boilerplate; kısa cümleler daha güvenilir.
     if ((cumle?.metin.length ?? 0) < 200) puan += 1;
 

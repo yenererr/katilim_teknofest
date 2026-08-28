@@ -816,7 +816,7 @@ npx tsx -e "import('./src/nlp').then(n => console.log(n.kuralTabanliCikar('Aylı
 - **Konuşma durumu bellekte.** Çıkarım sonuçları PostgreSQL'de kalıcıdır, ancak Finansman Asistanı'nın konuşma durumu sunucu belleğindedir ve yeniden başlatmada sıfırlanır.
 - **Finansman Asistanı canlı veriye bağlıdır.** Scrape/ürün kapsamı seyrekse `no_verified_data` döner; demo veri gerçek sonuç gibi gösterilmez.
 - **Varsayılan yapılandırma dış servise gider.** Yerel LLM ve yerel vektör veritabanı desteklenir (bkz. [On-premise çalıştırma](#on-premise-kurum-içi-çalıştırma)), ancak varsayılan `.env` EVREN ve uzak Qdrant'ı gösterir. Kurum içi kurulumda bu değerler değiştirilmelidir.
-- **Kâr payı oranı çıkarımında recall düşük.** Gold sette precision %100, recall %40: sistem yanlış oran üretmiyor ama bazı ifade biçimlerini kaçırıyor. Kaçırdığında oran uydurmak yerine "doğrulanmış veri yok" der.
+- **Vade × kur matrisi okunamıyor.** Leasing gibi ürünlerde oran, satırları vade sütunları döviz cinsi olan bir tabloda verilir; tablo yapısı çözümlenmediği için bu biçimdeki oran kaçırılır. Kaçırdığında oran uydurmak yerine "doğrulanmış veri yok" der (gold sette kâr payı oranı precision %100).
 - **Kampanya türü sınıflandırmasında Kart ↔ Alışveriş Puanı karışıyor.** Makro F1 %54,7; hataların çoğu bu iki sınıf arasında. İkisini ayıran ölçüt metinde değil, etiketleme kılavuzunun konvansiyonundadır.
 - **Bazı bankalarda konut/taşıt oranı yayımlanmıyor.** Banka oranı yalnızca hesaplama aracında veriyorsa ve o bankanın canlı motoru yoksa oran üretilmez.
 

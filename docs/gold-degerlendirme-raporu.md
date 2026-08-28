@@ -27,14 +27,14 @@ veri setine ezberlenip ezberlenmediğini gösterir.
 
 | Küme | Kayıt | Mikro F1 | Precision | Recall | Doğru susma | Tür doğruluğu |
 |---|---:|---:|---:|---:|---:|---:|
-| Geliştirme (`set_round1`) | 134 | 68.3% | 66.4% | 70.3% | 49.5% | 57.9% |
-| **Saklı test (`set_v2`)** | 48 | **68.8%** | 66.7% | 71.1% | 93.8% | 46.2% |
+| Geliştirme (`set_round1`) | 134 | 70.1% | 67.3% | 73.2% | 49.5% | 57.9% |
+| **Saklı test (`set_v2`)** | 48 | **69.6%** | 67.1% | 72.4% | 93.8% | 46.2% |
 
 ## Alan bazlı sonuçlar
 
 | Alan | Destek | Precision | Recall | F1 | Doğru susma | Kanıt metinde |
 |---|---:|---:|---:|---:|---:|---:|
-| `kar_payi_orani` | 10 | 100.0% | 40.0% | 57.1% | 100.0% | 100.0% |
+| `kar_payi_orani` | 10 | 100.0% | 90.0% | 94.7% | 100.0% | 100.0% |
 | `vade_ay` | 38 | 44.4% | 52.6% | 48.2% | 71.3% | 100.0% |
 | `finansman_tutari` | 22 | 34.4% | 50.0% | 40.7% | 67.7% | 100.0% |
 | `tahsis_ucreti` | 0 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
@@ -45,7 +45,7 @@ veri setine ezberlenip ezberlenmediğini gösterir.
 | `indirim_orani` | 2 | 33.3% | 50.0% | 40.0% | 95.7% | 100.0% |
 | `odul_miktari` | 6 | 75.0% | 100.0% | 85.7% | 95.6% | 100.0% |
 | `hedef_kitle` | 19 | 44.4% | 42.1% | 43.2% | 70.6% | 100.0% |
-| **Mikro ortalama** | **214** | **66.5%** | **70.6%** | **68.5%** | **85.8%** | **100.0%** |
+| **Mikro ortalama** | **214** | **67.2%** | **72.9%** | **70.0%** | **85.8%** | **100.0%** |
 
 **Doğru susma**: alanın kaynakta bulunmadığı etiketlenmiş kayıtlarda sistemin
 değer üretmeme oranı. Uydurma üretimi doğrudan bu sütunu düşürür.
@@ -91,7 +91,7 @@ sistemin nerede zorlandığını gösterir.
 
 | Alan | Destek (zor) | F1 (zor) | F1 (tümü) |
 |---|---:|---:|---:|
-| `kar_payi_orani` | 3 | 50.0% | 57.1% |
+| `kar_payi_orani` | 3 | 80.0% | 94.7% |
 | `vade_ay` | 7 | 46.2% | 48.2% |
 | `finansman_tutari` | 4 | 33.3% | 40.7% |
 | `taksit_sayisi` | 6 | 75.0% | 80.9% |
@@ -104,6 +104,6 @@ sistemin nerede zorlandığını gösterir.
 
 ## Özet
 
-- Mikro ortalama F1: **68.5%** (precision 66.5%, recall 70.6%)
+- Mikro ortalama F1: **70.0%** (precision 67.2%, recall 72.9%)
 - Kaynakta olmayan alanda doğru susma: **85.8%**
 - Üretilen değerlerin kanıtı kaynak metinde bulunma oranı: **100.0%**

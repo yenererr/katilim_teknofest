@@ -76,7 +76,7 @@ describe("çıkarım başarısı — regresyon eşikleri", () => {
   const sakliTest = degerlendir(kayitlar.filter((k) => k.setGroup === "set_v2"));
 
   it("mikro F1 eşiğin altına düşmez", () => {
-    expect(mikroOrtalama(tumu.alanlar).f1).toBeGreaterThan(0.6);
+    expect(mikroOrtalama(tumu.alanlar).f1).toBeGreaterThan(0.65);
   });
 
   it("saklı test kümesinde de eşiği korur", () => {
@@ -99,6 +99,7 @@ describe("çıkarım başarısı — regresyon eşikleri", () => {
       taksit_sayisi: 0.7,
       alisveris_puani: 0.7,
       odul_miktari: 0.7,
+      kar_payi_orani: 0.85,
     };
     for (const [alan, esik] of Object.entries(esikler)) {
       const f1 = metrikHesapla(

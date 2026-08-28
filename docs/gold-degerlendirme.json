@@ -4,14 +4,14 @@
     "bankaSayisi": 10,
     "alanlar": {
       "kar_payi_orani": {
-        "tp": 4,
+        "tp": 9,
         "fp": 0,
-        "fn": 6,
+        "fn": 1,
         "tn": 53,
         "yanlisDeger": 0,
-        "kanitDogrulandi": 4,
-        "spanOrtusmesi": 1,
-        "kanitliTahmin": 4
+        "kanitDogrulandi": 9,
+        "spanOrtusmesi": 4,
+        "kanitliTahmin": 9
       },
       "vade_ay": {
         "tp": 20,
@@ -169,14 +169,14 @@
     },
     "zorKayitAlanlari": {
       "kar_payi_orani": {
-        "tp": 1,
+        "tp": 2,
         "fp": 0,
-        "fn": 2,
+        "fn": 1,
         "tn": 35,
         "yanlisDeger": 0,
-        "kanitDogrulandi": 1,
-        "spanOrtusmesi": 1,
-        "kanitliTahmin": 1
+        "kanitDogrulandi": 2,
+        "spanOrtusmesi": 2,
+        "kanitliTahmin": 2
       },
       "vade_ay": {
         "tp": 3,
@@ -285,14 +285,14 @@
     "bankaSayisi": 9,
     "alanlar": {
       "kar_payi_orani": {
-        "tp": 3,
+        "tp": 7,
         "fp": 0,
-        "fn": 4,
+        "fn": 0,
         "tn": 10,
         "yanlisDeger": 0,
-        "kanitDogrulandi": 3,
-        "spanOrtusmesi": 0,
-        "kanitliTahmin": 3
+        "kanitDogrulandi": 7,
+        "spanOrtusmesi": 2,
+        "kanitliTahmin": 7
       },
       "vade_ay": {
         "tp": 17,
@@ -563,14 +563,14 @@
     "bankaSayisi": 10,
     "alanlar": {
       "kar_payi_orani": {
-        "tp": 1,
+        "tp": 2,
         "fp": 0,
-        "fn": 2,
+        "fn": 1,
         "tn": 43,
         "yanlisDeger": 0,
-        "kanitDogrulandi": 1,
-        "spanOrtusmesi": 1,
-        "kanitliTahmin": 1
+        "kanitDogrulandi": 2,
+        "spanOrtusmesi": 2,
+        "kanitliTahmin": 2
       },
       "vade_ay": {
         "tp": 3,
@@ -713,14 +713,14 @@
     },
     "zorKayitAlanlari": {
       "kar_payi_orani": {
-        "tp": 1,
+        "tp": 2,
         "fp": 0,
-        "fn": 2,
+        "fn": 1,
         "tn": 35,
         "yanlisDeger": 0,
-        "kanitDogrulandi": 1,
-        "spanOrtusmesi": 1,
-        "kanitliTahmin": 1
+        "kanitDogrulandi": 2,
+        "spanOrtusmesi": 2,
+        "kanitliTahmin": 2
       },
       "vade_ay": {
         "tp": 3,

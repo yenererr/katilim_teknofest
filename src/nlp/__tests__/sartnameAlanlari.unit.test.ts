@@ -162,3 +162,46 @@ describe('çıkarılan kayıt alanları eşleşebilir kodlar taşır', () => {
     expect(kayit.campaignAdvantage).toBeTruthy();
   });
 });
+
+describe('kâr payı oranı — uzun bilgilendirme metinleri', () => {
+  it('oranı bloğun tamamına değil, yakın çevresine göre değerlendirir', () => {
+    // Bilgilendirme formları tek bir dev "cümle" olarak ayrışıyor. Blokta
+    // geçen KKDF/BSMV, hemen yanında etiketlenmiş oranı elememeli.
+    const form =
+      'Finansman Tutarı : 10.000 TL Taksit Sayısı : 12 ay Aylık Kar payı oranı : %1,20 ' +
+      'Efektif Yıllık Kar Payı Oranı : %23,52 KKDF ve BSMV oranları %15 olarak uygulanır ' +
+      've gecikme cezası oranı ayrıca hesaplanır.';
+    const c = kuralTabanliCikar(form);
+    expect(c.kar_payi_orani.deger).toBeCloseTo(0.012, 6);
+    expect(c.kar_payi_orani.periyot).toBe('aylik');
+  });
+
+  it('efektif yıllık oranı kampanya oranı yerine koymaz', () => {
+    const form =
+      'Aylık kâr payı oranı : %2,50 Efektif Yıllık Kâr Payı Oranı : %34,49 ' +
+      'ihtiyaç finansmanı için geçerlidir.';
+    expect(kuralTabanliCikar(form).kar_payi_orani.deger).toBeCloseTo(0.025, 6);
+  });
+
+  it('kâr paylaşım oranını kâr payı oranı sanmaz', () => {
+    // Katılma hesabında paylaşım oranı bambaşka bir kavramdır (şartname 5.5).
+    const metin =
+      'Örneğin, 99 kâr paylaşım oranı, vade sonunda oluşan kârın %99’unun ' +
+      'müşteriye, %1’inin ise bankaya aktarılacağını ifade eder.';
+    expect(kuralTabanliCikar(metin).kar_payi_orani.deger).toBeNull();
+  });
+
+  it('etiketlenmiş %0 oranı geçerli değerdir', () => {
+    const metin =
+      'Güncelleme tarihi 01.01.2026. Aylık akdi kâr payı oranı %0. ' +
+      'Bireysel kredi kartları için geçerlidir.';
+    expect(kuralTabanliCikar(metin).kar_payi_orani.deger).toBe(0);
+  });
+
+  it('etiketsiz %0 değerini oran saymaz', () => {
+    const metin =
+      'Konut finansmanı kampanyasında ilk taksit %0 peşinatla ertelenebilir; ' +
+      'kâr payı oranı şubelerimizden öğrenilebilir.';
+    expect(kuralTabanliCikar(metin).kar_payi_orani.deger).toBeNull();
+  });
+});
