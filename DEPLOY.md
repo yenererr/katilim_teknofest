@@ -73,7 +73,68 @@ kullanılabilir:
 
 Bu iki alan `false` dönüyorsa ortam değişkenleri konteynere ulaşmamıştır.
 
-## 4. Kalıcı depolama (opsiyonel)
+## 4. Veritabanı göçleri (migration)
+
+Şema değişiklikleri `migrations/` altındaki numaralı `.sql` dosyalarıyla
+uygulanır. Uygulananlar veritabanındaki `schema_migrations` tablosunda
+tutulur; komut ikinci kez çalıştırıldığında bekleyen göç yoksa hiçbir şey
+yapmaz.
+
+**Önce kuru prova** — göçü uygular, sonucu gösterir, geri alır:
+
+```bash
+npm run db:migrate -- --dry
+```
+
+**Sonra gerçek uygulama:**
+
+```bash
+npm run db:migrate
+```
+
+### Nereden çalıştırmalı
+
+Üç seçenek var, hepsi aynı sonucu verir:
+
+1. **Kendi makinenizden (en pratik).** `.env` dosyasındaki `DATABASE_URL`
+   canlı veritabanını gösteriyorsa komut doğrudan çalışır. `psql` kurulumu
+   gerekmez — bağlantı uygulamanın kendi `pg` istemcisiyle kurulur. Bunun
+   için veritabanının dışarıdan erişilebilir olması gerekir (Dokploy'da
+   PostgreSQL servisinin **External Connection** ayarı açık olmalı).
+
+2. **Dokploy konteyner terminalinden.** Dokploy → uygulama → **Terminal**
+   sekmesi çalışan konteynere bağlanır. Konteynerde derlenmiş kod ve
+   ortam değişkenleri hazır olduğu için:
+
+   ```bash
+   npm run db:migrate
+   ```
+
+   Not: üretim imajında `devDependencies` kurulu değilse `tsx` bulunmaz;
+   o durumda 1. veya 3. seçeneği kullanın.
+
+3. **PostgreSQL konteynerinden `psql` ile.** Dokploy → PostgreSQL servisi →
+   **Terminal**, sonra dosyayı elle yapıştırarak:
+
+   ```bash
+   psql -U <kullanici> -d katilim
+   ```
+
+   `migrations/002_sartname_alanlari.sql` içeriği doğrudan yapıştırılabilir;
+   betik idempotenttir, iki kez çalışması sorun çıkarmaz.
+
+### Göçten sonra
+
+Yeni alanların mevcut kayıtlara işlenmesi için tam tarama gerekir:
+
+```bash
+curl -X POST https://<alan-adiniz>/api/live/campaigns/resync   -H "x-admin-key: $ADMIN_API_KEY"
+```
+
+Göç, tarama beklemeden `payload` içindeki mevcut değerleri de sütunlara
+taşır; tarama bunu tüm kayıtlara yayar.
+
+## 5. Kalıcı depolama (opsiyonel)
 
 Scraper indirdiği sayfaları `/app/.scraper-cache` altına yazar. Bu klasör
 olmadan da çalışır, yalnızca her dağıtımdan sonra ilk tarama sıfırdan
@@ -83,7 +144,7 @@ yapılır. Kalıcı olmasını isterseniz Dokploy → **Volumes**:
 /app/.scraper-cache
 ```
 
-## 5. Kaynak gereksinimi
+## 6. Kaynak gereksinimi
 
 Scraper 10 bankayı `SCRAPER_INTERVAL_MINUTES` aralığıyla tarar ve HTML
 ayrıştırır. 1 vCPU / 1 GB RAM tipik kullanım için yeterlidir. Bellek dar
@@ -91,7 +152,7 @@ gelirse `SCRAPER_INTERVAL_MINUTES` değerini artırın veya
 `SCRAPER_ENABLED=false` ile taramayı kapatıp Qdrant'taki mevcut indeksle
 çalıştırın.
 
-## 6. Yerelde imajı doğrulama
+## 7. Yerelde imajı doğrulama
 
 Dokploy'a göndermeden önce aynı imajı yerelde çalıştırabilirsiniz:
 

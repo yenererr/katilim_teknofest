@@ -362,7 +362,7 @@ Sistem yalnızca 11 katılım bankasının resmî domainlerini tarar. VakıfBank
 ### Migration
 
 ```bash
-psql "$DATABASE_URL" -f migrations/001_katilim_finans.sql
+npm run db:migrate
 ```
 
 `DATABASE_URL` yoksa bellek içi depo kullanılır; uygulama çalışmaya devam eder.
