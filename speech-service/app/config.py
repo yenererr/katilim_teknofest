@@ -26,10 +26,11 @@ STT_COMPUTE_TYPE = os.getenv("STT_COMPUTE_TYPE", "auto")
 STT_LANGUAGE = os.getenv("STT_LANGUAGE", "tr")
 
 # TTS Configuration
-# "piper" or "xtts"
-TTS_ENGINE = os.getenv("TTS_ENGINE", "piper").lower()
+# Yalnizca Piper desteklenir. Coqui XTTS v2 yolu kaldirildi: agirliklari CPML
+# (ticari olmayan) lisansliydi ve sartname 5.10 acik kaynak/lisans kosuluyla
+# celisiyordu. Piper agirliklari MIT / Open Data lisanslidir.
+TTS_ENGINE = "piper"
 PIPER_VOICE = os.getenv("PIPER_VOICE", "tr_TR-dfki-medium")
-XTTS_MODEL_NAME = os.getenv("XTTS_MODEL_NAME", "tts_models/multilingual/multi-dataset/xtts_v2")
 
 # Cache Directories
 MODELS_CACHE_DIR = Path(os.getenv("MODELS_CACHE_DIR", str(BASE_DIR / "models")))

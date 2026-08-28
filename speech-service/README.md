@@ -13,9 +13,8 @@ Bu servis, KatılımFinans platformu için tamamen yerel çalışan, açık kayn
    - Girdi Formatları: WAV, WebM, Ogg, MP3, M4A, AAC.
 
 2. **Text-to-Speech (TTS)**:
-   - Birincil Motor: `Piper TTS` (Sesler: `tr_TR-dfki-medium`, `tr_TR-fettah-medium`)
+   - Motor: `Piper TTS` (Sesler: `tr_TR-dfki-medium`, `tr_TR-fettah-medium`)
    - Lisans: **MIT / Open Data (Ticari Kullanıma Uygun)**
-   - Alternatif Prototip Motoru: Coqui XTTS v2 (CPML - Ticari Olmayan Prototip Uyarısı Dahil)
    - İşlev: Türkçe finansal metin normalizasyonu (TL, %, vadeler, banka markaları ve BSMV/KKDF terimleri sese uygun biçimlendirilir).
 
 3. **Güvenlik ve Gizlilik**:
@@ -29,7 +28,9 @@ Bu servis, KatılımFinans platformu için tamamen yerel çalışan, açık kayn
 
 - **faster-whisper & Whisper models**: **MIT Lisansı** (Ticari kullanıma serbest)
 - **Piper TTS & Türkçe Ses Kalıpları**: **MIT / Open Data** (Ticari kullanıma serbest)
-- **Coqui XTTS v2 (Opsiyonel)**: CPML (Coqui Public Model License) — **`NON-COMMERCIAL PROTOTYPE ONLY`**
+
+Ticari olmayan lisanslı model kullanılmaz: Coqui XTTS v2 yolu (CPML lisansı)
+koddan kaldırılmıştır.
 
 ---
 
@@ -61,7 +62,6 @@ SPEECH_DEVICE=auto
 STT_MODEL=large-v3-turbo
 STT_COMPUTE_TYPE=auto
 STT_LANGUAGE=tr
-TTS_ENGINE=piper
 PIPER_VOICE=tr_TR-dfki-medium
 MODELS_CACHE_DIR=./models
 ```

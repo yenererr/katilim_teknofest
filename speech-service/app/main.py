@@ -70,7 +70,7 @@ def health_check():
         "tts": {
             "engine": config.TTS_ENGINE,
             "default_voice": config.PIPER_VOICE,
-            "license": "MIT / Open Data (Commercial OK)" if config.TTS_ENGINE == "piper" else "CPML (NON-COMMERCIAL PROTOTYPE)"
+            "license": "MIT / Open Data (Commercial OK)"
         }
     }
 
@@ -120,8 +120,6 @@ def synthesize_endpoint(req: TTSRequest):
             "X-Speech-Processing-Time-Ms": str(meta.get("duration_ms", 0)),
             "X-Speech-License": meta.get("license", "MIT")
         }
-        if meta.get("engine") == "xtts":
-            headers["X-Speech-Notice"] = "NON-COMMERCIAL PROTOTYPE"
 
         return Response(content=wav_bytes, media_type="audio/wav", headers=headers)
     except ValueError as ve:

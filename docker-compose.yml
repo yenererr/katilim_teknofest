@@ -56,7 +56,6 @@ services:
       STT_MODEL: small
       STT_COMPUTE_TYPE: int8
       STT_LANGUAGE: tr
-      TTS_ENGINE: piper
       PIPER_VOICE: tr_TR-dfki-medium
       MODELS_CACHE_DIR: /app/models
     volumes:

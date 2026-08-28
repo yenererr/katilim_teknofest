@@ -130,11 +130,6 @@ def synthesize_speech(text: str, speaker_voice: str = None) -> Tuple[bytes, Dict
         raise ValueError("Provided text contains no synthesizable content after normalization.")
 
     voice = speaker_voice or config.PIPER_VOICE
-    engine = config.TTS_ENGINE
-
-    if engine == "xtts":
-        meta_warning = "NON-COMMERCIAL PROTOTYPE: Coqui XTTS v2 weights carry CPML non-commercial license."
-        logger.warning(meta_warning)
 
     wav_bytes, meta = synthesize_with_piper(normalized_text, voice)
     
