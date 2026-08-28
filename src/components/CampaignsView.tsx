@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CalendarDays, ExternalLink, Loader2 } from 'lucide-react';
+import { CalendarDays, ExternalLink, Loader2, Sparkles, Info } from 'lucide-react';
 import { BANKA_INDEKS } from '../data/piyasa';
 import { isDisplayableCampaignClient } from '../lib/kampanyaFiltre';
 import { kisaKampanyaAciklama } from '../lib/kampanyaOzet';
@@ -23,6 +23,14 @@ type LiveCampaign = {
   conditions?: string[];
   participationMethod?: string | null;
   manualReviewRequired?: boolean;
+};
+
+type KampanyaOzeti = {
+  ozet: string;
+  kaynak: 'kural' | 'model';
+  kullanilanAlanlar: string[];
+  veriYetersiz: boolean;
+  modelUyarisi: string | null;
 };
 
 type ThemeKey =
@@ -81,6 +89,40 @@ export const CampaignsView: React.FC = () => {
   const [tema, setTema] = useState<ThemeKey>('hepsi');
   const [liste, setListe] = useState<LiveCampaign[]>([]);
   const [yukleniyor, setYukleniyor] = useState(true);
+  /** Kampanya anahtarı → özet; her kart kendi özetini tutar. */
+  const [ozetler, setOzetler] = useState<Record<string, KampanyaOzeti>>({});
+  const [ozetYukleniyor, setOzetYukleniyor] = useState<string | null>(null);
+  const [ozetHatasi, setOzetHatasi] = useState<Record<string, string>>({});
+
+  /** Özet sunucuda kampanya kimliğinden üretilir; istemci metin göndermez. */
+  const ozetIste = async (anahtar: string, k: LiveCampaign) => {
+    if (ozetler[anahtar] || ozetYukleniyor) return;
+    setOzetYukleniyor(anahtar);
+    setOzetHatasi((p) => {
+      const { [anahtar]: _, ...kalan } = p;
+      return kalan;
+    });
+    try {
+      const r = await fetch('/api/live/campaigns/summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(k.id ? { id: k.id } : { sourceUrl: k.sourceUrl }),
+      });
+      if (!r.ok) {
+        const d = (await r.json().catch(() => ({}))) as { error?: string };
+        throw new Error(d.error || 'Özet alınamadı.');
+      }
+      const d = (await r.json()) as KampanyaOzeti;
+      setOzetler((p) => ({ ...p, [anahtar]: d }));
+    } catch (e) {
+      setOzetHatasi((p) => ({
+        ...p,
+        [anahtar]: e instanceof Error ? e.message : 'Özet alınamadı.',
+      }));
+    } finally {
+      setOzetYukleniyor(null);
+    }
+  };
   const [hata, setHata] = useState<string | null>(null);
 
   useEffect(() => {
@@ -247,6 +289,72 @@ export const CampaignsView: React.FC = () => {
                 <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
                 {bitis ? `Bitiş: ${bitis}` : 'Bitiş tarihi belirtilmemiş'}
               </p>
+
+              {/* Yalnızca bu ilanın alanlarından üretilen özet */}
+              <div className="mt-2.5 border-t border-line pt-2.5">
+                {!ozetler[rowKey] && !ozetHatasi[rowKey] && (
+                  <button
+                    type="button"
+                    onClick={() => void ozetIste(rowKey, k)}
+                    disabled={ozetYukleniyor !== null}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs font-medium text-txt-secondary transition-colors hover:border-brand-500 hover:text-brand-600 disabled:opacity-50 dark:hover:text-brand-400"
+                  >
+                    {ozetYukleniyor === rowKey ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                        Özetleniyor…
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                        AI ile özetlet
+                      </>
+                    )}
+                  </button>
+                )}
+
+                {ozetHatasi[rowKey] && (
+                  <p className="text-xs text-risk-700 dark:text-risk-300">
+                    {ozetHatasi[rowKey]}{' '}
+                    <button
+                      type="button"
+                      onClick={() => void ozetIste(rowKey, k)}
+                      className="font-medium underline"
+                    >
+                      Tekrar dene
+                    </button>
+                  </p>
+                )}
+
+                {ozetler[rowKey] && (
+                  <div
+                    className={`rounded-lg border px-3 py-2.5 ${
+                      ozetler[rowKey].veriYetersiz
+                        ? 'border-warn-200 bg-warn-50 dark:border-warn-800 dark:bg-warn-950'
+                        : 'border-brand-200 bg-brand-50/60 dark:border-brand-800 dark:bg-brand-950/40'
+                    }`}
+                  >
+                    <p className="flex items-center gap-1.5 text-[0.6875rem] font-medium tracking-wide text-txt-secondary uppercase">
+                      {ozetler[rowKey].veriYetersiz ? (
+                        <Info className="h-3.5 w-3.5" aria-hidden="true" />
+                      ) : (
+                        <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                      )}
+                      Kampanya özeti
+                    </p>
+                    <p className="mt-1.5 text-xs leading-relaxed text-txt">
+                      {ozetler[rowKey].ozet}
+                    </p>
+                    <p className="mt-2 text-[0.625rem] leading-relaxed text-txt-muted">
+                      {ozetler[rowKey].kaynak === 'model'
+                        ? 'Yapay zekâ ile üretildi; yalnızca bu kampanyanın kayıtlı alanları kullanıldı.'
+                        : 'Bu kampanyanın kayıtlı alanlarından üretildi.'}
+                      {ozetler[rowKey].kullanilanAlanlar.length > 0 &&
+                        ` Kaynak alanlar: ${ozetler[rowKey].kullanilanAlanlar.join(', ')}.`}
+                    </p>
+                  </div>
+                )}
+              </div>
             </li>
           );
         })}

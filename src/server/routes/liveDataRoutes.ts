@@ -10,6 +10,7 @@ import {
 } from "../services/scraper/orchestrator";
 import { listMemoryCampaigns, listMemoryProducts, isPostgresConfigured, ensureSchema, hydrateMemoryFromPostgres, pruneNonDisplayableCampaigns, replaceMemoryCampaigns, persistCampaignMemoryCache, loadCampaignMemoryCache } from "../services/postgres/store";
 import { getCollectionHealth, isQdrantConfigured } from "../services/qdrant";
+import { kampanyaOzetle } from "../services/kampanyaOzet/kampanyaOzetle";
 import { BANK_SOURCE_CONFIGS } from "../services/scraper/bankSourceConfig";
 import { getVerifiedFeeMatrix } from "../../data/verifiedFees";
 import {
@@ -109,6 +110,53 @@ export function createLiveDataRouter(): Router {
       structuredMemoryCount: memory.length,
       structuredProducts: memory,
     });
+  });
+
+  /**
+   * Tek bir kampanyanın özeti.
+   *
+   * Kampanya sunucuda kimliğinden bulunur; istemci metin gönderemez.
+   * Böylece özet yalnızca gerçekten o ilanın alanlarına dayanır.
+   */
+  router.post("/campaigns/summary", async (req, res) => {
+    const govde = z
+      .object({
+        id: z.string().min(1).max(200).optional(),
+        sourceUrl: z.string().url().max(2000).optional(),
+        modelKullan: z.boolean().optional(),
+      })
+      .refine((v) => Boolean(v.id || v.sourceUrl), {
+        message: "id veya sourceUrl gerekli",
+      })
+      .safeParse(req.body);
+
+    if (!govde.success) {
+      return res.status(400).json({ error: govde.error.issues[0]?.message ?? "geçersiz istek" });
+    }
+
+    const { id, sourceUrl, modelKullan } = govde.data;
+    const kayit = listMemoryCampaigns().find(
+      (c: { id?: string; sourceUrl?: string }) =>
+        (id && c.id === id) || (sourceUrl && c.sourceUrl === sourceUrl),
+    );
+
+    if (!kayit) {
+      return res.status(404).json({ error: "Kampanya bulunamadı." });
+    }
+
+    try {
+      const ozet = await kampanyaOzetle(kayit, { modelKullan });
+      return res.json({
+        id: kayit.id ?? null,
+        bankId: kayit.bankId,
+        baslik: kayit.productName || kayit.title,
+        sourceUrl: kayit.sourceUrl ?? null,
+        ...ozet,
+      });
+    } catch (err) {
+      console.warn("[campaigns/summary]", err);
+      return res.status(500).json({ error: "Özet üretilemedi." });
+    }
   });
 
   router.get("/campaigns", async (_req, res) => {
