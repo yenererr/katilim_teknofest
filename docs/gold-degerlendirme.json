@@ -1,0 +1,827 @@
+{
+  "tumu": {
+    "kayitSayisi": 182,
+    "bankaSayisi": 10,
+    "alanlar": {
+      "kar_payi_orani": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 6,
+        "tn": 53,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 4,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 4
+      },
+      "vade_ay": {
+        "tp": 20,
+        "fp": 25,
+        "fn": 18,
+        "tn": 62,
+        "yanlisDeger": 15,
+        "kanitDogrulandi": 45,
+        "spanOrtusmesi": 14,
+        "kanitliTahmin": 45
+      },
+      "finansman_tutari": {
+        "tp": 11,
+        "fp": 21,
+        "fn": 11,
+        "tn": 44,
+        "yanlisDeger": 4,
+        "kanitDogrulandi": 32,
+        "spanOrtusmesi": 4,
+        "kanitliTahmin": 32
+      },
+      "tahsis_ucreti": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 47,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      },
+      "taksit_sayisi": {
+        "tp": 19,
+        "fp": 7,
+        "fn": 2,
+        "tn": 39,
+        "yanlisDeger": 2,
+        "kanitDogrulandi": 26,
+        "spanOrtusmesi": 11,
+        "kanitliTahmin": 26
+      },
+      "kampanya_suresi": {
+        "tp": 69,
+        "fp": 5,
+        "fn": 6,
+        "tn": 27,
+        "yanlisDeger": 3,
+        "kanitDogrulandi": 74,
+        "spanOrtusmesi": 44,
+        "kanitliTahmin": 74
+      },
+      "masraf_durumu": {
+        "tp": 5,
+        "fp": 3,
+        "fn": 5,
+        "tn": 40,
+        "yanlisDeger": 3,
+        "kanitDogrulandi": 8,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 8
+      },
+      "alisveris_puani": {
+        "tp": 8,
+        "fp": 1,
+        "fn": 3,
+        "tn": 37,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 9,
+        "spanOrtusmesi": 3,
+        "kanitliTahmin": 9
+      },
+      "indirim_orani": {
+        "tp": 1,
+        "fp": 2,
+        "fn": 1,
+        "tn": 44,
+        "yanlisDeger": 1,
+        "kanitDogrulandi": 3,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 3
+      },
+      "odul_miktari": {
+        "tp": 6,
+        "fp": 2,
+        "fn": 0,
+        "tn": 43,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 8,
+        "spanOrtusmesi": 4,
+        "kanitliTahmin": 8
+      },
+      "hedef_kitle": {
+        "tp": 8,
+        "fp": 10,
+        "fn": 11,
+        "tn": 24,
+        "yanlisDeger": 3,
+        "kanitDogrulandi": 18,
+        "spanOrtusmesi": 4,
+        "kanitliTahmin": 18
+      }
+    },
+    "kampanyaTuru": {
+      "dogru": 84,
+      "toplam": 153,
+      "karisiklik": {
+        "Alışveriş Puanı": {
+          "Alışveriş Puanı": 16,
+          "Yatırım Ürünü": 4,
+          "Kart": 1
+        },
+        "Yatırım Ürünü": {
+          "Finansman": 7,
+          "Yatırım Ürünü": 23,
+          "Kart": 1
+        },
+        "Finansman": {
+          "Finansman": 14,
+          "İhtiyaç Finansmanı": 2,
+          "Konut Finansmanı": 4,
+          "Taşıt Finansmanı": 2,
+          "Yatırım Ürünü": 1,
+          "Kart": 7
+        },
+        "Kart": {
+          "Alışveriş Puanı": 18,
+          "Finansman": 3,
+          "Kart": 9,
+          "(tür atanmadı)": 1,
+          "Yatırım Ürünü": 3
+        },
+        "Yeni Müşteri": {
+          "Finansman": 1,
+          "Yatırım Ürünü": 3,
+          "Yeni Müşteri": 1,
+          "Kart": 1
+        },
+        "Konut Finansmanı": {
+          "Konut Finansmanı": 5,
+          "İhtiyaç Finansmanı": 1,
+          "Finansman": 1
+        },
+        "Taşıt Finansmanı": {
+          "Taşıt Finansmanı": 5,
+          "Finansman": 1,
+          "Konut Finansmanı": 1
+        },
+        "İhtiyaç Finansmanı": {
+          "İhtiyaç Finansmanı": 11,
+          "Kart": 3,
+          "Yatırım Ürünü": 1,
+          "Finansman": 2
+        }
+      }
+    },
+    "zorKayitAlanlari": {
+      "kar_payi_orani": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 2,
+        "tn": 35,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 1,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 1
+      },
+      "vade_ay": {
+        "tp": 3,
+        "fp": 3,
+        "fn": 4,
+        "tn": 35,
+        "yanlisDeger": 3,
+        "kanitDogrulandi": 6,
+        "spanOrtusmesi": 3,
+        "kanitliTahmin": 6
+      },
+      "finansman_tutari": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 2,
+        "tn": 30,
+        "yanlisDeger": 1,
+        "kanitDogrulandi": 8,
+        "spanOrtusmesi": 2,
+        "kanitliTahmin": 8
+      },
+      "tahsis_ucreti": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 39,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      },
+      "taksit_sayisi": {
+        "tp": 6,
+        "fp": 4,
+        "fn": 0,
+        "tn": 30,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 10,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 10
+      },
+      "kampanya_suresi": {
+        "tp": 24,
+        "fp": 0,
+        "fn": 0,
+        "tn": 15,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 24,
+        "spanOrtusmesi": 17,
+        "kanitliTahmin": 24
+      },
+      "masraf_durumu": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 2,
+        "tn": 32,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 3,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 3
+      },
+      "alisveris_puani": {
+        "tp": 6,
+        "fp": 1,
+        "fn": 2,
+        "tn": 29,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 7,
+        "spanOrtusmesi": 3,
+        "kanitliTahmin": 7
+      },
+      "indirim_orani": {
+        "tp": 1,
+        "fp": 2,
+        "fn": 1,
+        "tn": 36,
+        "yanlisDeger": 1,
+        "kanitDogrulandi": 3,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 3
+      },
+      "odul_miktari": {
+        "tp": 5,
+        "fp": 2,
+        "fn": 0,
+        "tn": 29,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 7,
+        "spanOrtusmesi": 4,
+        "kanitliTahmin": 7
+      },
+      "hedef_kitle": {
+        "tp": 5,
+        "fp": 7,
+        "fn": 10,
+        "tn": 20,
+        "yanlisDeger": 3,
+        "kanitDogrulandi": 12,
+        "spanOrtusmesi": 2,
+        "kanitliTahmin": 12
+      }
+    }
+  },
+  "gelistirme": {
+    "kayitSayisi": 134,
+    "bankaSayisi": 9,
+    "alanlar": {
+      "kar_payi_orani": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 4,
+        "tn": 10,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 3,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 3
+      },
+      "vade_ay": {
+        "tp": 17,
+        "fp": 23,
+        "fn": 16,
+        "tn": 21,
+        "yanlisDeger": 14,
+        "kanitDogrulandi": 40,
+        "spanOrtusmesi": 11,
+        "kanitliTahmin": 40
+      },
+      "finansman_tutari": {
+        "tp": 9,
+        "fp": 15,
+        "fn": 9,
+        "tn": 6,
+        "yanlisDeger": 3,
+        "kanitDogrulandi": 24,
+        "spanOrtusmesi": 2,
+        "kanitliTahmin": 24
+      },
+      "tahsis_ucreti": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      },
+      "taksit_sayisi": {
+        "tp": 14,
+        "fp": 3,
+        "fn": 2,
+        "tn": 1,
+        "yanlisDeger": 2,
+        "kanitDogrulandi": 17,
+        "spanOrtusmesi": 10,
+        "kanitliTahmin": 17
+      },
+      "kampanya_suresi": {
+        "tp": 46,
+        "fp": 5,
+        "fn": 6,
+        "tn": 4,
+        "yanlisDeger": 3,
+        "kanitDogrulandi": 51,
+        "spanOrtusmesi": 28,
+        "kanitliTahmin": 51
+      },
+      "masraf_durumu": {
+        "tp": 2,
+        "fp": 3,
+        "fn": 3,
+        "tn": 0,
+        "yanlisDeger": 3,
+        "kanitDogrulandi": 5,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 5
+      },
+      "alisveris_puani": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 1,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 2,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 2
+      },
+      "indirim_orani": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      },
+      "odul_miktari": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 1,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 1
+      },
+      "hedef_kitle": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 3,
+        "spanOrtusmesi": 2,
+        "kanitliTahmin": 3
+      }
+    },
+    "kampanyaTuru": {
+      "dogru": 66,
+      "toplam": 114,
+      "karisiklik": {
+        "İhtiyaç Finansmanı": {
+          "Kart": 3,
+          "İhtiyaç Finansmanı": 10,
+          "Yatırım Ürünü": 1,
+          "Finansman": 2
+        },
+        "Kart": {
+          "Kart": 8,
+          "Alışveriş Puanı": 8,
+          "(tür atanmadı)": 1,
+          "Yatırım Ürünü": 3,
+          "Finansman": 1
+        },
+        "Finansman": {
+          "Finansman": 11,
+          "İhtiyaç Finansmanı": 1,
+          "Taşıt Finansmanı": 2,
+          "Yatırım Ürünü": 1,
+          "Kart": 7,
+          "Konut Finansmanı": 3
+        },
+        "Konut Finansmanı": {
+          "İhtiyaç Finansmanı": 1,
+          "Konut Finansmanı": 4,
+          "Finansman": 1
+        },
+        "Yatırım Ürünü": {
+          "Yatırım Ürünü": 19,
+          "Kart": 1,
+          "Finansman": 5
+        },
+        "Taşıt Finansmanı": {
+          "Taşıt Finansmanı": 4,
+          "Finansman": 1,
+          "Konut Finansmanı": 1
+        },
+        "Alışveriş Puanı": {
+          "Alışveriş Puanı": 10,
+          "Yatırım Ürünü": 3,
+          "Kart": 1
+        },
+        "Yeni Müşteri": {
+          "Kart": 1
+        }
+      }
+    },
+    "zorKayitAlanlari": {
+      "kar_payi_orani": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      },
+      "vade_ay": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 2,
+        "tn": 1,
+        "yanlisDeger": 2,
+        "kanitDogrulandi": 2,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 2
+      },
+      "finansman_tutari": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      },
+      "tahsis_ucreti": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      },
+      "taksit_sayisi": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 1,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 1
+      },
+      "kampanya_suresi": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 1,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 1
+      },
+      "masraf_durumu": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      },
+      "alisveris_puani": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      },
+      "indirim_orani": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      },
+      "odul_miktari": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      },
+      "hedef_kitle": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      }
+    }
+  },
+  "sakliTest": {
+    "kayitSayisi": 48,
+    "bankaSayisi": 10,
+    "alanlar": {
+      "kar_payi_orani": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 2,
+        "tn": 43,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 1,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 1
+      },
+      "vade_ay": {
+        "tp": 3,
+        "fp": 2,
+        "fn": 2,
+        "tn": 41,
+        "yanlisDeger": 1,
+        "kanitDogrulandi": 5,
+        "spanOrtusmesi": 3,
+        "kanitliTahmin": 5
+      },
+      "finansman_tutari": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 2,
+        "tn": 38,
+        "yanlisDeger": 1,
+        "kanitDogrulandi": 8,
+        "spanOrtusmesi": 2,
+        "kanitliTahmin": 8
+      },
+      "tahsis_ucreti": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 47,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      },
+      "taksit_sayisi": {
+        "tp": 5,
+        "fp": 4,
+        "fn": 0,
+        "tn": 38,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 9,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 9
+      },
+      "kampanya_suresi": {
+        "tp": 23,
+        "fp": 0,
+        "fn": 0,
+        "tn": 23,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 23,
+        "spanOrtusmesi": 16,
+        "kanitliTahmin": 23
+      },
+      "masraf_durumu": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 2,
+        "tn": 40,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 3,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 3
+      },
+      "alisveris_puani": {
+        "tp": 6,
+        "fp": 1,
+        "fn": 2,
+        "tn": 37,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 7,
+        "spanOrtusmesi": 3,
+        "kanitliTahmin": 7
+      },
+      "indirim_orani": {
+        "tp": 1,
+        "fp": 2,
+        "fn": 1,
+        "tn": 44,
+        "yanlisDeger": 1,
+        "kanitDogrulandi": 3,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 3
+      },
+      "odul_miktari": {
+        "tp": 5,
+        "fp": 2,
+        "fn": 0,
+        "tn": 37,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 7,
+        "spanOrtusmesi": 4,
+        "kanitliTahmin": 7
+      },
+      "hedef_kitle": {
+        "tp": 5,
+        "fp": 10,
+        "fn": 11,
+        "tn": 24,
+        "yanlisDeger": 3,
+        "kanitDogrulandi": 15,
+        "spanOrtusmesi": 2,
+        "kanitliTahmin": 15
+      }
+    },
+    "kampanyaTuru": {
+      "dogru": 18,
+      "toplam": 39,
+      "karisiklik": {
+        "Alışveriş Puanı": {
+          "Alışveriş Puanı": 6,
+          "Yatırım Ürünü": 1
+        },
+        "Yatırım Ürünü": {
+          "Finansman": 2,
+          "Yatırım Ürünü": 4
+        },
+        "Finansman": {
+          "Finansman": 3,
+          "İhtiyaç Finansmanı": 1,
+          "Konut Finansmanı": 1
+        },
+        "Kart": {
+          "Alışveriş Puanı": 10,
+          "Finansman": 2,
+          "Kart": 1
+        },
+        "Yeni Müşteri": {
+          "Finansman": 1,
+          "Yatırım Ürünü": 3,
+          "Yeni Müşteri": 1
+        },
+        "Konut Finansmanı": {
+          "Konut Finansmanı": 1
+        },
+        "Taşıt Finansmanı": {
+          "Taşıt Finansmanı": 1
+        },
+        "İhtiyaç Finansmanı": {
+          "İhtiyaç Finansmanı": 1
+        }
+      }
+    },
+    "zorKayitAlanlari": {
+      "kar_payi_orani": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 2,
+        "tn": 35,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 1,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 1
+      },
+      "vade_ay": {
+        "tp": 3,
+        "fp": 1,
+        "fn": 2,
+        "tn": 34,
+        "yanlisDeger": 1,
+        "kanitDogrulandi": 4,
+        "spanOrtusmesi": 3,
+        "kanitliTahmin": 4
+      },
+      "finansman_tutari": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 2,
+        "tn": 30,
+        "yanlisDeger": 1,
+        "kanitDogrulandi": 8,
+        "spanOrtusmesi": 2,
+        "kanitliTahmin": 8
+      },
+      "tahsis_ucreti": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 39,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 0,
+        "spanOrtusmesi": 0,
+        "kanitliTahmin": 0
+      },
+      "taksit_sayisi": {
+        "tp": 5,
+        "fp": 4,
+        "fn": 0,
+        "tn": 30,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 9,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 9
+      },
+      "kampanya_suresi": {
+        "tp": 23,
+        "fp": 0,
+        "fn": 0,
+        "tn": 15,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 23,
+        "spanOrtusmesi": 16,
+        "kanitliTahmin": 23
+      },
+      "masraf_durumu": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 2,
+        "tn": 32,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 3,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 3
+      },
+      "alisveris_puani": {
+        "tp": 6,
+        "fp": 1,
+        "fn": 2,
+        "tn": 29,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 7,
+        "spanOrtusmesi": 3,
+        "kanitliTahmin": 7
+      },
+      "indirim_orani": {
+        "tp": 1,
+        "fp": 2,
+        "fn": 1,
+        "tn": 36,
+        "yanlisDeger": 1,
+        "kanitDogrulandi": 3,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 3
+      },
+      "odul_miktari": {
+        "tp": 5,
+        "fp": 2,
+        "fn": 0,
+        "tn": 29,
+        "yanlisDeger": 0,
+        "kanitDogrulandi": 7,
+        "spanOrtusmesi": 4,
+        "kanitliTahmin": 7
+      },
+      "hedef_kitle": {
+        "tp": 5,
+        "fp": 7,
+        "fn": 10,
+        "tn": 20,
+        "yanlisDeger": 3,
+        "kanitDogrulandi": 12,
+        "spanOrtusmesi": 2,
+        "kanitliTahmin": 12
+      }
+    }
+  }
+}

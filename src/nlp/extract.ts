@@ -525,6 +525,8 @@ export interface TarihBulgusu extends KuralBulgusu<null> {
   iso: string | null;
   /** Metinde geçtiği hâli */
   gosterim: string | null;
+  /** Tarih bugünden önceyse true — kampanya süresi dolmuş demektir */
+  gecmis: boolean;
 }
 
 const AYLAR: Record<string, number> = {
@@ -554,7 +556,7 @@ const ikiHane = (n: number) => String(n).padStart(2, '0');
  */
 export const kampanyaBitisCikar = (
   metin: string,
-  /** Bugünden önceki tarihler kampanya bitişi sayılmaz (test için sabitlenebilir) */
+  /** Geçmiş/gelecek ayrımı için referans gün (test için sabitlenebilir) */
   bugun: Date = new Date(),
 ): TarihBulgusu => {
   const cumleler = cumlelereBol(metin);
@@ -580,7 +582,7 @@ export const kampanyaBitisCikar = (
       const ay = Number(a);
       const gun = Number(g);
       const iso = `${y}-${ikiHane(ay)}-${ikiHane(gun)}`;
-      if (ay >= 1 && ay <= 12 && gun >= 1 && gun <= 31 && !gecmisMi(iso)) {
+      if (ay >= 1 && ay <= 12 && gun >= 1 && gun <= 31) {
         return {
           deger: null,
           iso,
@@ -590,6 +592,7 @@ export const kampanyaBitisCikar = (
           baslangic: cumle.baslangic,
           bitis: cumle.bitis,
           guven: 0.9,
+          gecmis: gecmisMi(iso),
         };
       }
     }
@@ -601,7 +604,7 @@ export const kampanyaBitisCikar = (
       const ay = AYLAR[son[2].toLowerCase()];
       const yil = son[3];
       const iso = ay ? `${yil}-${ikiHane(ay)}-${ikiHane(gun)}` : '';
-      if (ay && gun >= 1 && gun <= 31 && !gecmisMi(iso)) {
+      if (ay && gun >= 1 && gun <= 31) {
         // Gösterimi özgün metinden al — ASCII katlanmış hâli değil.
         const ozgun = cumle.metin.slice(son.index ?? 0, (son.index ?? 0) + son[0].length);
         return {
@@ -613,12 +616,13 @@ export const kampanyaBitisCikar = (
           baslangic: cumle.baslangic,
           bitis: cumle.bitis,
           guven: 0.9,
+          gecmis: gecmisMi(iso),
         };
       }
     }
   }
 
-  return { ...bosBulgu<null>(), iso: null, gosterim: null };
+  return { ...bosBulgu<null>(), iso: null, gosterim: null, gecmis: false };
 };
 
 /* ------------------------------------------------------------------ */
@@ -660,6 +664,7 @@ export const kampanyaBaslangicCikar = (metin: string): TarihBulgusu => {
           bitis: cumle.bitis,
           // Tek tarih varsa bunun bitiş olma ihtimali yüksek — güven düşürülür.
           guven: sayisalHepsi.length > 1 ? 0.9 : 0.5,
+          gecmis: false,
         };
       }
     }
@@ -682,12 +687,98 @@ export const kampanyaBaslangicCikar = (metin: string): TarihBulgusu => {
           baslangic: cumle.baslangic,
           bitis: cumle.bitis,
           guven: yaziliHepsi.length > 1 ? 0.9 : 0.5,
+          gecmis: false,
         };
       }
     }
   }
 
-  return { ...bosBulgu<null>(), iso: null, gosterim: null };
+  return { ...bosBulgu<null>(), iso: null, gosterim: null, gecmis: false };
+};
+
+/* ------------------------------------------------------------------ */
+/* Taksit sayısı                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Kart kampanyalarındaki taksit sayısı ("4 taksit", "vade farksız 6 taksit").
+ *
+ * Vadeden ayrı bir alandır: vade finansmanın geri ödeme süresi, taksit
+ * sayısı ise alışverişin kaç parçaya bölündüğüdür. "3 yerine 6 taksit"
+ * gibi karşılaştırmalı ifadelerde kampanyanın sunduğu (büyük) sayı alınır.
+ */
+export const taksitSayisiCikar = (metin: string): KuralBulgusu<number> => {
+  const cumleler = cumlelereBol(metin);
+
+  for (const cumle of cumleler) {
+    const katlanmis = asciiKatla(cumle.metin);
+    if (!/taksit/.test(katlanmis)) continue;
+    // "taksit imkânı yoktur" gibi ifadeler taksit vaadi değildir.
+    if (olumsuzlukVarMi(katlanmis)) continue;
+
+    const adaylar: number[] = [];
+    for (const m of katlanmis.matchAll(/(\d{1,2})\s*(?:e|a)?\s*(?:varan\s*)?taksit/g)) {
+      const n = Number(m[1]);
+      if (Number.isFinite(n) && n >= 2 && n <= 60) adaylar.push(n);
+    }
+    if (adaylar.length === 0) continue;
+
+    // "3 yerine 6 taksit": kampanyanın verdiği sayı büyük olandır.
+    const deger = Math.max(...adaylar);
+    return {
+      deger,
+      ham: `${deger} taksit`,
+      kanit: cumle.metin,
+      baslangic: cumle.baslangic,
+      bitis: cumle.bitis,
+      guven: 0.85,
+    };
+  }
+
+  return bosBulgu<number>();
+};
+
+/* ------------------------------------------------------------------ */
+/* Ödül tutarı (TL)                                                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Nakit iade / bonus / hediye çeki gibi TL cinsinden ödüller.
+ * Puan cinsinden ödüller `alisverisPuaniCikar` alanına düşer.
+ *
+ * Kampanyalar çoğu zaman kademeli ödül verir ("en fazla 2.500 TL iade");
+ * ilan edilen üst sınır esas alınır.
+ */
+export const odulTutariCikar = (metin: string): KuralBulgusu<number> => {
+  const cumleler = cumlelereBol(metin);
+  const ODUL_SOZU = /(nakit\s*iade|iade\s*kazan|hediye\s*cek|bonus\s*kazan|odul\s*tutari|degerinde\s*hediye)/;
+
+  for (const cumle of cumleler) {
+    const katlanmis = asciiKatla(cumle.metin);
+    if (!ODUL_SOZU.test(katlanmis)) continue;
+    if (olumsuzlukVarMi(katlanmis)) continue;
+
+    const adaylar: number[] = [];
+    for (const m of katlanmis.matchAll(
+      /(\d[\d.,]*)\s*(?:tl|₺)(?:['’]?\s*(?:ye|a)\s*(?:varan|kadar))?/g,
+    )) {
+      const n = sayiCoz(m[1]);
+      if (n != null && n > 0) adaylar.push(n);
+    }
+    if (adaylar.length === 0) continue;
+
+    const deger = Math.max(...adaylar);
+    return {
+      deger,
+      ham: `${deger} TL`,
+      kanit: cumle.metin,
+      baslangic: cumle.baslangic,
+      bitis: cumle.bitis,
+      guven: 0.8,
+    };
+  }
+
+  return bosBulgu<number>();
 };
 
 /* ------------------------------------------------------------------ */
@@ -850,18 +941,23 @@ export const alisverisPuaniCikar = (metin: string): PuanBulgusu => {
 
   for (const cumle of cumleler) {
     const katlanmis = asciiKatla(cumle.metin);
-    if (!/(puan|mil\b|chip\s*para|bonus)/.test(katlanmis)) continue;
+    // Bankaların sadakat para birimleri: ParafPara, WorldPuan, ChipPara,
+    // Bonus, Mil. Hepsi puan cinsi ödüldür; TL ödülden ayrı tutulur.
+    if (!/(puan|mil\b|chip\s*para|bonus|parafpara|maximil)/.test(katlanmis)) continue;
     if (olumsuzlukVarMi(katlanmis)) continue;
 
+    // "10.000 TL'ye varan puan" gibi ifadelerde birim TL puandır.
     const eslesme = katlanmis.match(
-      /(\d[\d.,]*)\s*(?:tl\s*)?(puan|mil|chip\s*para|bonus)/,
+      /(\d[\d.,]*)\s*(?:tl\s*)?(puan|mil|chip\s*para|parafpara|maximil|bonus)/,
     );
     if (!eslesme) continue;
 
     const deger = sayiCoz(eslesme[1]);
     if (deger === null || deger <= 0) continue;
 
-    const tlPuan = /\d[\d.,]*\s*tl\s*(puan|bonus)/.test(katlanmis);
+    const tlPuan = /\d[\d.,]*\s*tl\s*(puan|bonus|parafpara|chip\s*para)/.test(
+      katlanmis,
+    );
     const birim: PuanBirimi = tlPuan
       ? 'tl_puan'
       : eslesme[2].startsWith('mil')
@@ -934,6 +1030,8 @@ export interface KuralCikarimi {
   hedef_kitle: SegmentBulgusu;
   indirim_orani: KuralBulgusu<number>;
   alisveris_puani: PuanBulgusu;
+  taksit_sayisi: KuralBulgusu<number>;
+  odul_tutari: KuralBulgusu<number>;
   /** Türetilmiş özet — şartname tablosundaki "Masraf Durumu" */
   masraf_durumu: string;
 }
@@ -953,6 +1051,8 @@ export const kuralTabanliCikar = (metin: string): KuralCikarimi => {
     hedef_kitle: hedefKitleCikar(metin),
     indirim_orani: indirimOraniCikar(metin),
     alisveris_puani: alisverisPuaniCikar(metin),
+    taksit_sayisi: taksitSayisiCikar(metin),
+    odul_tutari: odulTutariCikar(metin),
     masraf_durumu: masrafDurumu(tahsis_ucreti, kampanya_avantaji),
   };
 };

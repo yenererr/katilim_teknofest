@@ -750,6 +750,45 @@ npx tsx -e "import('./src/nlp').then(n => console.log(n.kuralTabanliCikar('Aylı
 
 ---
 
+## Model başarı ölçümü (gold veri seti)
+
+İnsan doğrulamalı referans veri seti repoda:
+[`Finansman_Kampanyalari_Referans_Veri_Seti.csv`](Finansman_Kampanyalari_Referans_Veri_Seti.csv)
+— 11 katılım bankasının resmî sayfalarından 182 kampanya metni. Her metin için:
+
+- alan değerleri (kâr payı oranı, vade, taksit, ödül, kampanya süresi …),
+- her değerin **metindeki kanıt ifadesi (span)**,
+- **alanın metinde bulunmadığı** bilgisi (absent),
+- kampanya türü etiketi,
+- zorluk etiketleri (`format_varyant`, `kosullu_aralik`, `terminoloji`,
+  `eksik_bilgi`, `celiskili`),
+- etiketçi listesi ve uzlaştırma (adjudication) bilgisi.
+
+Ölçümü çalıştırmak için:
+
+```bash
+npm run eval:gold
+```
+
+Rapor: [`docs/gold-degerlendirme-raporu.md`](docs/gold-degerlendirme-raporu.md)
+(ham sayılar `docs/gold-degerlendirme.json`). Ölçüm yalnızca deterministik
+kural katmanını çalıştırır — dil modeli çağrısı yoktur, sonuç tekrar
+üretilebilir. Eşikler `goldEval.unit.test.ts` ile kilitlidir; başarı düşerse
+test kırılır.
+
+Öne çıkan üç ölçüt:
+
+- **Alan bazlı F1** — her alan için ayrı precision/recall/F1.
+- **Doğru susma** — alanın kaynakta bulunmadığı etiketli kayıtlarda değer
+  üretmeme oranı. "Veri yoksa uydurma" ilkesi burada sayıya dönüşür.
+- **Span grounding** — üretilen değerin gerekçe cümlesinin kaynak metinde
+  birebir bulunma oranı.
+
+Kural desenleri geliştirilirken yalnızca `set_round1` alt kümesine bakıldı;
+`set_v2` saklı test kümesi olarak ayrıldı ve raporda ayrıca verilir.
+
+---
+
 ## Canlı oran kaynakları
 
 Kâr payı oranı hiçbir zaman tahmin edilmez; bankanın kendi yayımladığı

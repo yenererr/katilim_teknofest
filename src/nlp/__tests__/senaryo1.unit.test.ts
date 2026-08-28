@@ -83,9 +83,17 @@ describe('gerçek banka metinlerinde gürültü elenmesi', () => {
     expect(kuralTabanliCikar(getiri).kar_payi_orani.deger).toBeNull();
   });
 
-  it('geçmiş tarihli kampanyayı bitiş tarihi olarak döndürmez', () => {
+  it('geçmiş tarihli kampanyanın bitişini çıkarır ve süresi dolmuş işaretler', () => {
+    // Tarihi elemek yerine işaretliyoruz: bitiş tarihi kaynakta yazıyor,
+    // kampanyanın aktif olup olmadığı ayrı bir bilgidir.
     const gecmis = 'Kampanya 1.03.2020 tarihine kadar geçerlidir.';
-    expect(kampanyaBitisCikar(gecmis, BUGUN).iso).toBeNull();
+    const b = kampanyaBitisCikar(gecmis, BUGUN);
+    expect(b.iso).toBe('2020-03-01');
+    expect(b.gecmis).toBe(true);
+  });
+
+  it('gelecek tarihli kampanyayı süresi dolmuş saymaz', () => {
+    expect(kampanyaBitisCikar(A_METIN, BUGUN).gecmis).toBe(false);
   });
 
   it('cümle sonu noktası ile yüzdeyi birleştirip sahte oran üretmez', () => {

@@ -19,7 +19,8 @@
     "scrape:campaigns": "tsx scripts/scrape-campaigns.ts",
     "import:campaigns": "tsx scripts/import-campaigns-to-db.ts",
     "import:verified-research": "tsx scripts/import-verified-research-to-db.ts",
-    "speech:start": "speech-service\\venv\\Scripts\\python speech-service\\run_speech_service.py"
+    "speech:start": "speech-service\\venv\\Scripts\\python speech-service\\run_speech_service.py",
+    "eval:gold": "tsx scripts/evaluate-gold.ts"
   },
   "dependencies": {
     "@qdrant/js-client-rest": "^1.19.0",

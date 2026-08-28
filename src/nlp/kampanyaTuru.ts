@@ -51,8 +51,11 @@ const DESENLER: Array<{ tur: KampanyaTuru; desen: RegExp }> = [
       /(katilma\s*hesab|yatirim\s*(hesab|urun|fonu)|altin\s*(hesab|birikim)|kiymetli\s*maden|birikim\s*hesab|kar\s*payi\s*getiri|doviz\s*hesab)/,
   },
   {
+    // Sadakat para birimi veya nakit iade geçen kampanya alışveriş puanı
+    // kampanyasıdır; bunlar kartla yapılsa da ödül alışverişe bağlıdır.
     tur: 'alisveris_puani_kampanyasi',
-    desen: /(alisveris\s*puani|puan\s*kazan|mil\s*kazan|bonus\s*puan|chip\s*para|puan\s*hediye)/,
+    desen:
+      /(alisveris\s*puani|parafpara|paraf\s*para|worldpuan|chip\s*para|maximil|bonus\s*(?:puan|kazan)|(?:puan|mil)\s*(?:kazan|hediye|verilecek)|nakit\s*iade|iade\s*kazan)/,
   },
   {
     tur: 'kart_kampanyasi',
@@ -81,6 +84,23 @@ export type KampanyaTuruSonucu = {
  * Kampanya türünü metin, başlık ve URL'den belirler. Hiçbir tür sinyali
  * yoksa `null` döner — kampanya olmayan sayfaya tür atanmaz.
  */
+/**
+ * Ürün listesi sayfalarını ayırmak için: konut, taşıt, ihtiyaç ve işyeri
+ * finansmanının birlikte anıldığı sayfa tek bir ürünün kampanyası değil,
+ * bankanın finansman kataloğudur. En baştaki eşleşmeye bakan sınıflandırıcı
+ * böyle bir sayfayı yanlışlıkla "konut finansmanı kampanyası" sayardı.
+ */
+const URUN_AILELERI = [
+  /konut\s*(finansman|kredi)/,
+  /tasit\s*(finansman|kredi)/,
+  /ihtiyac\s*(finansman|kredi)/,
+  /(isyeri|ticari|kobi)\s*finansman/,
+];
+
+function urunKatalogMu(katlanmis: string): boolean {
+  return URUN_AILELERI.filter((d) => d.test(katlanmis)).length >= 4;
+}
+
 export function kampanyaTuruBelirle(opts: {
   metin?: string | null;
   baslik?: string | null;
@@ -91,6 +111,10 @@ export function kampanyaTuruBelirle(opts: {
   const katlanmis = asciiKatla(
     [opts.baslik ?? '', opts.url ?? '', opts.metin ?? ''].join(' \n '),
   );
+
+  if (urunKatalogMu(katlanmis)) {
+    return { tur: 'finansman_kampanyasi', kanit: 'finansman ürün kataloğu' };
+  }
 
   for (const { tur, desen } of DESENLER) {
     const eslesme = katlanmis.match(desen);
