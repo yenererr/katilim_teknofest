@@ -74,8 +74,15 @@ export async function ensureSchema(): Promise<{ ok: boolean; message: string }> 
         source_url TEXT NOT NULL,
         source_checked_at TIMESTAMPTZ,
         content_hash TEXT,
+        campaign_type TEXT,
+        fee_status TEXT,
+        target_segments TEXT[] NOT NULL DEFAULT '{}',
+        reward_points NUMERIC,
+        reward_point_unit TEXT,
+        discount_rate NUMERIC,
         payload JSONB NOT NULL DEFAULT '{}'::jsonb,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
       CREATE TABLE IF NOT EXISTS products (
         id TEXT PRIMARY KEY,
@@ -92,13 +99,35 @@ export async function ensureSchema(): Promise<{ ok: boolean; message: string }> 
         extraction_method TEXT,
         model_alias TEXT,
         manual_review_required BOOLEAN DEFAULT FALSE,
+        campaign_type TEXT,
+        fee_status TEXT,
+        target_segments TEXT[] NOT NULL DEFAULT '{}',
         payload JSONB NOT NULL DEFAULT '{}'::jsonb,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
       CREATE INDEX IF NOT EXISTS idx_campaigns_bank_status
         ON campaigns(bank_id, campaign_status, is_active);
       CREATE INDEX IF NOT EXISTS idx_products_bank_active
         ON products(bank_id, is_active);
+    `);
+
+    // Tablolar daha eski bir sürümde oluşturulmuşsa CREATE TABLE IF NOT
+    // EXISTS yeni kolonları eklemez. Şema sürüklenmesi bu yüzden sessizce
+    // oluşuyordu (updated_at eksikliği temizlik sorgusunu bozmuştu).
+    // migrations/002 ile aynı kolonlar burada da garanti altına alınır.
+    await p.query(`
+      ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+      ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS campaign_type TEXT;
+      ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS fee_status TEXT;
+      ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS target_segments TEXT[] NOT NULL DEFAULT '{}';
+      ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS reward_points NUMERIC;
+      ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS reward_point_unit TEXT;
+      ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS discount_rate NUMERIC;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS campaign_type TEXT;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS fee_status TEXT;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS target_segments TEXT[] NOT NULL DEFAULT '{}';
     `);
     for (const b of BANK_SOURCE_CONFIGS) {
       await p.query(
@@ -209,14 +238,24 @@ export async function upsertExtractedRecords(
       try {
         if (recordType === "campaign") {
           await p.query(
-            `INSERT INTO campaigns (id, bank_id, title, category, campaign_status, campaign_start, campaign_end, is_active, source_url, source_checked_at, content_hash, payload)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,TRUE,$8,$9,$10,$11)
+            `INSERT INTO campaigns (id, bank_id, title, category, campaign_status, campaign_start, campaign_end, is_active, source_url, source_checked_at, content_hash, campaign_type, fee_status, target_segments, reward_points, reward_point_unit, discount_rate, payload)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,TRUE,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
              ON CONFLICT (id) DO UPDATE SET
                campaign_status = EXCLUDED.campaign_status,
                title = EXCLUDED.title,
                category = EXCLUDED.category,
+               campaign_start = EXCLUDED.campaign_start,
+               campaign_end = EXCLUDED.campaign_end,
+               campaign_type = EXCLUDED.campaign_type,
+               fee_status = EXCLUDED.fee_status,
+               target_segments = EXCLUDED.target_segments,
+               reward_points = EXCLUDED.reward_points,
+               reward_point_unit = EXCLUDED.reward_point_unit,
+               discount_rate = EXCLUDED.discount_rate,
                payload = EXCLUDED.payload,
                source_checked_at = EXCLUDED.source_checked_at,
+               is_active = TRUE,
+               updated_at = NOW(),
                version = campaigns.version + 1`,
             [
               id,
@@ -224,21 +263,34 @@ export async function upsertExtractedRecords(
               r.title || r.productName,
               r.category,
               r.campaignStatus,
-              r.campaignStart,
-              r.campaignEnd,
+              isoTarih(r.campaignStart),
+              isoTarih(r.campaignEnd),
               r.sourceUrl,
               r.sourceCheckedAt,
               null,
+              r.campaignType ?? null,
+              r.feeStatus ?? null,
+              r.targetSegments ?? [],
+              r.rewardPoints ?? null,
+              r.rewardPointUnit ?? null,
+              r.discountRate ?? null,
               JSON.stringify({ ...r, recordType }),
             ],
           );
         } else {
           await p.query(
-            `INSERT INTO products (id, bank_id, product_name, product_type, category, is_active, source_url, source_checked_at, payload)
-             VALUES ($1,$2,$3,$4,$5,TRUE,$6,$7,$8)
+            `INSERT INTO products (id, bank_id, product_name, product_type, category, is_active, source_url, source_checked_at, campaign_type, fee_status, target_segments, payload)
+             VALUES ($1,$2,$3,$4,$5,TRUE,$6,$7,$8,$9,$10,$11)
              ON CONFLICT (id) DO UPDATE SET
+               product_name = EXCLUDED.product_name,
+               product_type = EXCLUDED.product_type,
+               category = EXCLUDED.category,
+               campaign_type = EXCLUDED.campaign_type,
+               fee_status = EXCLUDED.fee_status,
+               target_segments = EXCLUDED.target_segments,
                payload = EXCLUDED.payload,
                source_checked_at = EXCLUDED.source_checked_at,
+               updated_at = NOW(),
                version = products.version + 1,
                is_active = TRUE`,
             [
@@ -249,6 +301,9 @@ export async function upsertExtractedRecords(
               r.category,
               r.sourceUrl,
               r.sourceCheckedAt,
+              r.campaignType ?? null,
+              r.feeStatus ?? null,
+              r.targetSegments ?? [],
               JSON.stringify(r),
             ],
           );
@@ -270,6 +325,20 @@ export async function upsertExtractedRecords(
     count += 1;
   }
   return count;
+}
+
+/**
+ * DATE sütununa yalnızca geçerli ISO tarih yazılır.
+ *
+ * Çıkarım katmanı bu alanlara "Belirtilmemiş" gibi metinler de koyabiliyor;
+ * bunlar doğrudan gönderilirse Postgres tüm upsert'ü reddeder ve o bankanın
+ * bütün kayıtları kaybolur. Geçersiz değer sütunda null kalır, ham hâli
+ * payload içinde saklanmaya devam eder.
+ */
+function isoTarih(deger: unknown): string | null {
+  if (typeof deger !== "string") return null;
+  const m = deger.match(/^\d{4}-\d{2}-\d{2}/);
+  return m ? m[0] : null;
 }
 
 export async function seedVerifiedResearchRecords(): Promise<{
