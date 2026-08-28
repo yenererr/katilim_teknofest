@@ -750,6 +750,28 @@ npx tsx -e "import('./src/nlp').then(n => console.log(n.kuralTabanliCikar('Aylı
 
 ---
 
+## Canlı oran kaynakları
+
+Kâr payı oranı hiçbir zaman tahmin edilmez; bankanın kendi yayımladığı
+değerden gelir. Bankalar bunu iki farklı biçimde sunuyor:
+
+| Banka | Kaynak | Kapsanan finansman türleri |
+|---|---|---|
+| Vakıf Katılım | Bankanın hesaplama ucu (taksit dâhil) | konut, taşıt, ihtiyaç, işyeri, arsa |
+| Ziraat Katılım | Bankanın hesaplama ucu (taksit dâhil) | konut, taşıt, ihtiyaç, işyeri, arsa |
+| Kuveyt Türk | Bankanın hesaplama ucu (taksit dâhil) | konut, taşıt, ihtiyaç |
+| Albaraka Türk | Hesaplama aracı sayfasındaki ilan oranı | konut, taşıt, ihtiyaç, işyeri, arsa |
+| Türkiye Finans | Finansör servisi (vadeye göre oran) | ihtiyaç |
+
+İlk üçü taksidi kendi ucunda hesaplıyor. Albaraka ve Türkiye Finans yalnızca
+oranı yayımladığı için taksit, Softtech uyumlu yerel ödeme planı motoruyla
+üretiliyor ve yanıtta oranın bankadan alındığı belirtiliyor.
+
+Bir banka bir türde oran yayımlamıyorsa (örneğin Türkiye Finans konut
+finansmanında) sistem oran üretmez; "doğrulanmış veri yok" der.
+
+---
+
 ## Şartname 5.3 / 5.4 alan kapsamı
 
 Çıkarılan her kayıt (`ExtractedFinancialRecord`) şartnamedeki tablo sütunlarını

@@ -503,5 +503,6 @@ export function isPrimaryFinanceCategory(category: string): boolean {
     "financing_fee",
     "financing_campaign",
     "new_customer_financing",
+    "investment_product",
   ].includes(category);
 }

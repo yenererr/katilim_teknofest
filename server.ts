@@ -14,6 +14,7 @@ import {
 import findeksRoutes from "./src/server/routes/findeksRoutes";
 import { createSpeechRouter } from "./src/server/routes/speechRoutes";
 import { bindOfficialScraperBridge, runOfficialScrapeJob } from "./src/server/services/scraper/orchestrator";
+import { BANK_SOURCE_CONFIGS } from "./src/server/services/scraper/bankSourceConfig";
 import {
   ensureSchema,
   hydrateMemoryFromPostgres,
@@ -70,18 +71,16 @@ interface BankScrapeState extends BankScrapeSource {
   indexedAt?: string | null;
 }
 
-const BANK_SCRAPE_SOURCES: BankScrapeSource[] = [
-  { id: "adil-katilim", bankName: "Adil Katılım", urls: ["https://www.adilkatilim.com.tr/"] },
-  { id: "albaraka", bankName: "Albaraka Türk", urls: ["https://www.albarakaturk.com.tr/"] },
-  { id: "dunya-katilim", bankName: "Dünya Katılım", urls: ["https://dunyakatilim.com.tr/"] },
-  { id: "hayat-finans", bankName: "Hayat Finans", urls: ["https://hayatfinans.com.tr/"] },
-  { id: "kuveyt-turk", bankName: "Kuveyt Türk", urls: ["https://www.kuveytturk.com.tr/"] },
-  { id: "tom-katilim", bankName: "T.O.M. Katılım", urls: ["https://www.tombank.com.tr/"] },
-  { id: "emlak-katilim", bankName: "Emlak Katılım", urls: ["https://www.emlakbank.com.tr/"] },
-  { id: "turkiye-finans", bankName: "Türkiye Finans", urls: ["https://www.turkiyefinans.com.tr/"] },
-  { id: "vakif-katilim", bankName: "Vakıf Katılım", urls: ["https://www.vakifkatilim.com.tr/"] },
-  { id: "ziraat-katilim", bankName: "Ziraat Katılım", urls: ["https://www.ziraatkatilim.com.tr/"] },
-];
+/** BDDK katılım bankası listesi — `bankSourceConfig` ile tek kaynak. */
+const BANK_SCRAPE_SOURCES: BankScrapeSource[] = BANK_SOURCE_CONFIGS.filter(
+  (b) => b.enabled,
+).map((b) => ({
+  id: b.bankId,
+  bankName: b.bankName
+    .replace(/\s+Katılım Bankası A\.Ş\.$/u, "")
+    .replace(/\s+Bankası A\.Ş\.$/u, ""),
+  urls: b.seedUrls.map((s) => s.url),
+}));
 
 let scrapeStates: Record<string, BankScrapeState> = Object.fromEntries(
   BANK_SCRAPE_SOURCES.map((source) => [

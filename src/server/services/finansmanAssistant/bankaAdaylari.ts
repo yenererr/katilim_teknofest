@@ -18,8 +18,18 @@ import type {
   FinancingType,
 } from "./finansmanTypes";
 
-/** Canlı hesaplama motoru olan bankalar */
-const CANLI_MOTORLU = new Set(["vakif-katilim", "ziraat-katilim", "kuveyt-turk"]);
+/**
+ * Canlı oran kaynağı olan bankalar. Vakıf/Ziraat/Kuveyt taksidi kendi
+ * uçlarında hesaplıyor; Albaraka ve Türkiye Finans ilan oranını yayımlıyor,
+ * taksit yerel Softtech uyumlu motorla üretiliyor.
+ */
+const CANLI_MOTORLU = new Set([
+  "vakif-katilim",
+  "ziraat-katilim",
+  "kuveyt-turk",
+  "albaraka",
+  "turkiye-finans",
+]);
 
 const VARSAYILAN_VADE: Record<string, number> = {
   konut_finansmani: 120,

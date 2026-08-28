@@ -7,7 +7,7 @@ import type {
 import { isPrimaryFinanceCategory } from "../scraper/bankSourceConfig";
 import { asciiKatla, sayiCoz } from "../../../nlp/normalize";
 import { kuralTabanliCikar, type KuralCikarimi } from "../../../nlp/extract";
-import { kampanyaTuruBelirle, type KampanyaTuru } from "../../../nlp/kampanyaTuru";
+import { kampanyaTuruBelirle, kampanyaTurundenUrunTuru } from "../../../nlp/kampanyaTuru";
 import type { UrunTuru } from "../../../types";
 
 const recordSchema = z.object({
@@ -289,7 +289,7 @@ function nlpAlanlariniTamamla(
   return {
     ...record,
     productType:
-      record.productType ?? urunTuruKodu(record.category) ?? turdenUrunTuru(tur.tur),
+      record.productType ?? urunTuruKodu(record.category) ?? kampanyaTurundenUrunTuru(tur.tur),
     campaignAdvantage: record.campaignAdvantage ?? kural.kampanya_avantaji.ozet ?? null,
     feeStatus: record.feeStatus ?? kural.masraf_durumu,
     campaignType: record.campaignType ?? tur.tur,
@@ -298,38 +298,19 @@ function nlpAlanlariniTamamla(
     rewardPointUnit: record.rewardPointUnit ?? kural.alisveris_puani.birim,
     campaignStart: record.campaignStart ?? kural.kampanya_baslangic.iso,
     minTermMonths: record.minTermMonths ?? kural.vade_ay.min,
+    allocationFeeType:
+      record.allocationFeeType ??
+      (kural.tahsis_ucreti.tipi === "oransal"
+        ? "percentage"
+        : kural.tahsis_ucreti.tipi === "sabit" || kural.tahsis_ucreti.tipi === "yok"
+          ? "fixed"
+          : null),
     targetSegments:
       record.targetSegments.length > 0
         ? record.targetSegments
         : kural.hedef_kitle.deger ?? [],
     evidence,
   };
-}
-
-/**
- * Şartnamedeki "Ürün Türü" sütunu. Değer olarak projenin `UrunTuru` kodları
- * yazılır (okunabilir etiket değil): aday toplama ve karşılaştırma katmanları
- * kaydı bu kodla eşleştiriyor, serbest metin yazmak kaydı eşleşme dışı bırakır.
- * Görünen etiket arayüzde `URUN_TURU_ETIKETLERI` ile üretilir.
- */
-function turdenUrunTuru(tur: KampanyaTuru | null): UrunTuru | null {
-  switch (tur) {
-    case "konut_finansmani_kampanyasi":
-      return "konut_finansmani";
-    case "tasit_finansmani_kampanyasi":
-      return "tasit_finansmani";
-    case "ihtiyac_finansmani_kampanyasi":
-      return "ihtiyac_finansmani";
-    case "kart_kampanyasi":
-      return "kart";
-    case "alisveris_puani_kampanyasi":
-      return "alisveris_puani";
-    case "yatirim_urunu_kampanyasi":
-      return "yatirim";
-    default:
-      // Genel finansman ve yeni müşteri kampanyalarının ürün türü belli değil.
-      return null;
-  }
 }
 
 function urunTuruKodu(category: ContentCategory): UrunTuru | null {
@@ -505,7 +486,11 @@ export function ruleBasedExtractRecords(opts: {
       installmentCount: campaignDetails.installmentCount,
       allocationFeeValue: kural.tahsis_ucreti.deger,
       allocationFeeType:
-        kural.tahsis_ucreti.deger != null ? "fixed" : null,
+        kural.tahsis_ucreti.tipi === "oransal"
+          ? "percentage"
+          : kural.tahsis_ucreti.deger != null
+            ? "fixed"
+            : null,
       rewardAmountTl: campaignDetails.rewardAmountTl,
       rewardType: campaignDetails.rewardType,
       campaignStart: null,

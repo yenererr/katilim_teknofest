@@ -5,6 +5,7 @@ import {
   rehberNiyetiTespit,
   rehberYaniti,
 } from "../bankDirectory";
+import { BANK_SOURCE_CONFIGS } from "../../scraper/bankSourceConfig";
 
 describe("banka rehberi niyet tespiti", () => {
   it("liste sorularını tanır", () => {
@@ -78,6 +79,7 @@ describe("banka adı çözümleme", () => {
     expect(bankaBul("vakıf katılım sitesi")).toBe("vakif-katilim");
     expect(bankaBul("ziraat katılım hakkında")).toBe("ziraat-katilim");
     expect(bankaBul("zıraaat oranı kaç")).toBe("ziraat-katilim");
+    expect(bankaBul("İktisat Katılım kampanyaları")).toBe("iktisat-katilim");
   });
 
   it("banka geçmiyorsa null döner", () => {
@@ -104,6 +106,7 @@ describe("banka rehberi yanıtı", () => {
       .split("\n")
       .filter((s) => /^\d+\.\s/.test(s)).length;
     expect(adet).toBe(satirSayisi);
+    expect(adet).toBe(BANK_SOURCE_CONFIGS.filter((b) => b.enabled).length);
   });
 
   it("resmî site yanıtı gerçek URL döndürür", () => {

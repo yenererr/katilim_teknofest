@@ -1,4 +1,5 @@
 import { asciiKatla } from './normalize';
+import type { UrunTuru } from '../types';
 
 /**
  * Şartname 5.4 — Kampanya Türünün Belirlenmesi.
@@ -100,4 +101,24 @@ export function kampanyaTuruBelirle(opts: {
   if (genel) return { tur: 'finansman_kampanyasi', kanit: genel[0] };
 
   return { tur: null, kanit: null };
+}
+
+/** Şartname kampanya türünü karşılaştırma katmanının `UrunTuru` koduna çevirir. */
+export function kampanyaTurundenUrunTuru(tur: KampanyaTuru | null): UrunTuru | null {
+  switch (tur) {
+    case 'konut_finansmani_kampanyasi':
+      return 'konut_finansmani';
+    case 'tasit_finansmani_kampanyasi':
+      return 'tasit_finansmani';
+    case 'ihtiyac_finansmani_kampanyasi':
+      return 'ihtiyac_finansmani';
+    case 'kart_kampanyasi':
+      return 'kart';
+    case 'alisveris_puani_kampanyasi':
+      return 'alisveris_puani';
+    case 'yatirim_urunu_kampanyasi':
+      return 'yatirim';
+    default:
+      return null;
+  }
 }

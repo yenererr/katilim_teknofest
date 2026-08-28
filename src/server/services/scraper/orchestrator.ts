@@ -1,5 +1,7 @@
 import crypto from "crypto";
 import { BANK_SOURCE_CONFIGS } from "./bankSourceConfig";
+import { kampanyaTurundenUrunTuru } from "../../../nlp/kampanyaTuru";
+import type { UrunTuru } from "../../../types";
 import { getAdapter } from "./adapters";
 import { fetchOfficialPage } from "./pageFetcher";
 import { hashContent } from "./contentCleaner";
@@ -95,33 +97,56 @@ function mapEvidenceKey(field: string): string {
 
 function buildCampaignNote(r: any): string | null {
   const parts = [
+    r.campaignAdvantage,
+    r.feeStatus && r.feeStatus !== "Masraf belirtilmemiş" ? r.feeStatus : null,
     ...(Array.isArray(r.conditions) ? r.conditions : []),
     r.participationMethod,
     ...(Array.isArray(r.evidence)
       ? r.evidence
-          .filter((e: any) => ["summary", "reward", "campaignEnd"].includes(e.field))
+          .filter((e: any) =>
+            ["summary", "reward", "campaignEnd", "campaignAdvantage", "targetSegments"].includes(
+              e.field,
+            ),
+          )
           .map((e: any) => e.text)
       : []),
   ]
     .filter(Boolean)
     .map((s) => String(s).replace(/\s+/g, " ").trim())
     .filter(Boolean);
-  return [...new Set(parts)].slice(0, 3).join(" ") || null;
+  return [...new Set(parts)].slice(0, 4).join(" ") || null;
+}
+
+const URUN_TURU_KODLARI = new Set<UrunTuru>([
+  "konut_finansmani",
+  "tasit_finansmani",
+  "ihtiyac_finansmani",
+  "kart",
+  "katilim_fonu",
+  "yatirim",
+  "alisveris_puani",
+  "diger",
+]);
+
+function urunTuruFromRecord(r: any): UrunTuru {
+  const kod = r.productType ? String(r.productType) : null;
+  if (kod && URUN_TURU_KODLARI.has(kod as UrunTuru)) return kod as UrunTuru;
+  const kampanyadan = kampanyaTurundenUrunTuru(r.campaignType ?? null);
+  if (kampanyadan) return kampanyadan;
+  if (r.category === "housing_finance") return "konut_finansmani";
+  if (r.category === "vehicle_finance") return "tasit_finansmani";
+  if (r.category === "consumer_finance") return "ihtiyac_finansmani";
+  if (r.category === "shopping_finance") return "alisveris_puani";
+  if (r.category === "participation_account") return "katilim_fonu";
+  if (r.category === "investment_product") return "yatirim";
+  if (r.category === "card_campaign") return "kart";
+  return "diger";
 }
 
 function mapExtractedToKatilimProduct(r: any) {
   return {
     urun_adi: r.productName || r.title || "Ürün",
-    urun_turu:
-      r.category === "housing_finance"
-        ? "konut_finansmani"
-        : r.category === "vehicle_finance"
-          ? "tasit_finansmani"
-          : r.category === "consumer_finance"
-            ? "ihtiyac_finansmani"
-            : r.category === "shopping_finance"
-              ? "alisveris_puani"
-              : "diger",
+    urun_turu: urunTuruFromRecord(r),
     musteri_segmenti: r.targetSegments || [],
     kampanya_baslangic: r.campaignStart,
     kampanya_bitis: r.campaignEnd,
@@ -179,6 +204,9 @@ function mapExtractedToKatilimProduct(r: any) {
     _category: r.category,
     _sourceUrl: r.sourceUrl,
     _campaignStatus: r.campaignStatus,
+    _campaignType: r.campaignType ?? null,
+    _campaignAdvantage: r.campaignAdvantage ?? null,
+    _feeStatus: r.feeStatus ?? null,
   };
 }
 

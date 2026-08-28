@@ -1,5 +1,9 @@
 /**
- * Chatbot eşleşmelerini Vakıf / Ziraat / Kuveyt canlı motorlarıyla zenginleştirir.
+ * Chatbot eşleşmelerini bankaların canlı motor/oran kaynaklarıyla zenginleştirir.
+ *
+ * Vakıf, Ziraat ve Kuveyt Türk taksit hesabını kendi uçlarında yapıyor.
+ * Albaraka ve Türkiye Finans yalnızca ilan oranını yayımlıyor; oran canlı
+ * okunup taksit Softtech uyumlu yerel motorla üretiliyor.
  * Canlı uç başarısız olursa Softtech formülü (hesaplaOdemePlani) ile yedekler.
  */
 
@@ -20,6 +24,15 @@ import {
   hesaplaKuveytTurk,
   resolveKuveytProduct,
 } from "../calculators/kuveytTurkCalculator";
+import {
+  albarakaDestekliMi,
+  getAlbarakaFinansmanOrani,
+  ALBARAKA_FINANSMAN_URL,
+} from "../calculators/albarakaFinansmanCalculator";
+import {
+  getTurkiyeFinansFinansmanOrani,
+  TF_FINANSMAN_URL,
+} from "../calculators/turkiyeFinansFinansmanCalculator";
 import { listMemoryProducts } from "../postgres/store";
 import type {
   FinancingConversationState,
@@ -456,6 +469,132 @@ async function calcKuveyt(
 }
 
 /**
+ * Albaraka Türk: banka taksit ucu yayımlamıyor ama hesaplama aracındaki
+ * ilan oranını sayfasında açıkça veriyor. Oran canlı okunur, taksit yerel
+ * Softtech uyumlu motorla üretilir.
+ */
+async function calcAlbaraka(
+  financingKey: string,
+  amount: number,
+  term: number,
+  customRate: number | null | undefined,
+): Promise<FinancingMatch | null> {
+  if (!albarakaDestekliMi(financingKey)) return null;
+
+  if (customRate != null && customRate > 0) {
+    return softtechLocal({
+      bankId: "albaraka",
+      financingKey,
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: customRate,
+      sourceUrl: ALBARAKA_FINANSMAN_URL,
+      label: "Albaraka Türk (özel oran + Softtech motor)",
+    });
+  }
+
+  try {
+    const oran = await getAlbarakaFinansmanOrani(financingKey, term, amount);
+    if (oran) {
+      const row = softtechLocal({
+        bankId: "albaraka",
+        financingKey,
+        amountTl: amount,
+        termMonths: term,
+        profitRatePercent: oran.profitRatePercent,
+        sourceUrl: oran.sourceUrl,
+        label: `Albaraka Türk ilan oranı (${oran.productName}) + Softtech motor`,
+      });
+      if (row && term > oran.maxTermMonths) {
+        row.calculationWarning = `Albaraka bu üründe azami ${oran.maxTermMonths} ay vade veriyor; ${term} ay için oran aynı ürünün ilan oranıdır.`;
+      }
+      return row;
+    }
+  } catch (err) {
+    console.warn("[LiveCalc] albaraka", err instanceof Error ? err.message : err);
+  }
+
+  const published = memoryPublishedRatePercent("albaraka", financingKey, term);
+  if (published) {
+    return softtechLocal({
+      bankId: "albaraka",
+      financingKey,
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: published.ratePercent,
+      sourceUrl: published.sourceUrl || ALBARAKA_FINANSMAN_URL,
+      label: "Albaraka Türk (kayıtlı ilan oranı + Softtech motor)",
+    });
+  }
+  return null;
+}
+
+/**
+ * Türkiye Finans: yalnızca ihtiyaç finansmanı ("Finansör") oranını
+ * yayımlıyor. Konut/taşıtta oran ilan edilmediği için null dönülür —
+ * uydurma oran üretilmez.
+ */
+async function calcTurkiyeFinans(
+  financingKey: string,
+  amount: number,
+  term: number,
+  customRate: number | null | undefined,
+): Promise<FinancingMatch | null> {
+  if (customRate != null && customRate > 0) {
+    return softtechLocal({
+      bankId: "turkiye-finans",
+      financingKey,
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: customRate,
+      sourceUrl: TF_FINANSMAN_URL,
+      label: "Türkiye Finans (özel oran + Softtech motor)",
+    });
+  }
+
+  try {
+    const oran = await getTurkiyeFinansFinansmanOrani(financingKey, term);
+    if (oran) {
+      const row = softtechLocal({
+        bankId: "turkiye-finans",
+        financingKey,
+        amountTl: amount,
+        termMonths: term,
+        profitRatePercent: oran.profitRatePercent,
+        sourceUrl: oran.sourceUrl,
+        label: `Türkiye Finans ilan oranı (${oran.productName}) + Softtech motor`,
+      });
+      if (row && oran.matchedTermMonths !== term) {
+        row.calculationWarning = `Türkiye Finans ${term} ay için oran yayımlamıyor; en yakın vade olan ${oran.matchedTermMonths} ayın oranı kullanıldı.`;
+      }
+      if (row && oran.maxAmountTl != null && amount > oran.maxAmountTl) {
+        row.calculationWarning = `Bu ürünün azami tutarı ${oran.maxAmountTl.toLocaleString("tr-TR")} TL; talep edilen tutar üstünde kaldığı için oran temsilidir.`;
+      }
+      return row;
+    }
+  } catch (err) {
+    console.warn(
+      "[LiveCalc] turkiye-finans",
+      err instanceof Error ? err.message : err,
+    );
+  }
+
+  const published = memoryPublishedRatePercent("turkiye-finans", financingKey, term);
+  if (published) {
+    return softtechLocal({
+      bankId: "turkiye-finans",
+      financingKey,
+      amountTl: amount,
+      termMonths: term,
+      profitRatePercent: published.ratePercent,
+      sourceUrl: published.sourceUrl || TF_FINANSMAN_URL,
+      label: "Türkiye Finans (kayıtlı ilan oranı + Softtech motor)",
+    });
+  }
+  return null;
+}
+
+/**
  * State’teki tutar/vade/tür ile canlı bankaları hesaplar; mevcut satırlara yazar.
  */
 export async function enrichWithLiveCalculators(
@@ -488,6 +627,12 @@ export async function enrichWithLiveCalculators(
   if (shouldUseBank("kuveyt-turk")) {
     calculatorJobs.push(calcKuveyt(financingKey, amount, term, customRate));
   }
+  if (shouldUseBank("albaraka")) {
+    calculatorJobs.push(calcAlbaraka(financingKey, amount, term, customRate));
+  }
+  if (shouldUseBank("turkiye-finans")) {
+    calculatorJobs.push(calcTurkiyeFinans(financingKey, amount, term, customRate));
+  }
 
   if (calculatorJobs.length === 0) {
     return { matches, liveBankIds, warnings };
@@ -503,7 +648,7 @@ export async function enrichWithLiveCalculators(
 
   if (liveRows.length === 0) {
     warnings.push(
-      "Vakıf, Ziraat ve Kuveyt canlı hesaplama uçlarına şu an ulaşılamadı. Doğrulanmış ilan oranı varsa Softtech motoruyla taksit üretildi; yoksa “Oranı %3,99 yap” diyerek yerel motorla hesaplatabilirsiniz.",
+      "Bankaların canlı hesaplama/oran uçlarına şu an ulaşılamadı. Doğrulanmış ilan oranı varsa Softtech motoruyla taksit üretildi; yoksa “Oranı %3,99 yap” diyerek yerel motorla hesaplatabilirsiniz.",
     );
     return { matches, liveBankIds, warnings };
   }

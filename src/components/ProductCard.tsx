@@ -40,10 +40,15 @@ const PRODUCT_TYPE_LABELS: Record<UrunTuru, string> = {
 const SEGMENT_LABELS: Record<MusteriSegmenti, string> = {
   yeni_musteri: 'Yeni müşteri',
   mevcut_musteri: 'Mevcut müşteri',
+  maas_musterisi: 'Maaş müşterisi',
+  emekli: 'Emekli',
+  genc_ogrenci: 'Genç / öğrenci',
+  esnaf_kobi: 'Esnaf / KOBİ',
+  ticari_kurumsal: 'Ticari / kurumsal',
+  kamu_calisani: 'Kamu çalışanı',
   kurumsal: 'Kurumsal',
   kobi: 'KOBİ',
   genc: 'Genç',
-  emekli: 'Emekli',
   tumu: 'Tümü',
 };
 

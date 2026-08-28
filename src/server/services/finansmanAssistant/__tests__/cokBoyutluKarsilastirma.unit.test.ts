@@ -1,4 +1,21 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
+
+/**
+ * Senaryo testleri kazınmış kayıt fikstürleriyle çalışır. Albaraka ve
+ * Türkiye Finans canlı oran kaynağına sahip olduğu için mocklanır: aksi
+ * hâlde test ağa çıkar ve bankanın o günkü oranı fikstürün yerine geçer.
+ */
+vi.mock("../../calculators/albarakaFinansmanCalculator", () => ({
+  ALBARAKA_FINANSMAN_URL: "https://www.albaraka.com.tr/tr/hesaplama-araclari/finansman-hesaplama",
+  albarakaDestekliMi: () => false,
+  getAlbarakaFinansmanOrani: vi.fn(async () => null),
+}));
+
+vi.mock("../../calculators/turkiyeFinansFinansmanCalculator", () => ({
+  TF_FINANSMAN_URL:
+    "https://www.turkiyefinans.com.tr/tr-tr/hesaplama-araclari/Sayfalar/finansman-odeme-plani.aspx",
+  getTurkiyeFinansFinansmanOrani: vi.fn(async () => null),
+}));
 import {
   cokBoyutluKarsilastir,
   cokBoyutluMesaj,

@@ -113,8 +113,8 @@ describe("classification", () => {
 });
 
 describe("adapters", () => {
-  it("on adapter mevcuttur", () => {
-    expect(listAdapters()).toHaveLength(10);
+  it("on bir adapter mevcuttur", () => {
+    expect(listAdapters()).toHaveLength(11);
   });
 
   it("bir adapter bozulsa diğerleri çalışır", async () => {

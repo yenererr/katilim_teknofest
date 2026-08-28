@@ -11,10 +11,15 @@ export type UrunTuru =
 export type MusteriSegmenti =
   | 'yeni_musteri'
   | 'mevcut_musteri'
+  | 'maas_musterisi'
+  | 'emekli'
+  | 'genc_ogrenci'
+  | 'esnaf_kobi'
+  | 'ticari_kurumsal'
+  | 'kamu_calisani'
   | 'kurumsal'
   | 'kobi'
   | 'genc'
-  | 'emekli'
   | 'tumu';
 
 export type KarPayiPeriyot = 'aylik' | 'yillik' | 'belirsiz';

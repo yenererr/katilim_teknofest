@@ -1,6 +1,7 @@
 import { getBankConfig, type BankSourceConfig } from "../bankSourceConfig";
 import { cleanHtmlToDocument, extractLinks } from "../contentCleaner";
 import { validateOfficialBankUrl } from "../urlGuard";
+import { asciiKatla } from "../../../../nlp/normalize";
 import type {
   BankScraperAdapter,
   CampaignStatus,
@@ -30,30 +31,40 @@ export function classifyByUrlAndText(
   url: string,
   text: string,
 ): ContentCategory {
-  const u = url.toLocaleLowerCase("tr-TR");
-  const t = text.toLocaleLowerCase("tr-TR");
+  const h = asciiKatla(`${url} ${text}`);
 
-  if (/kart|bankkart|bonus|puan/.test(u) || /kredi kartı kampanya|kart kampanya/.test(t)) {
+  if (/kart|bankkart|bonus|puan/.test(h) || /kredi karti kampanya|kart kampanya/.test(h)) {
     return "card_campaign";
   }
-  if (/%\s*\d+\s*indirim|indirim kampanya/.test(t) && !/finansman|kâr pay|kar pay/.test(t)) {
+  if (/%\s*\d+\s*indirim|indirim kampanya/.test(h) && !/finansman|kar pay/.test(h)) {
     return "discount_campaign";
   }
-  if (/konut|evim|mortgage|gayrimenkul/.test(u + t)) return "housing_finance";
-  if (/ta[sş][iı]t|ara[cç]|otomobil|araç finans/.test(u + t)) return "vehicle_finance";
-  if (/ihtiya[cç]|tüketici|tuketici|bireysel finansman/.test(u + t)) {
+  if (/konut|evim|mortgage|gayrimenkul/.test(h)) return "housing_finance";
+  if (/tasit|arac|otomobil|arac finans/.test(h)) return "vehicle_finance";
+  if (/ihtiyac|tuketici|bireysel finansman/.test(h)) {
     return "consumer_finance";
   }
-  if (/al[iı][sş]veri[sş]|ma[gğ]aza/.test(u + t)) return "shopping_finance";
-  if (/ticari|mikro finansman|kobi/.test(u + t)) return "commercial_finance";
-  if (/kat[iı]lma hesab|katılım fonu|katilim fonu/.test(u + t)) {
-    return "participation_account";
+  if (/alisveris|magaza/.test(h)) return "shopping_finance";
+  if (/ticari|mikro finansman|kobi/.test(h)) return "commercial_finance";
+  if (
+    /yatirim\s*(urun|kampanya|hesab)|katilim\s*fonu|altin\s*(hesab|birikim)|kiymetli\s*maden|birikim\s*hesab|katilma\s*hesab/.test(
+      h,
+    )
+  ) {
+    return "investment_product";
   }
-  if (/kampanya/.test(u + t) && /finansman|musteri ol|müşteri ol/.test(u + t)) {
+  if (
+    /yeni\s*musteri|hos\s*geldin|ilk\s*kez\s*musteri|musteri\s*ol\s*kampanya|musterimiz\s*olmayan|musteri\s*olan/.test(
+      h,
+    )
+  ) {
+    return "new_customer_financing";
+  }
+  if (/kampanya/.test(h) && /finansman|musteri\s+ol(?:un|maya|mak)\b/.test(h)) {
     return "financing_campaign";
   }
-  if (/ücret|ucret|masraf|tahsis/.test(u + t)) return "financing_fee";
-  if (/kariyer|iş ilanı|kvkk|[cç]erez|blog|bas[iı]n|atm|[sş]ube|gizlilik|bize ula[sş]|yat[iı]r[iı]mc[iı]|m[uü][sş]teri memnuniyet|hakk[iı]m[iı]zda|kat[iı]l[iı]m bankac[iı]l[iı][gğ][iı]/.test(u + t)) {
+  if (/ucret|masraf|tahsis/.test(h)) return "financing_fee";
+  if (/kariyer|is ilani|kvkk|cerez|blog|basin|atm|sube|gizlilik|bize ulas|yatirimci|musteri memnuniyet|hakkimizda|katilim bankaciligi/.test(h)) {
     return "irrelevant";
   }
   return "general_announcement";

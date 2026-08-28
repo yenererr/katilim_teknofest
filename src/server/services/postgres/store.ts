@@ -156,6 +156,7 @@ export async function upsertExtractedRecords(
           "card_campaign",
           "discount_campaign",
           "new_customer_financing",
+          "investment_product",
         ].includes(r.category));
     const recordType = isCampaign ? "campaign" : r.recordType;
 

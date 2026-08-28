@@ -25,6 +25,39 @@ vi.mock("../../calculators/vakifKatilimCalculator", () => ({
   })),
 }));
 
+vi.mock("../../calculators/albarakaFinansmanCalculator", () => ({
+  ALBARAKA_FINANSMAN_URL: "https://www.albaraka.com.tr/tr/hesaplama-araclari/finansman-hesaplama",
+  albarakaDestekliMi: (k: string) =>
+    ["ihtiyac_finansmani", "konut_finansmani", "tasit_finansmani", "isyeri_finansmani"].includes(k),
+  getAlbarakaFinansmanOrani: vi.fn(async () => ({
+    bankId: "albaraka",
+    financingKey: "ihtiyac_finansmani",
+    profitRatePercent: 4.0,
+    productName: "ENGELSİZ HAYAT FİNANSMANI",
+    maxTermMonths: 36,
+    maxAmountTl: 9999999,
+    sourceUrl: "https://www.albaraka.com.tr/tr/hesaplama-araclari/finansman-hesaplama",
+    fetchedAt: new Date().toISOString(),
+  })),
+}));
+
+vi.mock("../../calculators/turkiyeFinansFinansmanCalculator", () => ({
+  TF_FINANSMAN_URL:
+    "https://www.turkiyefinans.com.tr/tr-tr/hesaplama-araclari/Sayfalar/finansman-odeme-plani.aspx",
+  getTurkiyeFinansFinansmanOrani: vi.fn(async () => ({
+    bankId: "turkiye-finans",
+    financingKey: "ihtiyac_finansmani",
+    profitRatePercent: 2.66,
+    productName: "Standart Finansör",
+    matchedTermMonths: 24,
+    maxTermMonths: 36,
+    maxAmountTl: 40000,
+    sourceUrl:
+      "https://www.turkiyefinans.com.tr/tr-tr/hesaplama-araclari/Sayfalar/finansman-odeme-plani.aspx",
+    fetchedAt: new Date().toISOString(),
+  })),
+}));
+
 vi.mock("../../calculators/ziraatKatilimCalculator", () => ({
   ZIRAAT_FINANSMAN_EID: {
     ihtiyac_finansmani: "1",
@@ -79,7 +112,7 @@ describe("liveCalculatorEnrichment", () => {
     vi.clearAllMocks();
   });
 
-  it("scrape oranı olmasa da üç canlı bankayı ekler", async () => {
+  it("scrape oranı olmasa da canlı oran kaynağı olan bankaları ekler", async () => {
     const { enrichWithLiveCalculators } = await import(
       "../liveCalculatorEnrichment"
     );
@@ -120,7 +153,13 @@ describe("liveCalculatorEnrichment", () => {
     );
 
     expect(out.liveBankIds.sort()).toEqual(
-      ["kuveyt-turk", "vakif-katilim", "ziraat-katilim"].sort(),
+      [
+        "albaraka",
+        "kuveyt-turk",
+        "turkiye-finans",
+        "vakif-katilim",
+        "ziraat-katilim",
+      ].sort(),
     );
     const ziraat = out.matches.find((m) => m.bankId === "ziraat-katilim");
     expect(ziraat?.calculationAvailable).toBe(true);

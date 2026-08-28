@@ -63,6 +63,10 @@ export const hayatFinansAdapter = withDetailFilter(
   createBaseAdapter("hayat-finans"),
   ["/kampanyalar/", "/finansmanlar/", "/finansmanlar-is/", "/krediler/"],
 );
+export const iktisatKatilimAdapter = withDetailFilter(
+  createBaseAdapter("iktisat-katilim"),
+  ["/kampanyalar/", "/urun/", "/finansman/"],
+);
 export const kuveytTurkAdapter = withDetailFilter(
   createBaseAdapter("kuveyt-turk"),
   ["/kampanyalar/"],
@@ -94,6 +98,7 @@ const ADAPTERS: Record<string, BankScraperAdapter> = {
   albaraka: albarakaAdapter,
   "dunya-katilim": dunyaKatilimAdapter,
   "hayat-finans": hayatFinansAdapter,
+  "iktisat-katilim": iktisatKatilimAdapter,
   "kuveyt-turk": kuveytTurkAdapter,
   "tom-katilim": tomBankAdapter,
   "emlak-katilim": emlakKatilimAdapter,
