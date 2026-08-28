@@ -21,7 +21,8 @@
     "import:verified-research": "tsx scripts/import-verified-research-to-db.ts",
     "speech:start": "speech-service\\venv\\Scripts\\python speech-service\\run_speech_service.py",
     "eval:gold": "tsx scripts/evaluate-gold.ts",
-    "db:migrate": "tsx scripts/migrate.ts"
+    "db:migrate": "tsx scripts/migrate.ts",
+    "eval:diagnose": "tsx scripts/diagnose-field.ts"
   },
   "dependencies": {
     "@qdrant/js-client-rest": "^1.19.0",

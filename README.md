@@ -859,6 +859,16 @@ test kırılır.
 Kural desenleri geliştirilirken yalnızca `set_round1` alt kümesine bakıldı;
 `set_v2` saklı test kümesi olarak ayrıldı ve raporda ayrıca verilir.
 
+Zayıf çıkan bir alanı iyileştirmek için hataları tek tek listeleyen araç:
+
+```bash
+npm run eval:diagnose -- kar_payi_orani
+```
+
+Uygulanan yöntem (teşhis → gruplama → düzeltme → doğrulama → kilitleme)
+[docs/ALAN-IYILESTIRME-YONTEMI.md](docs/ALAN-IYILESTIRME-YONTEMI.md)
+belgesinde adım adım anlatılmıştır.
+
 ---
 
 ## Canlı oran kaynakları
@@ -936,6 +946,8 @@ Ayrıntılar için [docs/eksiklikler-ve-yol-haritasi.pdf](docs/eksiklikler-ve-yo
 |---|---|
 | [docs/nlp-mimarisi.pdf](docs/nlp-mimarisi.pdf) | NLP yöntemlerinin şartname maddeleriyle eşlenmesi, işleme hattı, ölçüm planı |
 | [docs/eksiklikler-ve-yol-haritasi.pdf](docs/eksiklikler-ve-yol-haritasi.pdf) | Şartname uyum tablosu, eksiklik listesi, fazlı yol haritası |
+| [docs/gold-degerlendirme-raporu.md](docs/gold-degerlendirme-raporu.md) | Alan bazlı başarı ölçümü (otomatik üretilir) |
+| [docs/ALAN-IYILESTIRME-YONTEMI.md](docs/ALAN-IYILESTIRME-YONTEMI.md) | Zayıf alanın teşhis edilip düzeltilmesi için izlenen yöntem |
 
 LaTeX kaynakları aynı dizindedir ve `pdflatex` ile derlenebilir.
 
