@@ -7,7 +7,8 @@ import type {
 import { isPrimaryFinanceCategory } from "../scraper/bankSourceConfig";
 import { asciiKatla, sayiCoz } from "../../../nlp/normalize";
 import { kuralTabanliCikar, type KuralCikarimi } from "../../../nlp/extract";
-import { kampanyaTuruBelirle } from "../../../nlp/kampanyaTuru";
+import { kampanyaTuruBelirle, type KampanyaTuru } from "../../../nlp/kampanyaTuru";
+import type { UrunTuru } from "../../../types";
 
 const recordSchema = z.object({
   title: z.string().nullable().optional(),
@@ -287,7 +288,8 @@ function nlpAlanlariniTamamla(
 
   return {
     ...record,
-    productType: record.productType ?? urunTuruEtiketi(record.category),
+    productType:
+      record.productType ?? urunTuruKodu(record.category) ?? turdenUrunTuru(tur.tur),
     campaignAdvantage: record.campaignAdvantage ?? kural.kampanya_avantaji.ozet ?? null,
     feeStatus: record.feeStatus ?? kural.masraf_durumu,
     campaignType: record.campaignType ?? tur.tur,
@@ -304,25 +306,46 @@ function nlpAlanlariniTamamla(
   };
 }
 
-/** Şartnamedeki "Ürün Türü" sütunu — scraper kategorisinin okunabilir karşılığı. */
-function urunTuruEtiketi(category: ContentCategory): string | null {
+/**
+ * Şartnamedeki "Ürün Türü" sütunu. Değer olarak projenin `UrunTuru` kodları
+ * yazılır (okunabilir etiket değil): aday toplama ve karşılaştırma katmanları
+ * kaydı bu kodla eşleştiriyor, serbest metin yazmak kaydı eşleşme dışı bırakır.
+ * Görünen etiket arayüzde `URUN_TURU_ETIKETLERI` ile üretilir.
+ */
+function turdenUrunTuru(tur: KampanyaTuru | null): UrunTuru | null {
+  switch (tur) {
+    case "konut_finansmani_kampanyasi":
+      return "konut_finansmani";
+    case "tasit_finansmani_kampanyasi":
+      return "tasit_finansmani";
+    case "ihtiyac_finansmani_kampanyasi":
+      return "ihtiyac_finansmani";
+    case "kart_kampanyasi":
+      return "kart";
+    case "alisveris_puani_kampanyasi":
+      return "alisveris_puani";
+    case "yatirim_urunu_kampanyasi":
+      return "yatirim";
+    default:
+      // Genel finansman ve yeni müşteri kampanyalarının ürün türü belli değil.
+      return null;
+  }
+}
+
+function urunTuruKodu(category: ContentCategory): UrunTuru | null {
   switch (category) {
     case "housing_finance":
-      return "Konut finansmanı";
+      return "konut_finansmani";
     case "vehicle_finance":
-      return "Taşıt finansmanı";
+      return "tasit_finansmani";
     case "consumer_finance":
-      return "İhtiyaç finansmanı";
-    case "shopping_finance":
-      return "Alışveriş finansmanı";
-    case "commercial_finance":
-      return "Ticari finansman";
+      return "ihtiyac_finansmani";
     case "participation_account":
-      return "Katılma hesabı";
+      return "katilim_fonu";
     case "card_campaign":
-      return "Kart";
+      return "kart";
     case "investment_product":
-      return "Yatırım ürünü";
+      return "yatirim";
     default:
       return null;
   }
@@ -635,7 +658,7 @@ export function stubCampaignFromUrl(opts: {
     recordType: "campaign",
     category,
     productName: title,
-    productType: urunTuruEtiketi(category),
+    productType: urunTuruKodu(category),
     profitRate: null,
     ratePeriod: null,
     minAmountTl: null,

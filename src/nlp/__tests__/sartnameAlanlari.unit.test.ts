@@ -7,6 +7,7 @@ import {
   kuralTabanliCikar,
 } from '../extract';
 import { KAMPANYA_TURU_ETIKET, kampanyaTuruBelirle } from '../kampanyaTuru';
+import { ruleBasedExtractRecords } from '../../server/services/scraper/evrenExtractor';
 
 /**
  * Şartname 5.3 (finansal bilgi çıkarımı) ve 5.4 (kampanya türü) için
@@ -139,5 +140,25 @@ describe('toplu çıkarım şartname alanlarını içerir', () => {
     expect(c.vade_ay.max).toBe(120);
     expect(c.masraf_durumu).toBe('Dosya masrafı yok');
     expect(c.hedef_kitle.deger).toEqual([]);
+  });
+});
+
+describe('çıkarılan kayıt alanları eşleşebilir kodlar taşır', () => {
+  it('productType karşılaştırma katmanının beklediği kodu üretir', () => {
+    const [kayit] = ruleBasedExtractRecords({
+      bankId: 'ornek-banka',
+      sourceUrl: 'https://www.ornek.com.tr/kampanyalar/konut-finansmani',
+      text:
+        'Yeni ev sahibi olmak isteyen müşterilerimize özel %1,89 kâr payı oranı ile 120 aya ' +
+        'kadar konut finansmanı fırsatı. Kampanya kapsamında 50.000 TL’ye kadar dosya masrafı ' +
+        'alınmamaktadır.',
+      categoryHint: 'housing_finance',
+    });
+
+    // Serbest metin ("Konut finansmanı") yazılırsa kayıt aday toplamada eşleşmez.
+    expect(kayit.productType).toBe('konut_finansmani');
+    expect(kayit.campaignType).toBe('konut_finansmani_kampanyasi');
+    expect(kayit.feeStatus).toBe('Dosya masrafı yok');
+    expect(kayit.campaignAdvantage).toBeTruthy();
   });
 });

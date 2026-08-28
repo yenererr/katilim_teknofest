@@ -124,13 +124,29 @@ function kayitAc(row: HamKayit): HamKayit {
   return row?.payload && typeof row.payload === "object" ? row.payload : row;
 }
 
+/** Finansman anahtarı olarak kabul edilen `productType` kodları. */
+const URUN_TURU_KODLARI = new Set([
+  "konut_finansmani",
+  "tasit_finansmani",
+  "ihtiyac_finansmani",
+  "isyeri_finansmani",
+]);
+
+/**
+ * Kaydın finansman türü. `productType` yalnızca bilinen bir kod ise esas
+ * alınır; serbest metin ("Konut finansmanı") veya finansman dışı bir kod
+ * ("kart", "yatirim") yazılmışsa kategori eşlemesine düşülür — aksi hâlde
+ * kayıt hiçbir türle eşleşmeyip karşılaştırma dışında kalır.
+ */
 function kayitTuru(k: HamKayit): string | null {
-  if (k.productType) return String(k.productType);
+  const tur = k.productType ? String(k.productType) : null;
+  if (tur && URUN_TURU_KODLARI.has(tur)) return tur;
   const kategori = String(k.category ?? "");
   if (kategori === "housing_finance") return "konut_finansmani";
   if (kategori === "vehicle_finance") return "tasit_finansmani";
   if (kategori === "consumer_finance") return "ihtiyac_finansmani";
-  return null;
+  if (kategori === "commercial_finance") return "isyeri_finansmani";
+  return tur;
 }
 
 /** Bir banka için verilen türde en bilgi dolu kazınmış kaydı seçer. */
