@@ -100,6 +100,7 @@ describe("çıkarım başarısı — regresyon eşikleri", () => {
       alisveris_puani: 0.7,
       odul_miktari: 0.7,
       kar_payi_orani: 0.85,
+      finansman_tutari: 0.60,
     };
     for (const [alan, esik] of Object.entries(esikler)) {
       const f1 = metrikHesapla(

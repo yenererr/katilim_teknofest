@@ -27,8 +27,8 @@ veri setine ezberlenip ezberlenmediğini gösterir.
 
 | Küme | Kayıt | Mikro F1 | Precision | Recall | Doğru susma | Tür doğruluğu |
 |---|---:|---:|---:|---:|---:|---:|
-| Geliştirme (`set_round1`) | 134 | 70.1% | 67.3% | 73.2% | 49.5% | 57.9% |
-| **Saklı test (`set_v2`)** | 48 | **69.6%** | 67.1% | 72.4% | 93.8% | 46.2% |
+| Geliştirme (`set_round1`) | 134 | 74.5% | 72.9% | 76.1% | 59.8% | 57.9% |
+| **Saklı test (`set_v2`)** | 48 | **71.9%** | 71.4% | 72.4% | 95.0% | 46.2% |
 
 ## Alan bazlı sonuçlar
 
@@ -36,7 +36,7 @@ veri setine ezberlenip ezberlenmediğini gösterir.
 |---|---:|---:|---:|---:|---:|---:|
 | `kar_payi_orani` | 10 | 100.0% | 90.0% | 94.7% | 100.0% | 100.0% |
 | `vade_ay` | 38 | 44.4% | 52.6% | 48.2% | 71.3% | 100.0% |
-| `finansman_tutari` | 22 | 34.4% | 50.0% | 40.7% | 67.7% | 100.0% |
+| `finansman_tutari` | 22 | 71.4% | 68.2% | 69.8% | 90.8% | 100.0% |
 | `tahsis_ucreti` | 0 | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
 | `taksit_sayisi` | 21 | 73.1% | 90.5% | 80.9% | 84.8% | 100.0% |
 | `kampanya_suresi` | 75 | 93.2% | 92.0% | 92.6% | 84.4% | 100.0% |
@@ -45,7 +45,7 @@ veri setine ezberlenip ezberlenmediğini gösterir.
 | `indirim_orani` | 2 | 33.3% | 50.0% | 40.0% | 95.7% | 100.0% |
 | `odul_miktari` | 6 | 75.0% | 100.0% | 85.7% | 95.6% | 100.0% |
 | `hedef_kitle` | 19 | 44.4% | 42.1% | 43.2% | 70.6% | 100.0% |
-| **Mikro ortalama** | **214** | **67.2%** | **72.9%** | **70.0%** | **85.8%** | **100.0%** |
+| **Mikro ortalama** | **214** | **72.4%** | **74.8%** | **73.6%** | **88.6%** | **100.0%** |
 
 **Doğru susma**: alanın kaynakta bulunmadığı etiketlenmiş kayıtlarda sistemin
 değer üretmeme oranı. Uydurma üretimi doğrudan bu sütunu düşürür.
@@ -93,7 +93,7 @@ sistemin nerede zorlandığını gösterir.
 |---|---:|---:|---:|
 | `kar_payi_orani` | 3 | 80.0% | 94.7% |
 | `vade_ay` | 7 | 46.2% | 48.2% |
-| `finansman_tutari` | 4 | 33.3% | 40.7% |
+| `finansman_tutari` | 4 | 57.1% | 69.8% |
 | `taksit_sayisi` | 6 | 75.0% | 80.9% |
 | `kampanya_suresi` | 24 | 100.0% | 92.6% |
 | `masraf_durumu` | 5 | 75.0% | 55.6% |
@@ -104,6 +104,6 @@ sistemin nerede zorlandığını gösterir.
 
 ## Özet
 
-- Mikro ortalama F1: **70.0%** (precision 67.2%, recall 72.9%)
-- Kaynakta olmayan alanda doğru susma: **85.8%**
+- Mikro ortalama F1: **73.6%** (precision 72.4%, recall 74.8%)
+- Kaynakta olmayan alanda doğru susma: **88.6%**
 - Üretilen değerlerin kanıtı kaynak metinde bulunma oranı: **100.0%**

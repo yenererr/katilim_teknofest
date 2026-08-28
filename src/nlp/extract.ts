@@ -289,7 +289,7 @@ const harcamaOdulTutariMi = (katlanmis: string): boolean =>
   /(harcama|alisveris|parafpara|worldpuan|bankkart\s*lira|puan|nakit\s*iade|hediye|odul)/.test(
     katlanmis,
   ) &&
-  !/(finansman\s+tutar|kredi\s+tutar|kullandirim|azami\s+finansman|finansman\s+limiti)/.test(
+  !/(finansman\s+tutar|kredi\s+tutar|kullandirim|azami\s+finansman|finansman\s+limiti|alisveris\s+finansman)/.test(
     katlanmis,
   );
 
@@ -381,39 +381,146 @@ export interface TutarBulgusu extends KuralBulgusu<null> {
   para_birimi: string;
 }
 
+/**
+ * Tutarın yakın çevresinde bakılacak karakter sayısı. `oranCikar`'daki
+ * pencere yaklaşımının aynısı: cümle çok uzun olabilir; karar tutarın
+ * ±120 karakterlik bağlamına göre verilir.
+ */
+const TUTAR_PENCERESI = 120;
+
+/**
+ * Finansman tutarı **olamayacak** bağlamlar. Pencere içinde bunlardan
+ * biri geçerse tutar adayı elenir. Belgede belirtildiği gibi harcama
+ * eşikleri, hesap bakiyeleri, ücret tabloları, geri ödeme toplamları
+ * ve promosyon tutarları finansman tutarı değildir.
+ */
+const TUTAR_DISLAMA =
+  /(harcama|alisveris\s*esig|fatura|hak\s*edis|promosyon|maas[iı]?\b|bakiye|bulunma\s*yeterli|bulundurma|temassiz|islem\s*limiti|odenecek\s*toplam|toplam\s*tutar.*odeme|talimat|fon\s*alis|acilis\s*bakiye|hesap\s*ac|ekstre\s*ucret|paylasim\s*oran|calisma\s*buyuklugu|getiri\s*oran|stopaj|marj\s*birak|kirilim|temassiz\s*islem|risk\s*tutar|birikim|tmsf|para\s*cek)/;
+
+/**
+ * Tutarın finansman tutarı olduğuna dair olumlu sinyal. Pencere
+ * içinde bunlardan en az biri geçmeli; yoksa cümlede `finansman`
+ * kelimesi geçse bile tutar üretilmez (sayfa genelinde geçen
+ * `finansman` sözcüğü yeterli değildir).
+ */
+const TUTAR_OLUMLU_SINYAL =
+  /(finansman\s*(tutar|miktar|limit)|kredi\s*tutar|kullandirim|azami\s*finansman|finansman\s*limiti|kadar\s*olan|kadar\s*finansman|tl['\u2019]?\s*ye\s*kadar|tl['\u2019]?\s*ya\s*kadar|varan\s*finansman|finansman\s*odeme|alisveris\s*finansman)/;
+
+/**
+ * Doğrudan etiketlenmiş tutar kalıbı: "Finansman Miktarı : 10.000 TL"
+ * gibi yapılar en güvenilir sinyaldir; dışlama kapılarını aşar.
+ */
+const ETIKETLI_TUTAR =
+  /(finansman\s*(miktari|tutari|limiti)|kredi\s*miktari|finansman\s*tutar)\s*:?\s*$/;
+
+/** Etiketin hemen öncesinde bakılacak karakter sayısı. */
+const TUTAR_ETIKET_PENCERESI = 50;
+
 export const tutarCikar = (metin: string): TutarBulgusu => {
   const cumleler = cumlelereBol(metin);
+  const katlanmisMetin = asciiKatla(metin);
 
-  for (const cumle of cumleler) {
-    const katlanmis = asciiKatla(cumle.metin);
-    if (!/(minimum|maksimum|asgari|azami|arasi|tutar|limit|finansman)/.test(katlanmis)) continue;
-    if (UCRET_BAGLAMI.test(katlanmis)) continue; // ücret cümlesiyle karışmasın
-    if (harcamaOdulTutariMi(katlanmis)) continue;
+  type TutarAday = {
+    deger: number;
+    ham: string;
+    cumle: CumleSpan | null;
+    konum: number;
+    puan: number;
+  };
+  const adaylar: TutarAday[] = [];
 
-    TUTAR_DESENI.lastIndex = 0;
-    const tutarlar: number[] = [];
-    let e: RegExpExecArray | null;
-    while ((e = TUTAR_DESENI.exec(cumle.metin)) !== null) {
-      const v = sayiCoz(e[1]);
-      if (v !== null && v >= 1000) tutarlar.push(v);
-    }
+  // Tüm TL tutarlarını tara; her birini bağlam penceresine göre değerlendir.
+  const TUTAR_GLOBAL = new RegExp(TUTAR_DESENI.source, 'giu');
+  let eslesme: RegExpExecArray | null;
+  while ((eslesme = TUTAR_GLOBAL.exec(metin)) !== null) {
+    const v = sayiCoz(eslesme[1]);
+    if (v === null || v < 1000) continue;
 
-    if (tutarlar.length >= 1) {
-      return {
-        deger: null,
-        min: tutarlar.length > 1 ? Math.min(...tutarlar) : tutarlar[0],
-        max: tutarlar.length > 1 ? Math.max(...tutarlar) : null,
-        para_birimi: 'TRY',
-        ham: cumle.metin,
-        kanit: cumle.metin,
-        baslangic: cumle.baslangic,
-        bitis: cumle.bitis,
-        guven: tutarlar.length > 1 ? 0.9 : 0.6,
-      };
-    }
+    const cumle = kanitCumlesi(cumleler, eslesme.index);
+    const cumleBaglami = asciiKatla(cumle?.metin ?? '');
+
+    // Ücret cümlesiyle karışmasın.
+    if (UCRET_BAGLAMI.test(cumleBaglami)) continue;
+    // Harcama/ödül tutarı mı?
+    if (harcamaOdulTutariMi(cumleBaglami)) continue;
+
+    // Pencere bağlamı: ±120 karakter
+    const yakinBaglam = asciiKatla(
+      metin.slice(
+        Math.max(0, eslesme.index - TUTAR_PENCERESI),
+        eslesme.index + eslesme[0].length + TUTAR_PENCERESI,
+      ),
+    );
+
+    // Ön ek — doğrudan etiketlenmiş tutar sinyali
+    const onEk = asciiKatla(
+      metin.slice(
+        Math.max(0, eslesme.index - TUTAR_ETIKET_PENCERESI),
+        eslesme.index,
+      ),
+    );
+    const dogrudanEtiketli = ETIKETLI_TUTAR.test(onEk);
+
+    // Dışlama: pencerede harcama eşiği, bakiye, ücret tablosu vb. varsa ele.
+    // Doğrudan etiketlenmiş tutar dışlama kapılarını aşar.
+    if (!dogrudanEtiketli && TUTAR_DISLAMA.test(yakinBaglam)) continue;
+
+    // Olumlu sinyal: yakın çevrede veya cümle genelinde finansman bağlamı olmalı.
+    const yakinOlumlu = TUTAR_OLUMLU_SINYAL.test(yakinBaglam);
+    const cumleOlumlu =
+      /(finansman|kredi\s*tutar|kullandirim)/.test(cumleBaglami) &&
+      /(tutar|miktar|limit|kadar|varan|azami|asgari|arasi|minimum|maksimum)/.test(cumleBaglami);
+
+    if (!dogrudanEtiketli && !yakinOlumlu && !cumleOlumlu) continue;
+
+    // Puanlama
+    let puan = 0;
+    if (dogrudanEtiketli) puan += 5;
+    if (yakinOlumlu) puan += 3;
+    if (cumleOlumlu) puan += 1;
+    if (/(kadar|varan|azami|maksimum)/.test(yakinBaglam)) puan += 2;
+    if (/(konut|tasit|ihtiyac|arac|alisveris)/.test(yakinBaglam)) puan += 1;
+    // Kısa cümleler daha güvenilir.
+    if ((cumle?.metin.length ?? 0) < 300) puan += 1;
+
+    adaylar.push({
+      deger: v,
+      ham: eslesme[0],
+      cumle,
+      konum: eslesme.index,
+      puan,
+    });
   }
 
-  return { ...bosBulgu<null>(), min: null, max: null, para_birimi: 'TRY' };
+  if (adaylar.length === 0) {
+    return { ...bosBulgu<null>(), min: null, max: null, para_birimi: 'TRY' };
+  }
+
+  // En iyi adayı seç; birden fazla aday varsa aynı cümlede olanları grupla.
+  const enIyi = adaylar.reduce((en, a) => (a.puan > en.puan ? a : en));
+  // Aynı cümledeki diğer tutarları da topla (aralık tespiti için).
+  const ayniCumle = adaylar.filter(
+    (a) =>
+      a.cumle &&
+      enIyi.cumle &&
+      a.cumle.baslangic === enIyi.cumle.baslangic,
+  );
+
+  const tumDegerler = ayniCumle.length > 0
+    ? ayniCumle.map((a) => a.deger)
+    : [enIyi.deger];
+
+  return {
+    deger: null,
+    min: tumDegerler.length > 1 ? Math.min(...tumDegerler) : tumDegerler[0],
+    max: tumDegerler.length > 1 ? Math.max(...tumDegerler) : null,
+    para_birimi: 'TRY',
+    ham: enIyi.cumle?.metin ?? enIyi.ham,
+    kanit: enIyi.cumle?.metin ?? null,
+    baslangic: enIyi.cumle?.baslangic ?? null,
+    bitis: enIyi.cumle?.bitis ?? null,
+    guven: tumDegerler.length > 1 ? 0.9 : 0.6,
+  };
 };
 
 /* ------------------------------------------------------------------ */

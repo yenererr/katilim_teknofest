@@ -205,3 +205,83 @@ describe('kâr payı oranı — uzun bilgilendirme metinleri', () => {
     expect(kuralTabanliCikar(metin).kar_payi_orani.deger).toBeNull();
   });
 });
+
+describe('finansman tutarı — pencere tabanlı bağlam kontrolü', () => {
+  it('harcama eşiği finansman tutarı sayılmamalı', () => {
+    // "10.000 TL ve üzeri ilk harcamaya" bir harcama koşuludur, finansman
+    // tutarı değildir. Gold veri seti bu ayrımı açıkça belirtmiş.
+    const metin =
+      'İhtiyaç Finansmanı kampanyasında 10.000 TL ve üzeri ilk harcamaya ' +
+      'özel 500 TL hediye çeki kazanın.';
+    expect(kuralTabanliCikar(metin).tutar.min).toBeNull();
+    expect(kuralTabanliCikar(metin).tutar.max).toBeNull();
+  });
+
+  it('hesap bakiyesi koşulu elenmelidir', () => {
+    // "minimum 10.000 TL bulunması yeterlidir" bir hesap açılış koşuludur.
+    const metin =
+      'Hadi Black Kredi Kartı\'na sahip olman ve Mega Günlük Hesabında ' +
+      'minimum 10.000 TL bulunması yeterlidir.';
+    expect(kuralTabanliCikar(metin).tutar.min).toBeNull();
+  });
+
+  it('toplam geri ödeme tutarı elenmelidir', () => {
+    // Ödeme planı bilgilendirmesi; finansman miktarı değil, toplam geri ödeme.
+    const metin =
+      'Ödenecek toplam tutar: 13.882 TL. Bu Ödeme Planı bilgi amaçlıdır.';
+    expect(kuralTabanliCikar(metin).tutar.min).toBeNull();
+  });
+
+  it('ücret tablosu tutarı elenmelidir', () => {
+    // Ücret tablosu; ekstre ücreti finansman tutarı değildir.
+    const metin =
+      'Özel Sistem Uyumlu Ekstre Ücreti 500 TL 5.000 TL Aylık sabit tutar tahsil edilmektedir.';
+    expect(kuralTabanliCikar(metin).tutar.min).toBeNull();
+  });
+
+  it('alışveriş finansmanı tutarını yakalamalı', () => {
+    // Kuveyt Türk alışveriş finansmanı sayfalarındaki tutarlar yakalanmalı.
+    const metin =
+      'Alışveriş Finansmanı ödeme seçeneği ile 200.000 TL\'ye kadar olan ' +
+      'alışverişlerinizde 36 aya varan vade imkanından yararlanabilirsiniz.';
+    const sonuc = kuralTabanliCikar(metin).tutar;
+    // "200.000 TL'ye kadar" → min veya max olarak 200000 beklenir.
+    expect(sonuc.min ?? sonuc.max).toBe(200000);
+  });
+
+  it('doğrudan etiketlenmiş tutarı yakalamalı', () => {
+    // "Finansman Miktarı : 10.000 TL" gibi etiketli değerler en güvenilir.
+    const metin =
+      'Hesaplama Örneği Finansman Miktarı : 10.000 TL Taksit Sayısı : 12 ay ' +
+      'Aylık Kar payı oranı : %1,20';
+    const sonuc = kuralTabanliCikar(metin).tutar;
+    expect(sonuc.min).toBe(10000);
+  });
+
+  it('kampanya dışı hesap ürünü sayfasında tutar üretmemeli', () => {
+    // Günlük hesap sayfalarındaki limit bilgisi finansman tutarı değildir.
+    const metin =
+      'TL Günlük Hesapla ilgili cari hesap işlem limitleri dahilinde ' +
+      'minimum tutar en az 5.000 TL, en fazla 5.500.000 TL\'dir.';
+    expect(kuralTabanliCikar(metin).tutar.min).toBeNull();
+  });
+
+  it('promosyon maaş tutarı elenmelidir', () => {
+    // Emekli promosyonundaki maaş kademeleri finansman tutarı değildir.
+    const metin =
+      'Promosyon Taahhütnamesinin imzalanması sonrasında; ' +
+      'bir aylık emekli maaşı 9.999 TL\'ye kadarsa 5.000 TL; ' +
+      '10.000 TL – 14.999 TL arasındaysa 8.000 TL promosyon verilir.';
+    expect(kuralTabanliCikar(metin).tutar.min).toBeNull();
+  });
+
+  it('mevcut doğru çıkarımları korur — finansman tutarı aralığı', () => {
+    // Gerçek bir finansman tutarı aralığı doğru çıkarılmalı.
+    const metin =
+      'Konut finansmanı kampanyasında 100.000 TL ile 500.000 TL arasında ' +
+      'finansman kullandırımı yapılmaktadır.';
+    const sonuc = kuralTabanliCikar(metin).tutar;
+    expect(sonuc.min).toBe(100000);
+    expect(sonuc.max).toBe(500000);
+  });
+});

@@ -24,14 +24,14 @@
         "kanitliTahmin": 45
       },
       "finansman_tutari": {
-        "tp": 11,
-        "fp": 21,
-        "fn": 11,
-        "tn": 44,
+        "tp": 15,
+        "fp": 6,
+        "fn": 7,
+        "tn": 59,
         "yanlisDeger": 4,
-        "kanitDogrulandi": 32,
+        "kanitDogrulandi": 21,
         "spanOrtusmesi": 4,
-        "kanitliTahmin": 32
+        "kanitliTahmin": 21
       },
       "tahsis_ucreti": {
         "tp": 0,
@@ -190,13 +190,13 @@
       },
       "finansman_tutari": {
         "tp": 2,
-        "fp": 6,
+        "fp": 1,
         "fn": 2,
-        "tn": 30,
+        "tn": 35,
         "yanlisDeger": 1,
-        "kanitDogrulandi": 8,
-        "spanOrtusmesi": 2,
-        "kanitliTahmin": 8
+        "kanitDogrulandi": 3,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 3
       },
       "tahsis_ucreti": {
         "tp": 0,
@@ -305,14 +305,14 @@
         "kanitliTahmin": 40
       },
       "finansman_tutari": {
-        "tp": 9,
-        "fp": 15,
-        "fn": 9,
-        "tn": 6,
+        "tp": 13,
+        "fp": 5,
+        "fn": 5,
+        "tn": 16,
         "yanlisDeger": 3,
-        "kanitDogrulandi": 24,
-        "spanOrtusmesi": 2,
-        "kanitliTahmin": 24
+        "kanitDogrulandi": 18,
+        "spanOrtusmesi": 3,
+        "kanitliTahmin": 18
       },
       "tahsis_ucreti": {
         "tp": 0,
@@ -584,13 +584,13 @@
       },
       "finansman_tutari": {
         "tp": 2,
-        "fp": 6,
+        "fp": 1,
         "fn": 2,
-        "tn": 38,
+        "tn": 43,
         "yanlisDeger": 1,
-        "kanitDogrulandi": 8,
-        "spanOrtusmesi": 2,
-        "kanitliTahmin": 8
+        "kanitDogrulandi": 3,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 3
       },
       "tahsis_ucreti": {
         "tp": 0,
@@ -734,13 +734,13 @@
       },
       "finansman_tutari": {
         "tp": 2,
-        "fp": 6,
+        "fp": 1,
         "fn": 2,
-        "tn": 30,
+        "tn": 35,
         "yanlisDeger": 1,
-        "kanitDogrulandi": 8,
-        "spanOrtusmesi": 2,
-        "kanitliTahmin": 8
+        "kanitDogrulandi": 3,
+        "spanOrtusmesi": 1,
+        "kanitliTahmin": 3
       },
       "tahsis_ucreti": {
         "tp": 0,
