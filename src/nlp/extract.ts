@@ -222,8 +222,24 @@ export interface UcretBulgusu extends KuralBulgusu<number> {
   para_birimi: string;
 }
 
-const UCRET_BAGLAMI = /(tahsis|dosya\s*masraf|masraf|ucret|komisyon)/;
+const UCRET_BAGLAMI = /(tahsis|dosya\s*masraf|finansman\s*ucret|ucret.*finansman|masraf|komisyon)/;
 const TUTAR_DESENI = /([\d.,]+)\s*(₺|tl|try|türk\s*liras[ıi]|\$|usd|€|eur)/giu;
+
+const kampanyaKatilimUcretiMi = (katlanmis: string): boolean =>
+  /(sms|mesaj|hemen\s*katil|kampanyaya\s*katil|katilim\s*sms|operator)/.test(
+    katlanmis,
+  ) &&
+  !/(tahsis|dosya\s*masraf|finansman\s*ucret|ucret.*finansman|komisyon)/.test(
+    katlanmis,
+  );
+
+const harcamaOdulTutariMi = (katlanmis: string): boolean =>
+  /(harcama|alisveris|parafpara|worldpuan|bankkart\s*lira|puan|nakit\s*iade|hediye|odul)/.test(
+    katlanmis,
+  ) &&
+  !/(finansman\s+tutar|kredi\s+tutar|kullandirim|azami\s+finansman|finansman\s+limiti)/.test(
+    katlanmis,
+  );
 
 export const ucretCikar = (metin: string): UcretBulgusu => {
   const cumleler = cumlelereBol(metin);
@@ -231,6 +247,7 @@ export const ucretCikar = (metin: string): UcretBulgusu => {
   for (const cumle of cumleler) {
     const katlanmis = asciiKatla(cumle.metin);
     if (!UCRET_BAGLAMI.test(katlanmis)) continue;
+    if (kampanyaKatilimUcretiMi(katlanmis)) continue;
 
     // Önce olumsuzluk: "tahsis ücreti alınmaz" → 0
     if (olumsuzlukVarMi(cumle.metin)) {
@@ -319,6 +336,7 @@ export const tutarCikar = (metin: string): TutarBulgusu => {
     const katlanmis = asciiKatla(cumle.metin);
     if (!/(minimum|maksimum|asgari|azami|arasi|tutar|limit|finansman)/.test(katlanmis)) continue;
     if (UCRET_BAGLAMI.test(katlanmis)) continue; // ücret cümlesiyle karışmasın
+    if (harcamaOdulTutariMi(katlanmis)) continue;
 
     TUTAR_DESENI.lastIndex = 0;
     const tutarlar: number[] = [];

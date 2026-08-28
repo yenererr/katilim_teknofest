@@ -28,7 +28,6 @@ import { BankMark } from './BankMark';
 import { CampaignCarousel } from './CampaignCarousel';
 import { FxConverter } from './FxConverter';
 import { FxRatePanel } from './FxRatePanel';
-import { HeroFinanceArt } from './HeroFinanceArt';
 import { TabKey } from './nav';
 
 /** Ana sayfa canlı karşılaştırma: bankanın kendi API’si olan üç katılım bankası */
@@ -446,23 +445,22 @@ export const HomeView: React.FC<HomeViewProps> = ({
   return (
     <div className="space-y-6">
       {/* ---------- Kahraman alanı ---------- */}
-      <section className="grid items-center gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-        <div>
-          <p className="flex items-center gap-2.5 text-[0.8125rem] font-medium text-brand-700 dark:text-brand-300">
+      <section className="hero-finance-bg relative overflow-hidden rounded-2xl border border-line px-5 py-8 shadow-flat sm:px-8 lg:px-10">
+        <div className="relative z-10 max-w-[43rem]">
+          <p className="flex items-center gap-2.5 text-[0.8125rem] font-medium text-brand-100">
             Bağımsız karşılaştırma
-            <span className="h-1 w-1 rounded-full bg-line-strong" aria-hidden="true" />
+            <span className="h-1 w-1 rounded-full bg-white/40" aria-hidden="true" />
             Güncel banka verileri
           </p>
-          <h1 className="mt-5 max-w-[42rem] text-4xl font-extrabold tracking-[-0.045em] text-balance text-txt sm:text-[52px] sm:leading-[1.07]">
+          <h1 className="mt-5 max-w-[42rem] text-4xl font-extrabold tracking-[-0.045em] text-balance text-white sm:text-[52px] sm:leading-[1.07]">
             Size en uygun katılım finansmanını bulun.
           </h1>
-          <p className="mt-3.5 max-w-xl text-sm leading-[1.9] text-txt-secondary">
-            Katılım bankalarının güncel kâr oranlarını, aylık taksitlerini ve toplam maliyetlerini
-            sade bir tabloda karşılaştırın.
+          <p className="mt-3.5 max-w-xl text-sm leading-[1.9] text-white/85">
+            Katılım bankalarının güncel kâr oranlarını, aylık taksitlerini ve
+            <br />
+            toplam maliyetlerini sade bir tabloda karşılaştırın.
           </p>
         </div>
-
-        <HeroFinanceArt />
       </section>
 
       {/* ---------- Ana içerik + kenar çubuğu ---------- */}

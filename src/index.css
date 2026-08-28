@@ -270,6 +270,22 @@
     linear-gradient(135deg, #0b2828 0%, #102224 48%, #0d2419 100%);
 }
 
+.hero-finance-bg {
+  aspect-ratio: 1915 / 821;
+  background-color: var(--color-surface);
+  background-image: url("/images/hero-finance-bg.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  min-height: 320px;
+}
+
+@media (max-width: 767px) {
+  .hero-finance-bg {
+    min-height: 360px;
+  }
+}
+
 /* ==========================================================================
    Temel katman
    ========================================================================== */

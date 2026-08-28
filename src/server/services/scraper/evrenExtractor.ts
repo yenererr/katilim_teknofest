@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { callEvrenChat } from "../evren/evrenChat";
 import type {
+  CampaignStatus,
   ContentCategory,
   ExtractedFinancialRecord,
 } from "../scraper/scraperTypes";
@@ -154,11 +155,55 @@ function lastDateIso(text: string): string | null {
   return dates.length ? dates[dates.length - 1] : null;
 }
 
+function isPastIsoDate(date: string | null): boolean {
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  const [year, month, day] = date.split("-").map(Number);
+  const end = Date.UTC(year, month - 1, day);
+  const now = new Date();
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return end < today;
+}
+
+function inferCampaignStatusFromText(
+  text: string,
+  campaignEnd: string | null,
+): CampaignStatus {
+  const t = asciiKatla(text);
+  if (
+    /kampanya\s+suresi\s+doldu|suresi\s+doldu|sona\s+ermistir|biten\s+kampanya|kampanya\s+bitti/.test(
+      t,
+    )
+  ) {
+    return "expired";
+  }
+  if (isPastIsoDate(campaignEnd)) return "expired";
+  if (/yakinda|baslayacak/.test(t)) return "upcoming";
+  if (campaignEnd || /devam\s+ediyor|gecerlidir|son\s+basvuru/.test(t)) {
+    return "active";
+  }
+  return "unknown";
+}
+
 function largestTlAmount(text: string): number | null {
   const amounts = [...text.matchAll(/([\d.]+(?:,\d+)?)\s*(?:tl|₺)/giu)]
     .map((m) => sayiCoz(m[1]))
     .filter((n): n is number => n != null && n >= 1000);
   return amounts.length ? Math.max(...amounts) : null;
+}
+
+function rewardAmountFromSentence(sentence: string): number | null {
+  const direct =
+    /([\d.]+(?:,\d+)?)\s*(?:tl|₺)\s*(?:parafpara|bankkart\s*lira|worldpuan|puan|nakit\s+iade|iade|hediye|odul|ödül)/iu.exec(
+      sentence,
+    );
+  if (direct) return sayiCoz(direct[1]);
+
+  const amounts = [...sentence.matchAll(/([\d.]+(?:,\d+)?)\s*(?:tl|₺)/giu)]
+    .map((m) => sayiCoz(m[1]))
+    .filter((n): n is number => n != null && n >= 1);
+  if (amounts.length === 0) return null;
+  // Kampanya cümlelerinde ilk büyük tutar çoğu zaman harcama eşiği, son tutar ödüldür.
+  return amounts[amounts.length - 1] ?? null;
 }
 
 function extractCampaignDetails(text: string): {
@@ -201,15 +246,14 @@ function extractCampaignDetails(text: string): {
   const maxAmountTl = largestTlAmount(conditions.join(" "));
 
   const rewardSentence = sentences.find((s) =>
-    /puan|bankkart\s*lira|worldpuan|nakit\s+iade|hediye|ödül|odul|indirim/i.test(s),
+    /parafpara|puan|bankkart\s*lira|worldpuan|nakit\s+iade|hediye|ödül|odul|indirim/i.test(s),
   );
   let rewardAmountTl: number | null = null;
   let rewardType: string | null = null;
   if (rewardSentence) {
-    const rewardMatch = /([\d.]+(?:,\d+)?)\s*(?:tl|₺)/i.exec(rewardSentence);
-    rewardAmountTl = rewardMatch ? sayiCoz(rewardMatch[1]) : null;
+    rewardAmountTl = rewardAmountFromSentence(rewardSentence);
     const folded = asciiKatla(rewardSentence);
-    rewardType = /puan|bankkart\s*lira|worldpuan/.test(folded)
+    rewardType = /parafpara|puan|bankkart\s*lira|worldpuan/.test(folded)
       ? "puan"
       : /iade/.test(folded)
         ? "nakit_iade"
@@ -417,6 +461,9 @@ export function ruleBasedExtractRecords(opts: {
         evidence: [],
       };
   evidence.push(...campaignDetails.evidence);
+  const campaignStatus = isCampaignPage
+    ? inferCampaignStatusFromText(clipped, campaignDetails.campaignEnd)
+    : "unknown";
 
   const titleFromUrl = (() => {
     try {
@@ -460,6 +507,17 @@ export function ruleBasedExtractRecords(opts: {
         : isCampaignPage
           ? "financing_campaign"
           : category;
+  const hasFinancingAmountSignal =
+    /finansman\s+tutar|kredi\s+tutar|pratik\s+finansman|vade\s+farksiz|kullandirim|azami\s+finansman|finansman\s+limiti/i.test(
+      clipped,
+    );
+  const canUseAmountAsFinancingLimit =
+    !["card_campaign", "discount_campaign", "investment_product", "insurance"].includes(
+      campaignCategory,
+    ) || hasFinancingAmountSignal;
+  const campaignAmountLimit = canUseAmountAsFinancingLimit
+    ? campaignDetails.maxAmountTl
+    : null;
 
   return [
     nlpAlanlariniTamamla({
@@ -475,9 +533,9 @@ export function ruleBasedExtractRecords(opts: {
       ratePeriod,
       minAmountTl: kural.tutar.min,
       maxAmountTl:
-        kural.tutar.max != null && campaignDetails.maxAmountTl != null
-          ? Math.max(kural.tutar.max, campaignDetails.maxAmountTl)
-          : kural.tutar.max ?? campaignDetails.maxAmountTl,
+        kural.tutar.max != null && campaignAmountLimit != null
+          ? Math.max(kural.tutar.max, campaignAmountLimit)
+          : kural.tutar.max ?? campaignAmountLimit,
       minTermMonths: kural.vade_ay.min,
       maxTermMonths:
         kural.vade_ay.max != null && campaignDetails.installmentCount != null
@@ -499,7 +557,7 @@ export function ruleBasedExtractRecords(opts: {
       participationMethod: campaignDetails.participationMethod,
       conditions: campaignDetails.conditions,
       exclusions: campaignDetails.exclusions,
-      campaignStatus: "active",
+      campaignStatus,
       evidence,
       manualReviewRequired: !hasSignal && campaignDetails.conditions.length === 0,
     }, kural, clipped),
@@ -554,6 +612,10 @@ function parseEvrenRecords(
     ) {
       manual = true;
     }
+    const normalizedCampaignStatus =
+      r.recordType === "campaign"
+        ? inferCampaignStatusFromText(opts.text, r.campaignEnd ?? null)
+        : (r.campaignStatus ?? "unknown");
 
     out.push(nlpAlanlariniTamamla({
       bankId: opts.bankId,
@@ -581,7 +643,7 @@ function parseEvrenRecords(
       participationMethod: r.participationMethod ?? null,
       conditions: r.conditions ?? [],
       exclusions: r.exclusions ?? [],
-      campaignStatus: r.campaignStatus ?? "unknown",
+      campaignStatus: normalizedCampaignStatus,
       evidence: r.evidence ?? [],
       manualReviewRequired: manual,
     }, kural, opts.text));

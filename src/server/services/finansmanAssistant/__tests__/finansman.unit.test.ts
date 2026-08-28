@@ -810,4 +810,45 @@ describe("kural tabanlı scraper çıkarımı", () => {
     expect(rows[0].maxTermMonths).toBe(6);
     expect(rows[0].installmentCount).toBe(6);
   });
+
+  it("süresi dolmuş kampanyayı aktif işaretlemez", async () => {
+    const { ruleBasedExtractRecords } = await import(
+      "../../scraper/evrenExtractor"
+    );
+    const rows = ruleBasedExtractRecords({
+      bankId: "kuveyt-turk",
+      sourceUrl:
+        "https://www.kuveytturk.com.tr/kampanyalar/kampanya-arsivi/kuveyt-turkten-eczacilara-ozel-8000-mil",
+      text:
+        "Kuveyt Türk'ten Eczacılara Özel 8.000 Mil! Kampanya Tarihleri 1.09.2024 - 31.12.2024. " +
+        "Kampanya Süresi Doldu! 10.000 TL ve üzeri ilk harcamasına tek seferde 8.000 Mil hediye.",
+      categoryHint: "card_campaign",
+    });
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].campaignEnd).toBe("2024-12-31");
+    expect(rows[0].campaignStatus).toBe("expired");
+  });
+
+  it("ParafPara ödülünü finansman tutarı veya tahsis ücreti sanmaz", async () => {
+    const { ruleBasedExtractRecords } = await import(
+      "../../scraper/evrenExtractor"
+    );
+    const rows = ruleBasedExtractRecords({
+      bankId: "turkiye-emlak-katilim",
+      sourceUrl:
+        "https://www.emlakkatilim.com.tr/tr/bireysel/kampanyalar/kampanya/paraf-ile-secili-e-ticaret-alisverislerinize-1500-tlye-varan-parafpara",
+      text:
+        "Paraf ile 1-31 Ağustos 2026 tarihleri arasında seçili e-ticaret sitelerinde tek seferde yapılacak " +
+        "30.000 TL ve üzeri ilk taksitli harcamaya 1.500 TL ParafPara verilecektir. " +
+        "Kampanya sadece taksitli işlemlerde geçerlidir. Katılım SMS'i ücretsizdir.",
+      categoryHint: "card_campaign",
+    });
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].campaignEnd).toBe("2026-08-31");
+    expect(rows[0].rewardAmountTl).toBe(1500);
+    expect(rows[0].allocationFeeValue).toBeNull();
+    expect(rows[0].profitRate).toBeNull();
+  });
 });

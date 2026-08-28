@@ -15,6 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run src/server/services/qdrant/__tests__/qdrant.integration.test.ts",
+    "eval:campaign-reference": "tsx scripts/evaluate-campaign-reference-dataset.ts",
     "scrape:campaigns": "tsx scripts/scrape-campaigns.ts",
     "import:campaigns": "tsx scripts/import-campaigns-to-db.ts",
     "import:verified-research": "tsx scripts/import-verified-research-to-db.ts",
