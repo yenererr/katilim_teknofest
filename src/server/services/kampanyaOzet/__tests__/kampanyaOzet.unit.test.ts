@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { kuralTabanliOzet } from "../kampanyaOzetle";
+import { kuralTabanliOzet, modelYanitiGecerliMi } from "../kampanyaOzetle";
 import type { ExtractedFinancialRecord } from "../../scraper/scraperTypes";
 
 /**
@@ -105,5 +105,39 @@ describe("kural tabanlı kampanya özeti", () => {
     expect(o.kullanilanAlanlar).toContain("profitRate");
     expect(o.kullanilanAlanlar).toContain("campaignEnd");
     expect(o.kaynak).toBe("kural");
+  });
+});
+
+describe("model yanıtı doğrulaması", () => {
+  it("modelin geri yansıttığı ham bağlam JSON'unu reddeder", () => {
+    // Üretimde gözlenen gerçek hatalı çıktı: model kendisine verilen bağlamı
+    // özet diye geri döndürmüştü ve doğrulanmadan kullanıcıya gösterilmişti.
+    const hamBaglam =
+      '{ "baslik": "Albarakalilara Ozel Ucretsiz Ispark Kampanyasi 1", ' +
+      '"banka": "albaraka", "tema": "general", "oran_periyodu": "unknown", ' +
+      '"tahsis_ucreti_degeri": 0, "tahsis_ucreti_tipi": "fixed" }';
+    expect(modelYanitiGecerliMi(hamBaglam)).toBe(false);
+  });
+
+  it("kod bloğu içinde dönen yanıtı reddeder", () => {
+    const kodBlogu = '```json {"baslik":"x"} ```';
+    expect(modelYanitiGecerliMi(kodBlogu)).toBe(false);
+  });
+
+  it("çok kısa yanıtı reddeder", () => {
+    expect(modelYanitiGecerliMi("Kampanya iyi.")).toBe(false);
+  });
+
+  it("düzgün Türkçe özeti kabul eder", () => {
+    const ozet =
+      "Albarakalılara Özel Ücretsiz İSPARK Kampanyası, alışveriş temalı bir " +
+      "kampanyadır. Kampanya kapsamında tahsis ücreti alınmamaktadır.";
+    expect(modelYanitiGecerliMi(ozet)).toBe(true);
+  });
+
+  it("tırnak içeren geçerli özeti reddetmez", () => {
+    const ozet =
+      'Kampanya "İSPARK" otoparklarında geçerlidir ve 2 gün ücretsiz park hakkı sunar.';
+    expect(modelYanitiGecerliMi(ozet)).toBe(true);
   });
 });

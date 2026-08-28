@@ -236,6 +236,61 @@ Kurallar:
 - Pazarlama dili kullanma; yalnızca alanlardaki olguları aktar.
 - Tutar ve oranları verildiği gibi yaz, yeniden hesaplama.`;
 
+/** Modele verdiğimiz alan adları — çıktıda görünürlerse yanıt ham bağlamdır. */
+const BAGLAM_ALAN_ADLARI = [
+  "baslik",
+  "banka",
+  "kar_payi_orani",
+  "oran_periyodu",
+  "asgari_tutar_tl",
+  "azami_tutar_tl",
+  "asgari_vade_ay",
+  "azami_vade_ay",
+  "taksit_sayisi",
+  "tahsis_ucreti_degeri",
+  "tahsis_ucreti_tipi",
+  "odul_tutari_tl",
+  "odul_turu",
+  "kampanya_baslangic",
+  "kampanya_bitis",
+  "hedef_kitle",
+  "katilim_yontemi",
+  "kosullar",
+  "haric_tutulanlar",
+];
+
+/**
+ * Model yanıtının kullanılabilir bir özet olup olmadığını denetler.
+ *
+ * Model zaman zaman kendisine verilen bağlam JSON'unu olduğu gibi geri
+ * yansıtıyor. Böyle bir çıktı kullanıcıya özet diye gösterilemez; bu yüzden
+ * yanıtın biçimine güvenmek yerine açıkça doğrulanır.
+ */
+export function modelYanitiGecerliMi(metin: string): boolean {
+  const t = metin.trim();
+  if (t.length < 20) return false;
+
+  // JSON veya kod bloğu olarak dönmüş
+  if (/^[[{]/.test(t)) return false;
+  if (/^```/.test(t)) return false;
+
+  // Alan adı ardından iki nokta geliyorsa ham bağlam sızmış demektir.
+  const kucuk = t.toLocaleLowerCase("tr-TR");
+  const alanSizmasi = BAGLAM_ALAN_ADLARI.some(
+    (alan) => kucuk.includes(`"${alan}"`) || kucuk.includes(`${alan}:`),
+  );
+  if (alanSizmasi) return false;
+
+  // Çok sayıda tırnak+iki nokta çifti de JSON habercisidir
+  const anahtarSayisi = (t.match(/"\s*:/g) ?? []).length;
+  if (anahtarSayisi >= 2) return false;
+
+  // Anlamlı Türkçe metin en az birkaç kelime içermeli
+  if (t.split(/\s+/).length < 8) return false;
+
+  return true;
+}
+
 /**
  * Kampanyayı özetler. Model erişilebilirse onu kullanır; erişilemezse veya
  * yanıt boşsa kural tabanlı özete düşer. Her durumda özet üretilir.
@@ -261,6 +316,14 @@ export async function kampanyaOzetle(
     // API anahtarı yoksa istemci null döner — kural tabanlı özet kullanılır.
     const metin = sonuc?.content?.trim();
     if (!metin) return kural;
+
+    // Model bağlam JSON'unu geri yansıtabiliyor; doğrulanmayan yanıt kullanılmaz.
+    if (!modelYanitiGecerliMi(metin)) {
+      return {
+        ...kural,
+        modelUyarisi: "Model yanıtı özet biçiminde değildi; kural tabanlı özet gösteriliyor.",
+      };
+    }
 
     return {
       ozet: metin,
